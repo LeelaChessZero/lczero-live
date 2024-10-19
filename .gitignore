@@ -1,0 +1,6 @@
+static/dist/**
+
+.venv/**
+.db/**
+
+*.pyc
