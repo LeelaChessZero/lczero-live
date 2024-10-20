@@ -1,28 +1,33 @@
 from sanic import Sanic
 from pgn_feed import PgnFeed
 from rich import print
+from uci import UciInteractor
+import sanic.config
+import asyncio
 
 
 class App:
+    app: Sanic
+    config: sanic.config.Config
     pgn_feed: PgnFeed
+    uci: UciInteractor
+    uci_queue: asyncio.Queue
 
-    def __init__(self) -> None: ...
-
-    async def setup(self, app: Sanic):
+    def __init__(self, app: Sanic):
+        self.app = app
         self.config = app.config
-        self.pgn_feed = PgnFeed(self.config.PGN_FEED["url"])
+        self.pgn_feed = None
+        self.pgn_queue = asyncio.Queue()
+        self.uci = None
+        self.uci_queue = asyncio.Queue()
 
     async def run(self):
-        async for game in self.pgn_feed.next_game():
-            if any(
-                attr not in game.headers
-                or game.headers[attr] != self.config.PGN_FEED["filters"][attr]
-                for attr in self.config.PGN_FEED["filters"]
-            ):
-                continue
-
-            print(game)
+        self.pgn_feed = await PgnFeed.create(self.pgn_queue)
+        await self.pgn_feed.connect(self.app.config.PGN_FEED["url"])
+        self.uci = await UciInteractor.create(self.uci_queue)
+        await self.uci.run(self.app.config.UCI_COMMAND_LINE)
+        return self
 
     async def shutdown(self, app: Sanic):
         print("Shutting down")
-        await self.pgn_feed.close()
+        await asyncio.gather(self.pgn_feed.close(), self.uci.close())

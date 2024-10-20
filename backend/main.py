@@ -7,7 +7,9 @@ from tortoise import Tortoise
 import sanic
 
 
-app = sanic.Sanic("LCZeroLive", ctx=App())
+app = sanic.Sanic("LCZeroLive")
+app.ctx.app = App(app)
+
 app.update_config("./config.py")
 
 register_tortoise(
@@ -21,15 +23,12 @@ app.static("/style.css", "../static/style.css", name="style")
 app.static("/dist", "../static/dist")
 app.blueprint(api)
 
-app.add_task(app.ctx.run)
-
-
 @app.before_server_start
 async def setup(app, loop):
     await Tortoise.generate_schemas()
-    await app.ctx.setup(app)
+    app.add_task(app.ctx.app.run)
 
 
 @app.after_server_stop
 async def shutdown(app, loop):
-    await app.ctx.shutdown(app)
+    await app.ctx.app.shutdown(app)
