@@ -8,7 +8,6 @@ import sanic
 
 
 app = sanic.Sanic("LCZeroLive")
-app.ctx.app = App(app)
 
 app.update_config("./config.py")
 
@@ -17,11 +16,12 @@ register_tortoise(
     db_url=app.config.DB_PATH,
     modules=app.config.DB_MODULES,
 )
-
+app.ctx.app = App(app)
 app.static("/", "../static/index.html", name="index")
 app.static("/style.css", "../static/style.css", name="style")
 app.static("/dist", "../static/dist")
 app.blueprint(api)
+
 
 @app.before_server_start
 async def setup(app, loop):
