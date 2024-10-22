@@ -1,6 +1,8 @@
 import ndjson
 import json
 import aiohttp
+import chess.pgn
+import io
 
 
 async def get_tournaments() -> list[dict]:
@@ -28,4 +30,18 @@ async def get_boards(round_id: str) -> dict:
         ) as response:
             response.raise_for_status()
             text = await response.text()
-            return json.loads(text)
+            res = json.loads(text)
+            return res
+
+
+async def fetch_round_pgns(round_id: str) -> list[chess.pgn.Game]:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"https://lichess.org/api/broadcast/round/{round_id}.pgn"
+        ) as response:
+            response.raise_for_status()
+            text = io.StringIO(await response.text())
+            res = []
+            while pgn := chess.pgn.read_game(text):
+                res.append(pgn)
+            return res

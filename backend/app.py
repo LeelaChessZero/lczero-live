@@ -1,13 +1,13 @@
 from sanic import Sanic
-from rich import print
 from sanic.log import logger
 import dataclasses
 import sanic.config
 import asyncio
-import lichess
 from typing import Optional
 from analyzer import Analyzer
-from db import Game, Tournament
+from db import Game
+from game_selector import get_best_game, get_game_candidates, make_game
+from rich import print
 
 
 @dataclasses.dataclass
@@ -33,28 +33,34 @@ class App:
 
     async def _assign_next_game(self, analysis: Analysis):
         assert analysis.game is None
+
+        async def get_game() -> Optional[Game]:
+            # Check whether there are any active games that are not covered.
+            games = await Game.filter(is_finished=False)
+            for game in games:
+                if game.id not in [
+                    a.game.id for a in self.analysises if a.game is not None
+                ]:
+                    logger.info(f"Found ongoing game {game.game_name}")
+                    return game
+            candidates = await get_game_candidates()
+            if candidates:
+                best_candidate = get_best_game(candidates)
+                print(f"Will follow game: {best_candidate.game['name']}")
+                return await make_game(best_candidate)
+
         async with self.game_assignment_lock:
             while True:
-                # Check whether there are any active games that are not covered.
-                games = await Game.filter(is_finished=False)
-                for game in games:
-                    if game.id not in [
-                        a.game.id for a in self.analysises if a.game is not None
-                    ]:
-                        logger.info(f"Found ongoing game {game.game_name}")
-                        analysis.game = game
-                        return
-                # Gather ongoing games from unfinished tournaments.
-                ongoing_tournaments = await Tournament.filter(is_finished=False)
-                tournaments = await asyncio.gather(
-                    *[lichess.get_tournament(t.lichess_id) for t in ongoing_tournaments]
-                )
-                print(tournaments)
+                game = await get_game()
+                if game is not None:
+                    break
+                logger.debug("No games found, waiting for a while.")
                 await asyncio.sleep(10)
+            analysis.game = game
 
     async def _run_single_analyzer(self, analysis: Analysis):
-        while True:
-            await self._assign_next_game(analysis)
+        # while True:
+        await self._assign_next_game(analysis)
 
     async def run(self):
         await asyncio.gather(*[self._run_single_analyzer(a) for a in self.analysises])

@@ -2,11 +2,12 @@ import aiohttp
 import asyncio
 import chess.pgn
 from io import StringIO
+from typing import Optional
 
 
 class PgnFeed:
     queue: asyncio.Queue
-    worker_task: asyncio.Task
+    worker_task: Optional[asyncio.Task]
 
     def __init__(self, queue: asyncio.Queue):
         self.queue = queue
