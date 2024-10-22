@@ -6,13 +6,14 @@ from config import DB_PATH, DB_MODULES
 
 class Tournament(Model):
     id = fields.IntField(primary_key=True)
-    tournament_name = fields.CharField(max_length=255)
+    name = fields.CharField(max_length=255)
     lichess_id = fields.CharField(max_length=16, unique=True)
     is_finished = fields.BooleanField(default=False, index=True)
 
 
 class Game(Model):
     id = fields.IntField(primary_key=True)
+    tournament = fields.ForeignKeyField("lc0live.Tournament", related_name="games")
     game_name = fields.CharField(max_length=255)
     lichess_round_id = fields.CharField(max_length=16)
     lichess_id = fields.CharField(max_length=16)

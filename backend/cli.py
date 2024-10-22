@@ -97,7 +97,7 @@ def add_tournament(tour_id):
     async def run():
         tournament = await lichess.get_tournament(tour_id)
         new_tournament = db.Tournament(
-            tournament_name=tournament["tour"]["name"],
+            name=tournament["tour"]["name"],
             lichess_id=tournament["tour"]["id"],
             is_finished=False,
         )

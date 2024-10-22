@@ -4,7 +4,7 @@ from db import Game, Tournament, GameFilter
 import lichess
 import asyncio
 import chess.pgn
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 from tortoise.transactions import in_transaction
 
 
@@ -13,6 +13,7 @@ class GameInfo:
     game: dict
     round: dict
     tour: dict
+    tour_id: int
 
 
 async def get_game_candidates() -> list[GameInfo]:
@@ -24,24 +25,27 @@ async def get_game_candidates() -> list[GameInfo]:
     # Check for finished tournaments.
     for db_t, tournament in zip(ongoing_tournaments, tournaments):
         if all(r.get("finished", False) for r in tournament["rounds"]):
-            logger.info(
-                f"Tournament {db_t.id} [{db_t.tournament_name}] " "is now finished."
-            )
+            logger.info(f"Tournament {db_t.id} [{db_t.name}] " "is now finished.")
             db_t.is_finished = True
             await db_t.save()
     # Check for cadidate games.
-    candidate_round_ids: list[str] = [
-        r["id"] for t in tournaments for r in t["rounds"] if r.get("ongoing", False)
-    ]
+    candidate_round_ids: list[str] = []
+    candidate_round_tour_ids: list[int] = []
+    for t, db_t in zip(tournaments, ongoing_tournaments):
+        for r in t["rounds"]:
+            if not r.get("ongoing", False):
+                continue
+            candidate_round_ids.append(r["id"])
+            candidate_round_tour_ids.append(db_t.id)
     candidate_rounds = await asyncio.gather(
         *[lichess.get_boards(rid) for rid in candidate_round_ids]
     )
     candidates: list[GameInfo] = []
-    for r in candidate_rounds:
+    for r, tid in zip(candidate_rounds, candidate_round_tour_ids):
         for g in r["games"]:
             if g.get("status") != "*":
                 continue
-            candidates.append(GameInfo(g, r["round"], r["tour"]))
+            candidates.append(GameInfo(g, r["round"], r["tour"], tid))
     return candidates
 
 
@@ -85,6 +89,7 @@ async def make_game(info: GameInfo) -> Game:
 
     async with in_transaction():
         game = await Game.create(
+            tournament_id=info.tour_id,
             game_name=info.game["name"],
             lichess_round_id=info.round["id"],
             lichess_id=info.game["id"],

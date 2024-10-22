@@ -22,6 +22,9 @@ class App:
     analysises: list[Analysis]
     game_assignment_lock: asyncio.Lock
 
+    def get_games_being_analyzed(self) -> list[Game]:
+        return [a.game for a in self.analysises if a.game is not None]
+
     def __init__(self, app: Sanic):
         self.app = app
         self.config = app.config
