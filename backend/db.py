@@ -13,7 +13,9 @@ class Tournament(Model):
 
 class Game(Model):
     id = fields.IntField(primary_key=True)
-    tournament = fields.ForeignKeyField("lc0live.Tournament", related_name="games")
+    tournament = fields.ForeignKeyField(
+        model_name="lc0live.Tournament", related_name="games"
+    )
     game_name = fields.CharField(max_length=255)
     lichess_round_id = fields.CharField(max_length=16)
     lichess_id = fields.CharField(max_length=16)
@@ -31,7 +33,7 @@ class Game(Model):
 
 
 class GameFilter(Model):
-    game = fields.ForeignKeyField("lc0live.Game", related_name="filters")
+    game = fields.ForeignKeyField(model_name="lc0live.Game", related_name="filters")
     key = fields.CharField(max_length=255)
     value = fields.CharField(max_length=255)
 

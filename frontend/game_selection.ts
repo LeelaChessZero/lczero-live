@@ -58,7 +58,7 @@ export class GameSelection {
       const option = document.createElement('option');
       option.value = game.id.toString();
       const prefix = game.isBeingAnalyzed ? '🔴 ' :
-          (!game.isFinished)              ? '⚪ ' :
+          (!game.isFinished)              ? '⏸️ ' :
                                             '';
       option.textContent = prefix + game.name;
       this.element.appendChild(option);
