@@ -1,8 +1,14 @@
-import { GameSelection } from "./game_selection";
+import {GameSelection} from './game_selection';
 
 export class App {
-    private gameSelection: GameSelection = new GameSelection;
+  private gameSelection: GameSelection;
 
-    public initialize(): void {
-    }
+  constructor() {
+    this.gameSelection = new GameSelection(
+        document.getElementById('game-selection') as HTMLSelectElement);
+    // add observer
+    this.gameSelection.fetchGamesFromServer();
+  }
+
+  public initialize(): void {}
 };

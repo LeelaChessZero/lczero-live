@@ -4,7 +4,6 @@ from types import ModuleType
 DB_PATH = "sqlite://../.db/lczero_live.db"
 # DB_PATH = "sqlite://:memory:"
 DB_MODULES: dict[str, Iterable[str | ModuleType]] = {"lc0live": ["db"]}
-
 UCI_ANALYZERS = [
     {
         "command": [
@@ -27,3 +26,6 @@ UCI_ANALYZERS = [
         ]
     }
 ]
+
+
+OAS = False

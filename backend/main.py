@@ -8,7 +8,6 @@ import sanic
 
 
 app = sanic.Sanic("LCZeroLive")
-
 app.update_config("./config.py")
 
 register_tortoise(

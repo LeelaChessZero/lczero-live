@@ -12,8 +12,8 @@ api = Blueprint("api", url_prefix="/api")
 class GameData:
     id: int
     name: str
-    is_finished: bool
-    is_being_analyzed: bool
+    isFinished: bool
+    isBeingAnalyzed: bool
 
 
 @dataclasses.dataclass
@@ -34,8 +34,8 @@ async def games(request):
                         id=game.id,
                         name=f"{game.game_name} ({game.round_name}) --- "
                         f"{game.tournament.name}",
-                        is_finished=game.is_finished,
-                        is_being_analyzed=game.id in analyzed_games,
+                        isFinished=game.is_finished,
+                        isBeingAnalyzed=game.id in analyzed_games,
                     )
                     for game in games
                 ]

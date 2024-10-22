@@ -4,7 +4,7 @@ from db import Game, Tournament, GameFilter
 import lichess
 import asyncio
 import chess.pgn
-from typing import Optional, Any, Tuple
+from typing import Optional, Any
 from tortoise.transactions import in_transaction
 
 
