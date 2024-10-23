@@ -23,7 +23,6 @@ class App:
         self.config = app.config
         self.analysises = [Analyzer(cfg) for cfg in self.config.UCI_ANALYZERS]
         self.game_assignment_lock = asyncio.Lock()
-        self.idle_worker_counter = asyncio.Semaphore(len(self.analysises))
 
     async def _assign_next_game(self, analyzer: Analyzer):
         assert analyzer.get_game() is None
@@ -52,8 +51,10 @@ class App:
             await analyzer.set_game(game)
 
     async def _run_single_analyzer(self, analyzer: Analyzer):
-        # while True:
-        await self._assign_next_game(analyzer)
+        while True:
+            await self._assign_next_game(analyzer)
+            await analyzer.run()
+            logger.info("Analyzer finished, freeing the worker.")
 
     async def run(self):
         await asyncio.gather(*[self._run_single_analyzer(a) for a in self.analysises])

@@ -7,16 +7,16 @@ import chess
 
 
 class Analyzer:
-    config: dict
-    game: Optional[db.Game]
-    pgn_feed: Optional[PgnFeed]
-    pgn_feed_queue: asyncio.Queue
+    _config: dict
+    _game: Optional[db.Game]
+    _pgn_feed: Optional[PgnFeed]
+    _pgn_feed_queue: asyncio.Queue
 
     def __init__(self, uci_config: dict):
-        self.config = uci_config
+        self._config = uci_config
         self._game = None
-        self.pgn_feed = None
-        self.pgn_feed_queue = asyncio.Queue()
+        self._pgn_feed = None
+        self._pgn_feed_queue = asyncio.Queue()
 
     # returns the last ply number.
     async def _update_game_db(self, game: chess.pgn.Game) -> db.GamePosition:
@@ -63,12 +63,13 @@ class Analyzer:
             )
         return last_pos
 
-    async def _feed_task(self):
-        while True:
-            game: Optional[chess.pgn.Game] = await self.pgn_feed_queue.get()
-            if game is None:
-                break
-            last_pos: db.GamePosition = await self._update_game_db(game)
+    async def _process_update(self, game: chess.pgn.Game):
+        last_pos: db.GamePosition = await self._update_game_db(game)
+        if game.headers["Result"] != "*":
+            assert self._game
+            await db.Game.filter(id=self._game.id).update(is_finished=True)
+            await self.disconnect()
+            return
 
     def get_game(self) -> Optional[db.Game]:
         return self._game
@@ -83,11 +84,17 @@ class Analyzer:
             "https://lichess.org/api/stream/broadcast/round/"
             f"{game.lichess_round_id}.pgn"
         )
-        self.pgn_feed_queue = asyncio.Queue()
-        self.pgn_feed = await PgnFeed.create(
-            queue=self.pgn_feed_queue, pgn_url=url, filters=filters
+        self._pgn_feed_queue = asyncio.Queue()
+        self._pgn_feed = await PgnFeed.create(
+            queue=self._pgn_feed_queue, pgn_url=url, filters=filters
         )
-        asyncio.create_task(self._feed_task())
+
+    async def run(self):
+        while True:
+            game: Optional[chess.pgn.Game] = await self._pgn_feed_queue.get()
+            if game is None:
+                break
+            await self._process_update(game)
 
         # self.pgn_feed = None
         # self.pgn_queue = asyncio.Queue()
@@ -100,7 +107,7 @@ class Analyzer:
         # await self.uci.run(self.app.config.UCI_COMMAND_LINE)
 
     async def disconnect(self):
-        await self.pgn_feed_queue.put(None)
+        await self._pgn_feed_queue.put(None)
         self._game = None
-        if self.pgn_feed:
-            await self.pgn_feed.disconnect()
+        if self._pgn_feed:
+            await self._pgn_feed.disconnect()
