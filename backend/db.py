@@ -41,9 +41,7 @@ class GameFilter(Model):
 # pyright: reportIncompatibleVariableOverride=false
 class GamePosition(Model):
     id = fields.IntField(primary_key=True)
-    game = fields.ForeignKeyField(
-        model_name="lc0live.Game", related_name="positions"
-    )
+    game = fields.ForeignKeyField(model_name="lc0live.Game", related_name="positions")
     # Zero for startpos, 2×move-1 after white move, 2×move after black move.
     ply_number = fields.IntField()
     fen = fields.CharField(max_length=128)
@@ -52,6 +50,8 @@ class GamePosition(Model):
     # Zero-based ply number
     white_clock = fields.IntField(null=True)
     black_clock = fields.IntField(null=True)
+
+    thinkings: fields.ReverseRelation["GamePositionThinking"]
 
     class Meta:
         unique_together = (("game_id", "ply_number"),)
@@ -62,6 +62,11 @@ class GamePositionThinking(Model):
     position = fields.ForeignKeyField(
         model_name="lc0live.GamePosition", related_name="thinkings"
     )
+    nodes = fields.IntField()
+    q_score = fields.IntField()
+    win_score = fields.IntField()
+    draw_score = fields.IntField()
+    loss_score = fields.IntField()
 
 
 class GamePositionEvaluation(Model):
@@ -75,7 +80,7 @@ class GamePositionEvaluation(Model):
     seldepth = fields.IntField()
 
 
-class GamePositionEvaluationPV(Model):
+class GamePositionEvaluationMove(Model):
     id = fields.IntField(primary_key=True)
     evaluation = fields.ForeignKeyField(
         model_name="lc0live.GamePositionEvaluation", related_name="pv"

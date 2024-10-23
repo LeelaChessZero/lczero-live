@@ -50,6 +50,10 @@ export class GameSelection {
         .catch(error => console.error('Error fetching games:', error));
   }
 
+  public getSelectedGameId(): number {
+    return parseInt(this.element.value);
+  }
+
   private renderGames(): void {
     this.element.innerHTML = '';
     let selectedGame: GameData|undefined;
@@ -79,7 +83,7 @@ export class GameSelection {
 
   private notifyObservers(): void {
     this.observers.forEach(observer => {
-      observer.onGameSelected(this.games[0].id);
+      observer.onGameSelected(parseInt(this.element.value));
     });
   }
 };
