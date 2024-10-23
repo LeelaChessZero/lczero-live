@@ -110,12 +110,10 @@ async def make_game(info: GameInfo) -> Game:
                 GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
                 for attr in [
                     "Event",
-                    "Site",
                     "Date",
                     "Round",
                     "White",
                     "Black",
-                    "Result",
                     "WhiteElo",
                     "BlackElo",
                     "WhiteFideId",
