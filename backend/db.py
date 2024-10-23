@@ -9,6 +9,7 @@ class Tournament(Model):
     name = fields.CharField(max_length=255)
     lichess_id = fields.CharField(max_length=16, unique=True)
     is_finished = fields.BooleanField(default=False, index=True)
+    is_hidden = fields.BooleanField(default=False)
 
 
 class Game(Model):
@@ -30,6 +31,7 @@ class Game(Model):
     player2_fed = fields.CharField(max_length=3, null=True)
     status = fields.CharField(max_length=4)
     is_finished = fields.BooleanField(default=False, index=True)
+    is_hidden = fields.BooleanField(default=False, index=True)
 
 
 class GameFilter(Model):

@@ -28,8 +28,7 @@ def ts_to_str(ts: int) -> str:
 @click.option("--add", is_flag=True)
 def list_tournaments(min_tier, only_active, add: bool):
     async def run():
-        if add:
-            await db.init()
+        await db.init()
 
         table = Table(title="Tournaments")
         table.add_column("Id")

@@ -25,7 +25,9 @@ class GamesResponse:
 async def games(request):
     games = await db.Game.all()
     analyzed_games = set(g.id for g in request.app.ctx.app.get_games_being_analyzed())
-    games = await db.Game.all().prefetch_related("tournament")
+    games = await db.Game.filter(
+        is_hidden=False, tournament__is_hidden=False
+    ).prefetch_related("tournament")
     return json(
         asdict(
             GamesResponse(

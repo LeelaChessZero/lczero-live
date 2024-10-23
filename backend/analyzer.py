@@ -88,11 +88,15 @@ class Analyzer:
         uci_queue = asyncio.Queue()
 
         async def run():
-            while True:
-                info = await uci_queue.get()
-                if info is None:
-                    break
-                print(info)
+            try:
+                while True:
+                    info = await uci_queue.get()
+                    if info is None:
+                        break
+                    # print(info)
+            except Exception as x:
+                print(f"Task resulted in an exception: {x}")
+                raise
 
         await self._uci.think(uci_queue, chess.Board(position.fen))
         asyncio.create_task(run())
