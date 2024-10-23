@@ -24,11 +24,25 @@ export class MoveList {
 
   constructor(element: HTMLElement) {
     this.element = element;
-    this.element.addEventListener('click', (event: Event) => {
-      const target = event.target as HTMLElement;
-      const plyIdx = target.getAttribute('ply-idx');
-      if (plyIdx !== null) this.selectPly(parseInt(plyIdx, 10));
-    });
+    this.element.setAttribute('tabindex', '0');
+    this.element.addEventListener('click', this.onClick.bind(this));
+    this.element.addEventListener('keydown', this.onKeydown.bind(this));
+  }
+
+  private onClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const plyIdx = target.getAttribute('ply-idx');
+    if (plyIdx !== null) this.selectPly(parseInt(plyIdx, 10));
+  }
+
+  private onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.selectPly(this.positionIdx - 1);
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.selectPly(this.positionIdx + 1);
+    }
   }
 
   public addObserver(observer: MoveSelectionObserver): void {
@@ -44,6 +58,8 @@ export class MoveList {
   }
 
   private selectPly(positionIdx: number): void {
+    if (positionIdx < 0 || positionIdx >= this.positions.length) return;
+    if (this.positionIdx === positionIdx) return;
     Array.from(this.element.children)
         .forEach(row => row.classList.remove('movelist-selected'));
     const targetRow =

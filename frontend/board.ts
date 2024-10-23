@@ -8,14 +8,27 @@ interface PieceLocation {
 
 const SQUARE_SIZE = 45;
 
+function fileRanktoSquare(rank: number, file: number): string {
+  return 'abcdefgh'[file] + (rank + 1).toString();
+}
+
 export class Board {
   private element: HTMLElement;
   private pieces: Set<PieceLocation> = new Set();
+  private highlightedSquares: Set<string> = new Set();
   private flipped: boolean = false;
 
   constructor(element: HTMLElement) {
     this.element = element;
     this.fromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+  }
+
+  public clearHighlights(): void {
+    this.highlightedSquares.clear();
+  }
+
+  public addHighlight(square: string): void {
+    this.highlightedSquares.add(square);
   }
 
   public render(): void {
@@ -30,15 +43,20 @@ export class Board {
     Array.from({length: 8}, (_, rank) => {
       Array.from({length: 8}, (_, file) => {
         const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + border;
-        const y = (this.flipped ? 7 - rank : rank) * SQUARE_SIZE + border;
-        const is_light = (rank + file) % 2 === 0;
+        const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + border;
+        const is_light = (rank + file) % 2 === 1;
         const square =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         square.setAttribute('x', x.toString());
         square.setAttribute('y', y.toString());
         square.setAttribute('width', SQUARE_SIZE.toString());
         square.setAttribute('height', SQUARE_SIZE.toString());
-        square.setAttribute('class', is_light ? 'square light' : 'square dark');
+        let className = 'square';
+        className += is_light ? ' light' : ' dark';
+        if (this.highlightedSquares.has(fileRanktoSquare(rank, file))) {
+          className += ' lastmove';
+        }
+        square.setAttribute('class', className);
         svg.appendChild(square);
       });
     });

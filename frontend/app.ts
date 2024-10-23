@@ -45,7 +45,13 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
   }
 
   public onMoveSelected(position: GamePositionResponse): void {
-    console.log('Move selected:', position);
+    this.board.fromFen(position.fen);
+    this.board.clearHighlights();
+    if (position.moveUci) {
+      this.board.addHighlight(position.moveUci.slice(0, 2));
+      this.board.addHighlight(position.moveUci.slice(2, 4));
+    }
+    this.board.render();
   }
 
   public initialize(): void {}
