@@ -41,9 +41,11 @@ class GameFilter(Model):
 # pyright: reportIncompatibleVariableOverride=false
 class GamePosition(Model):
     id = fields.IntField(primary_key=True)
-    game = fields.ForeignKeyField(model_name="lc0live.Game", related_name="positions")
+    game = fields.ForeignKeyField(
+        model_name="lc0live.Game", related_name="positions", index=True
+    )
     # Zero for startpos, 2×move-1 after white move, 2×move after black move.
-    ply_number = fields.IntField()
+    ply_number = fields.IntField(index=True)
     fen = fields.CharField(max_length=128)
     move_uci = fields.CharField(max_length=5, null=True)
     move_san = fields.CharField(max_length=10, null=True)
@@ -54,7 +56,7 @@ class GamePosition(Model):
     thinkings: fields.ReverseRelation["GamePositionThinking"]
 
     class Meta:
-        unique_together = (("game_id", "ply_number"),)
+        unique_together = (("game", "ply_number"),)
 
 
 class GamePositionThinking(Model):
@@ -64,9 +66,9 @@ class GamePositionThinking(Model):
     )
     nodes = fields.IntField()
     q_score = fields.IntField()
-    win_score = fields.IntField()
+    white_score = fields.IntField()
     draw_score = fields.IntField()
-    loss_score = fields.IntField()
+    black_score = fields.IntField()
 
 
 class GamePositionEvaluation(Model):
@@ -89,9 +91,9 @@ class GamePositionEvaluationMove(Model):
     q_score = fields.IntField()
     pv = fields.TextField()
     mate_score = fields.IntField(null=True)
-    win_score = fields.IntField()
+    white_score = fields.IntField()
     draw_score = fields.IntField()
-    loss_score = fields.IntField()
+    black_score = fields.IntField()
 
 
 async def init():

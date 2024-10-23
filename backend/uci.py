@@ -1,35 +1,38 @@
 import chess
 import chess.engine
-from sanic import Sanic
-import sanic.config
 import asyncio
+from typing import Optional
 
 
 class UciInteractor:
-    config: sanic.config.Config
-    task: asyncio.Task
-    engine: chess.engine.Protocol
-
-    def __init__(self, queue: asyncio.Queue):
-        self.queue = queue
-        self.task = None
+    _config: dict
+    _engine: chess.engine.Protocol
+    _transport: asyncio.SubprocessTransport
+    _task: Optional[asyncio.Task]
 
     @classmethod
-    async def create(cls, queue: asyncio.Queue):
-        self = cls(queue)
+    async def create(cls, config: dict):
+        self = cls()
+        self._config = config
+        self._transport, self._engine = await chess.engine.popen_uci(config["command"])
+        self._task = None
         return self
 
-    async def setup(self, app: Sanic):
-        self.config = app.config
-        self.transport, self.engine = await chess.engine.popen_uci(
-            self.config.UCI_COMMAND_LINE
-        )
+    async def think(self, queue: asyncio.Queue, board: chess.Board):
+        if self._task:
+            self._task.cancel()
+            await self._task
 
-    async def run(self, command_line: str):
-        transport, self.engine = await chess.engine.popen_uci(command_line)
-        await self._loop(self.engine)
+        async def run():
+            try:
+                with await self._engine.analysis(board=board, multipv=230) as analysis:
+                    async for info in analysis:
+                        await queue.put(info)
+            except asyncio.CancelledError:
+                await queue.put(None)
 
-    async def _loop(self, engine: chess.engine.Protocol): ...
+        self.task = asyncio.create_task(run())
 
     async def close(self):
-        ...
+        await self._engine.quit()
+        self._transport.close()

@@ -4,6 +4,8 @@ from pgn_feed import PgnFeed
 import asyncio
 import chess.pgn
 import chess
+from uci import UciInteractor
+from rich import print
 
 
 class Analyzer:
@@ -11,12 +13,16 @@ class Analyzer:
     _game: Optional[db.Game]
     _pgn_feed: Optional[PgnFeed]
     _pgn_feed_queue: asyncio.Queue
+    _current_position: Optional[db.GamePosition]
+    _uci: Optional[UciInteractor]
 
     def __init__(self, uci_config: dict):
         self._config = uci_config
         self._game = None
         self._pgn_feed = None
         self._pgn_feed_queue = asyncio.Queue()
+        self._current_position = None
+        self._uci = None
 
     # returns the last ply number.
     async def _update_game_db(self, game: chess.pgn.Game) -> db.GamePosition:
@@ -33,11 +39,13 @@ class Analyzer:
             res, _ = await db.GamePosition.get_or_create(
                 game=self._game,
                 ply_number=ply,
-                fen=board.fen(),
-                move_uci=move_uci,
-                move_san=move_san,
-                white_clock=white_clock,
-                black_clock=black_clock,
+                defaults={
+                    "fen": board.fen(),
+                    "move_uci": move_uci,
+                    "move_san": move_san,
+                    "white_clock": white_clock,
+                    "black_clock": black_clock,
+                },
             )
             return res
 
@@ -65,11 +73,29 @@ class Analyzer:
 
     async def _process_update(self, game: chess.pgn.Game):
         last_pos: db.GamePosition = await self._update_game_db(game)
+        if self._current_position != last_pos:
+            self._current_position = last_pos
+            await self._process_position(last_pos)
         if game.headers["Result"] != "*":
             assert self._game
             await db.Game.filter(id=self._game.id).update(is_finished=True)
             await self.disconnect()
             return
+
+    async def _process_position(self, position: db.GamePosition):
+        if not self._uci:
+            self._uci = await UciInteractor.create(self._config)
+        uci_queue = asyncio.Queue()
+
+        async def run():
+            while True:
+                info = await uci_queue.get()
+                if info is None:
+                    break
+                print(info)
+
+        await self._uci.think(uci_queue, chess.Board(position.fen))
+        asyncio.create_task(run())
 
     def get_game(self) -> Optional[db.Game]:
         return self._game

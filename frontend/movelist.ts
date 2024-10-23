@@ -9,7 +9,7 @@ export interface GamePositionResponse {
   scoreQ?: number;
   scoreW?: number;
   scoreD?: number;
-  scoreL?: number;
+  scoreB?: number;
 }
 
 export interface MoveSelectionObserver {

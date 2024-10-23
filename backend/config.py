@@ -15,8 +15,8 @@ UCI_ANALYZERS = [
             "--minibatch-size=768",
             # WCCC/WCCSC
             "--threads=3",
-            "--ramlimit-mb=180000",
-            "--nncache=50000000",
+            "--ramlimit-mb=1000",
+            # "--nncache=50000000",
             "--show-wdl",
             "--show-movesleft",
             # f'--logfile={os.path.abspath(".")}/logs/lc0-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log',

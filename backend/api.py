@@ -56,7 +56,7 @@ class GamePositionResponse:
     scoreQ: Optional[int]
     scoreW: Optional[int]
     scoreD: Optional[int]
-    scoreL: Optional[int]
+    scoreB: Optional[int]
 
 
 @dataclasses.dataclass
@@ -124,7 +124,7 @@ async def game(request, game_id):
                         scoreQ=None,
                         scoreW=None,
                         scoreD=None,
-                        scoreL=None,
+                        scoreB=None,
                     )
                     for pos in positions
                 ],
