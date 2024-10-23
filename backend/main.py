@@ -17,7 +17,7 @@ register_tortoise(
 )
 app.ctx.app = App(app)
 app.static("/", "../static/index.html", name="index")
-app.static("/style.css", "../static/style.css", name="style")
+app.static("/static/", "../static/static/", name="static_dir")
 app.static("/dist", "../static/dist")
 app.blueprint(api)
 

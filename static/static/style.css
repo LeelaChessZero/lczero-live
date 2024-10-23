@@ -21,3 +21,21 @@ body {
 .movelist-selected {
     background-color: red;
 }
+
+
+/* Chess board */
+svg.board .square.dark {
+    fill: #d18b47;
+}
+
+svg.board .square.light {
+    fill: #ffce9e;
+}
+
+svg.board .square.dark.lastmove {
+    fill: #aaa23b;
+}
+
+svg.board .square.light.lastmove {
+    fill: #cdd16a;
+}
