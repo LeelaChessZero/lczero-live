@@ -27,6 +27,16 @@ export class MoveList {
     this.element.setAttribute('tabindex', '0');
     this.element.addEventListener('click', this.onClick.bind(this));
     this.element.addEventListener('keydown', this.onKeydown.bind(this));
+    this.element.addEventListener('wheel', this.onWheel.bind(this));
+  }
+
+  private onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+      this.selectPly(this.positionIdx - 1);
+    } else {
+      this.selectPly(this.positionIdx + 1);
+    }
   }
 
   private onClick(event: Event): void {
@@ -66,6 +76,7 @@ export class MoveList {
         Array.from(this.element.children)
             .find(row => row.getAttribute('ply-idx') === String(positionIdx));
     targetRow?.classList.add('movelist-selected');
+    targetRow?.scrollIntoView({block: 'nearest'});
     this.positionIdx = positionIdx;
     this.notifyObservers();
   }

@@ -13,6 +13,12 @@ body {
     font-size: 10px;
 }
 
+#movelist {
+    height: 400px;
+    width: 400px;
+    overflow-y: auto;
+}
+
 .movelist-item {
     cursor: pointer;
     padding: 1px;

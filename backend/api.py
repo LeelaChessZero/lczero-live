@@ -110,7 +110,8 @@ async def game(request, game_id):
                     fideId=game.player2_fide_id,
                     fed=game.player2_fed,
                 ),
-                feedUrl=f"https://lichess.org/broadcast/-/-/{game.lichess_round_id}",
+                feedUrl="https://lichess.org/broadcast/-/-/"
+                f"{game.lichess_round_id}/{game.lichess_id}",
                 positions=[
                     GamePositionResponse(
                         ply=pos.ply_number,

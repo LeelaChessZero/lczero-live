@@ -40,8 +40,15 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
         .then(data => {
           console.log('Game data:', data);
           this.moveList.setPositions(data.positions);
+          this.updatePgnFeedUrl(data.feedUrl);
         })
         .catch(error => console.error('Error fetching game:', error));
+  }
+
+  private updatePgnFeedUrl(feedUrl: string): void {
+    const pgnFeed = document.getElementById('pgn-feed') as HTMLAnchorElement;
+    pgnFeed.href = feedUrl;
+    pgnFeed.innerText = feedUrl;
   }
 
   public onMoveSelected(position: GamePositionResponse): void {
