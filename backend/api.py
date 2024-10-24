@@ -1,23 +1,19 @@
 from sanic import Blueprint
-import dataclasses
-from dataclasses import asdict
 from sanic.response import json
-from typing import List, Optional
+from typing import Optional, TypedDict
 import db
 
 api = Blueprint("api", url_prefix="/api")
 
 
-@dataclasses.dataclass
-class GameData:
+class GameData(TypedDict):
     id: int
     name: str
     isFinished: bool
     isBeingAnalyzed: bool
 
 
-@dataclasses.dataclass
-class GamesResponse:
+class GamesResponse(TypedDict):
     games: list[GameData]
 
 
@@ -29,25 +25,22 @@ async def games(request):
         is_hidden=False, tournament__is_hidden=False
     ).prefetch_related("tournament")
     return json(
-        asdict(
-            GamesResponse(
-                [
-                    GameData(
-                        id=game.id,
-                        name=f"{game.game_name} ({game.round_name}) --- "
-                        f"{game.tournament.name}",
-                        isFinished=game.is_finished,
-                        isBeingAnalyzed=game.id in analyzed_games,
-                    )
-                    for game in games
-                ]
-            )
+        GamesResponse(
+            games=[
+                GameData(
+                    id=game.id,
+                    name=f"{game.game_name} ({game.round_name}) --- "
+                    f"{game.tournament.name}",
+                    isFinished=game.is_finished,
+                    isBeingAnalyzed=game.id in analyzed_games,
+                )
+                for game in games
+            ]
         )
     )
 
 
-@dataclasses.dataclass
-class GamePositionResponse:
+class GamePositionResponse(TypedDict):
     ply: int  # 0 for startpos
     thinkingId: Optional[int]
     moveUci: Optional[str]
@@ -61,16 +54,14 @@ class GamePositionResponse:
     scoreB: Optional[int]
 
 
-@dataclasses.dataclass
-class PlayerResponse:
+class PlayerResponse(TypedDict):
     name: str
     rating: int
     fideId: Optional[int]
     fed: Optional[str]
 
 
-@dataclasses.dataclass
-class GameResponse:
+class GameResponse(TypedDict):
     gameId: int
     player1: PlayerResponse
     player2: PlayerResponse
@@ -81,7 +72,7 @@ class GameResponse:
 @api.get("/game/<game_id:int>")
 async def game(request, game_id):
     game = await db.Game.get(id=game_id)
-    positions: List[db.GamePosition] = (
+    positions: list[db.GamePosition] = (
         await db.GamePosition.filter(game=game).order_by("ply_number").all()
     )
     positions = (
@@ -97,39 +88,37 @@ async def game(request, game_id):
         positions_with_thinking.append((pos, best_thinking))
 
     return json(
-        asdict(
-            GameResponse(
-                gameId=game.id,
-                player1=PlayerResponse(
-                    name=game.player1_name,
-                    rating=game.player1_rating,
-                    fideId=game.player1_fide_id,
-                    fed=game.player1_fed,
-                ),
-                player2=PlayerResponse(
-                    name=game.player2_name,
-                    rating=game.player2_rating,
-                    fideId=game.player2_fide_id,
-                    fed=game.player2_fed,
-                ),
-                feedUrl="https://lichess.org/broadcast/-/-/"
-                f"{game.lichess_round_id}/{game.lichess_id}",
-                positions=[
-                    GamePositionResponse(
-                        ply=pos.ply_number,
-                        thinkingId=None,
-                        moveUci=pos.move_uci,
-                        moveSan=pos.move_san,
-                        fen=pos.fen,
-                        whiteClock=pos.white_clock,
-                        blackClock=pos.black_clock,
-                        scoreQ=None,
-                        scoreW=None,
-                        scoreD=None,
-                        scoreB=None,
-                    )
-                    for pos in positions
-                ],
-            )
+        GameResponse(
+            gameId=game.id,
+            player1=PlayerResponse(
+                name=game.player1_name,
+                rating=game.player1_rating,
+                fideId=game.player1_fide_id,
+                fed=game.player1_fed,
+            ),
+            player2=PlayerResponse(
+                name=game.player2_name,
+                rating=game.player2_rating,
+                fideId=game.player2_fide_id,
+                fed=game.player2_fed,
+            ),
+            feedUrl="https://lichess.org/broadcast/-/-/"
+            f"{game.lichess_round_id}/{game.lichess_id}",
+            positions=[
+                GamePositionResponse(
+                    ply=pos.ply_number,
+                    thinkingId=None,
+                    moveUci=pos.move_uci,
+                    moveSan=pos.move_san,
+                    fen=pos.fen,
+                    whiteClock=pos.white_clock,
+                    blackClock=pos.black_clock,
+                    scoreQ=None,
+                    scoreW=None,
+                    scoreD=None,
+                    scoreB=None,
+                )
+                for pos in positions
+            ],
         )
     )

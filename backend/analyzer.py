@@ -141,16 +141,6 @@ class Analyzer:
             logger.debug(f"Got new game: {game.headers['Event']}")
             await self._process_update(game)
 
-        # self.pgn_feed = None
-        # self.pgn_queue = asyncio.Queue()
-        # self.uci = None
-        # self.uci_queue = asyncio.Queue()
-        # self.cur_game_id = None
-        # self.pgn_feed = await PgnFeed.create(self.pgn_queue)
-        # await self.pgn_feed.connect(self.app.config.PGN_FEED["url"])
-        # self.uci = await UciInteractor.create(self.uci_queue)
-        # await self.uci.run(self.app.config.UCI_COMMAND_LINE)
-
     async def disconnect(self):
         await self._pgn_feed_queue.put(None)
         self._game = None
