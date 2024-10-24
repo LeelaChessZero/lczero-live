@@ -35,6 +35,7 @@ class PgnFeed:
             )
             await self.queue.send(game)
             if game.headers.get("Result") != "*":
+                logger.info(f"Game {game.headers['Event']} finished, cloding queue.")
                 await self.queue.aclose()
                 return True
         return False
@@ -56,3 +57,4 @@ class PgnFeed:
         timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             await self._fetch_url(session, pgn_url)
+        logger.info("Leaving the pgn fetch.")
