@@ -1,16 +1,4 @@
-export interface GamePositionResponse {
-  ply: number;  // 0 for startpos
-  thinkingId?: number;
-  moveUci?: string;
-  moveSan?: string;
-  fen: string;
-  whiteClock?: number;
-  blackClock?: number;
-  scoreQ?: number;
-  scoreW?: number;
-  scoreD?: number;
-  scoreB?: number;
-}
+import {GamePositionResponse} from './moves_feed';
 
 export interface MoveSelectionObserver {
   onMoveSelected(position: GamePositionResponse): void;

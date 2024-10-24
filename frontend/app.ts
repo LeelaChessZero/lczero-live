@@ -1,6 +1,7 @@
 import {Board} from './board';
 import {GameSelection, GameSelectionObserver} from './game_selection';
-import {GamePositionResponse, MoveList, MoveSelectionObserver} from './movelist';
+import {MoveList, MoveSelectionObserver} from './movelist';
+import {GamePositionResponse, MovesFeed, MovesFeedResponse} from './moves_feed';
 
 interface PlayerResponse {
   name: string;
@@ -14,13 +15,13 @@ interface GameResponse {
   player1: PlayerResponse;
   player2: PlayerResponse;
   feedUrl: string;
-  positions: GamePositionResponse[];
 }
 
 export class App implements GameSelectionObserver, MoveSelectionObserver {
   private gameSelection: GameSelection;
   private moveList: MoveList;
   private board: Board;
+  private movesFeed?: MovesFeed = undefined;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -39,7 +40,8 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
         .then(response => response.json() as Promise<GameResponse>)
         .then(data => {
           console.log('Game data:', data);
-          this.moveList.setPositions(data.positions);
+          this.startMovesFeed(data.gameId);
+          // this.moveList.setPositions(data.positions);
           this.updatePgnFeedUrl(data.feedUrl);
         })
         .catch(error => console.error('Error fetching game:', error));
@@ -61,5 +63,17 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     this.board.render();
   }
 
-  public initialize(): void {}
+  private startMovesFeed(gameId: number): void {
+    if (this.movesFeed) {
+      this.movesFeed.close();
+    }
+    this.movesFeed = new MovesFeed(gameId);
+    this.movesFeed.addObserver(this);
+  }
+
+  public onMovesReceived(moves: MovesFeedResponse): void {
+    if (moves.positions) {
+      this.moveList.setPositions(moves.positions);
+    }
+  }
 };
