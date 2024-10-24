@@ -54,7 +54,8 @@ class PgnFeed:
                     buffer = post
 
     async def _worker(self, pgn_url: str):
-        timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            await self._fetch_url(session, pgn_url)
-        logger.info("Leaving the pgn fetch.")
+        with self.queue:
+            timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                await self._fetch_url(session, pgn_url)
+            logger.info("Leaving the pgn fetch.")

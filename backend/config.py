@@ -1,5 +1,6 @@
 from typing import Iterable
 from types import ModuleType
+import datetime
 
 DB_PATH = "sqlite://../.db/lczero_live.db"
 # DB_PATH = "sqlite://:memory:"
@@ -19,7 +20,7 @@ UCI_ANALYZERS = [
             # "--nncache=50000000",
             "--show-wdl",
             "--show-movesleft",
-            # f'--logfile={os.path.abspath(".")}/logs/lc0-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log',
+             f'--logfile=/tmp/lc0-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log',
             "--per-pv-counters",
             "--preload",
             "--score-type=Q",

@@ -11,6 +11,13 @@ from anyio.streams.memory import MemoryObjectReceiveStream
 from anyio.abc import TaskGroup
 
 
+def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
+    board = pgn.board()
+    for move in pgn.mainline_moves():
+        board.push(move)
+    return board
+
+
 class Analyzer:
     _config: dict
     _game: Optional[db.Game]
@@ -122,29 +129,31 @@ class Analyzer:
         pgn_recv_stream: MemoryObjectReceiveStream[chess.pgn.Game],
         game: db.Game,
     ):
-        try:
-            with pgn_recv_stream:
-                pgn: chess.pgn.Game = await pgn_recv_stream.receive()
-                while True:
-                    last_pos: db.GamePosition = await self._update_game_db(pgn, game)
-                    logger.info(f"Processing position {last_pos.fen}")
-                    if self._current_position != last_pos:
-                        self._current_position = last_pos
-                    async with anyio.create_task_group() as tg:
-                        logger.debug("Position changed.")
-                        tg.start_soon(self._uci_worker_think, pgn.board())
+        with pgn_recv_stream:
+            pgn: chess.pgn.Game = await pgn_recv_stream.receive()
+            while True:
+                last_pos: db.GamePosition = await self._update_game_db(pgn, game)
+                logger.info(f"Processing position {last_pos.fen}")
+                if self._current_position != last_pos:
+                    self._current_position = last_pos
+                async with anyio.create_task_group() as tg:
+                    logger.debug("Position changed.")
+                    tg.start_soon(self._uci_worker_think, get_leaf_board(pgn))
+                    try:
                         pgn = await pgn_recv_stream.receive()
-                        tg.cancel_scope.cancel()
-        except anyio.EndOfStream:
-            logger.debug("Game is finished.")
-            await db.Game.filter(id=game.id).update(is_finished=True)
+                    except anyio.EndOfStream:
+                        logger.debug("Game is finished.")
+                        await db.Game.filter(id=game.id).update(is_finished=True)
+                        return
+                    tg.cancel_scope.cancel()
 
     async def _uci_worker_think(self, board: chess.Board):
+        logger.debug(board)
         with await self._engine.analysis(board=board, multipv=230) as analysis:
             async for info in analysis:
-                ...
-                # if info.get("multipv", 1) == 1:
-                #     logger.debug(
-                #         f"Got info: d:{info.get('depth')} n:{info.get('nodes')}"
-                #     )
-                # await queue.send(info)
+                if info.get("multipv", 1) == 1:
+                    logger.debug(
+                        f"Got info: d:{info.get('depth')} n:{info.get('nodes')}"
+                    )
+
+    # await queue.send(info)
