@@ -67,6 +67,7 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     if (this.movesFeed) {
       this.movesFeed.close();
     }
+    this.moveList.clearPositions();
     this.movesFeed = new MovesFeed(gameId);
     this.movesFeed.addObserver(this);
   }

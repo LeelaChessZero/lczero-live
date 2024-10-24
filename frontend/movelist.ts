@@ -87,4 +87,10 @@ export class MoveList {
     });
     this.selectPly(this.positions.length - 1);
   }
+
+  public clearPositions(): void {
+    this.positions = [];
+    this.element.innerHTML = '';
+    this.positionIdx = 0;
+  }
 };
