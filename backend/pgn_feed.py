@@ -4,6 +4,7 @@ import chess.pgn
 from io import StringIO
 from typing import Optional, Tuple
 from rich import print
+from sanic.log import logger
 
 
 class PgnFeed:
@@ -22,8 +23,6 @@ class PgnFeed:
     ):
         self = cls(queue)
         self.filters = filters
-        if self.worker_task:
-            self.worker_task.cancel()
         self.worker_task = asyncio.create_task(self._worker(pgn_url))
         return self
 
@@ -31,6 +30,10 @@ class PgnFeed:
         game = chess.pgn.read_game(StringIO(buf))
         assert game is not None
         if all(game.headers.get(k) == v for k, v in self.filters):
+            logger.debug(
+                f"Got new PGN for {game.headers['Event']}: "
+                f"{len(list(game.mainline_moves()))} ply"
+            )
             await self.queue.put(game)
 
     async def _fetch_url(self, session: aiohttp.ClientSession, pgn_url: str):

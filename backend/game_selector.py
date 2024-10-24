@@ -53,7 +53,8 @@ def get_best_game(game_infos: list[GameInfo]) -> GameInfo:
     logger.info(f"Selecting best game from {len(game_infos)} games")
     return min(
         game_infos,
-        key=lambda gi: max([p.get("rating", 9999) for p in gi.game["players"]]),
+#        key=lambda gi: max([p.get("rating", 9999) for p in gi.game["players"]]),
+        key=lambda gi: max([p.get("clock", 999999) for p in gi.game["players"]]),
     )
 
 

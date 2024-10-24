@@ -6,6 +6,7 @@ import chess.pgn
 import chess
 from uci import UciInteractor
 from rich import print
+from sanic.log import logger
 
 
 class Analyzer:
@@ -15,6 +16,7 @@ class Analyzer:
     _pgn_feed_queue: asyncio.Queue
     _current_position: Optional[db.GamePosition]
     _uci: Optional[UciInteractor]
+    _position_task: Optional[asyncio.Task]
 
     def __init__(self, uci_config: dict):
         self._config = uci_config
@@ -23,6 +25,7 @@ class Analyzer:
         self._pgn_feed_queue = asyncio.Queue()
         self._current_position = None
         self._uci = None
+        self._position_task = None
 
     # returns the last ply number.
     async def _update_game_db(self, game: chess.pgn.Game) -> db.GamePosition:
@@ -73,10 +76,13 @@ class Analyzer:
 
     async def _process_update(self, game: chess.pgn.Game):
         last_pos: db.GamePosition = await self._update_game_db(game)
+        logger.info(f"Processing position {last_pos.fen}")
         if self._current_position != last_pos:
             self._current_position = last_pos
+            logger.debug("Position changed.")
             await self._process_position(last_pos)
         if game.headers["Result"] != "*":
+            logger.debug("Game is finished.")
             assert self._game
             await db.Game.filter(id=self._game.id).update(is_finished=True)
             await self.disconnect()
@@ -88,18 +94,25 @@ class Analyzer:
         uci_queue = asyncio.Queue()
 
         async def run():
+            logger.debug("Running new UCI task.")
             try:
                 while True:
                     info = await uci_queue.get()
                     if info is None:
                         break
                     # print(info)
-            except Exception as x:
-                print(f"Task resulted in an exception: {x}")
-                raise
+            except asyncio.CancelledError:
+                logger.debug("Cancelled UCI task.")
+            logger.debug("Exiting from UCI task.")
 
         await self._uci.think(uci_queue, chess.Board(position.fen))
-        asyncio.create_task(run())
+        if self._position_task:
+            logger.debug("Cancelling old UCI task.")
+            self._position_task.cancel()
+            logger.debug("Awaiting old UCI task.")
+            await self._position_task
+            logger.debug("Awaited old UCI task.")
+        self._position_task = asyncio.create_task(run())
 
     def get_game(self) -> Optional[db.Game]:
         return self._game
@@ -123,7 +136,9 @@ class Analyzer:
         while True:
             game: Optional[chess.pgn.Game] = await self._pgn_feed_queue.get()
             if game is None:
+                logger.info("PGN feed closed.")
                 break
+            logger.debug(f"Got new game: {game.headers['Event']}")
             await self._process_update(game)
 
         # self.pgn_feed = None

@@ -2,6 +2,7 @@ import chess
 import chess.engine
 import asyncio
 from typing import Optional
+from sanic.log import logger
 
 
 class UciInteractor:
@@ -27,8 +28,13 @@ class UciInteractor:
             try:
                 with await self._engine.analysis(board=board, multipv=230) as analysis:
                     async for info in analysis:
+                        if info.get("multipv", 1) == 1:
+                            logger.debug(
+                                f"Got info: d:{info.get('depth')} n:{info.get('nodes')}"
+                            )
                         await queue.put(info)
             except asyncio.CancelledError:
+                logger.debug("Cancelling the UCI task.")
                 await queue.put(None)
 
         self.task = asyncio.create_task(run())
