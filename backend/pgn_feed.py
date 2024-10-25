@@ -26,7 +26,7 @@ class PgnFeed:
         await self._worker(pgn_url)
 
     async def _maybe_send_game(self, buf: str) -> bool:
-        game = chess.pgn.read_game(StringIO(buf))
+        game = chess.pgn.read_game(StringIO(buf.strip()))
         assert game is not None
         if all(game.headers.get(k) == v for k, v in self.filters):
             logger.debug(

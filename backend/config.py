@@ -20,7 +20,10 @@ UCI_ANALYZERS = [
             # "--nncache=50000000",
             "--show-wdl",
             "--show-movesleft",
-             f'--logfile=/tmp/lc0-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log',
+            (
+                "--logfile=/tmp/lc0-"
+                f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log'
+            ),
             "--per-pv-counters",
             "--preload",
             "--score-type=Q",
