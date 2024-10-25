@@ -130,7 +130,9 @@ class Analyzer:
                         continue
                     self._current_position = last_pos
                     async with anyio.create_task_group() as tg:
-                        tg.start_soon(self._uci_worker_think, get_leaf_board(pgn))
+                        tg.start_soon(
+                            self._uci_worker_think, get_leaf_board(pgn), last_pos
+                        )
                         pgn = await pgn_recv_stream.receive()
                         tg.cancel_scope.cancel()
             except* anyio.EndOfStream:
@@ -138,11 +140,22 @@ class Analyzer:
                 await db.Game.filter(id=game.id).update(is_finished=True)
                 self._game = None
 
-    async def _uci_worker_think(self, board: chess.Board):
-        logger.debug(f"Starting thinking:\n{board}")
+    async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
         with await self._engine.analysis(
             board=board, multipv=self._config["max_multipv"]
         ) as analysis:
+            thinking = await db.GamePositionThinking.create(
+                position=pos,
+                nodes=0,
+                q_score=0,
+                white_score=0,
+                draw_score=0,
+                black_score=0,
+            )
+            logger.debug(f"Starting thinking:\n{board}, {thinking.id}")
+            await self.ws_notifier.notify_move_observers(
+                updated_positions=[pos], thinkings=[thinking]
+            )
             async for info in analysis:
                 if info.get("multipv", 1) == 1:
                     logger.debug(
