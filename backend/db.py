@@ -88,9 +88,11 @@ class GamePositionEvaluationMove(Model):
     evaluation = fields.ForeignKeyField(
         model_name="lc0live.GamePositionEvaluation", related_name="pv"
     )
+    move_uci = fields.CharField(max_length=5)
+    move_opp_uci = fields.CharField(max_length=5, null=True)
     move_san = fields.CharField(max_length=10)
     q_score = fields.IntField()
-    pv = fields.TextField()
+    pv_san = fields.TextField()
     mate_score = fields.IntField(null=True)
     white_score = fields.IntField()
     draw_score = fields.IntField()

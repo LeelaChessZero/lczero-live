@@ -18,6 +18,19 @@ def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
     return board
 
 
+def make_pv_san_string(board: chess.Board, pv: List[chess.Move]) -> str:
+    board = board.copy()
+    res: str = ""
+    if board.turn == chess.BLACK:
+        res = f"{board.fullmove_number}…"
+    for move in pv:
+        if board.turn == chess.WHITE:
+            res += f"{board.fullmove_number}."
+        res += " " + board.san(move)
+        board.push(move)
+    return res
+
+
 class Analyzer:
     _config: dict
     _game: Optional[db.Game]
@@ -156,8 +169,69 @@ class Analyzer:
             await self.ws_notifier.notify_move_observers(
                 updated_positions=[pos], thinkings=[thinking]
             )
+            multipv = min(self._config["max_multipv"], board.legal_moves.count())
+            info_bundle: list[chess.engine.InfoDict] = []
             async for info in analysis:
-                if info.get("multipv", 1) == 1:
-                    logger.debug(
-                        f"Got info: d:{info.get('depth')} n:{info.get('nodes')}"
-                    )
+                if "multipv" not in info:
+                    logger.debug(f"Got info without multipv: {info}")
+                    continue
+                if info["multipv"] != len(info_bundle) + 1:
+                    logger.debug(f"Got info for wrong multipv: {info}")
+                    info_bundle = []
+                    continue
+                info_bundle.append(info)
+                if len(info_bundle) == multipv:
+                    await self._process_info_bundle(info_bundle, board, pos, thinking)
+                    info_bundle = []
+
+    async def _process_info_bundle(
+        self,
+        info_bundle: list[chess.engine.InfoDict],
+        board: chess.Board,
+        pos: db.GamePosition,
+        thinking: db.GamePositionThinking,
+    ):
+        total_n = sum(info.get("nodes", 0) for info in info_bundle)
+        logger.debug(f"Total nodes: {total_n}")
+        evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
+            thinking=thinking,
+            nodes=total_n,
+            time=int(info_bundle[0].get("time", 0)) * 1000,
+            depth=info_bundle[0].get("depth", 0),
+            seldepth=info_bundle[0].get("seldepth", 0),
+        )
+
+        def make_eval_move(info: chess.engine.InfoDict):
+            pv: List[chess.Move] = info.get("pv", [])
+            assert len(pv) > 0
+            move: chess.Move = pv[0]
+            score: chess.engine.Score = info.get(
+                "score", chess.engine.PovScore(chess.engine.Cp(0), chess.WHITE)
+            ).white()
+            wdl: chess.engine.Wdl = info.get(
+                "wdl", chess.engine.PovWdl(chess.engine.Wdl(0, 1000, 0), chess.WHITE)
+            ).white()
+            return db.GamePositionEvaluationMove(
+                evaluation=evaluation,
+                move_uci=move.uci(),
+                move_opp_uci=pv[1].uci() if len(pv) > 1 else None,
+                move_san=board.san(move),
+                q_score=score.score(mate_score=20000),
+                pv_san=make_pv_san_string(board, pv),
+                mate_score=score.mate() if score.is_mate() else None,
+                white_score=wdl.wins,
+                draw_score=wdl.draws,
+                black_score=wdl.losses,
+            )
+
+        moves = [make_eval_move(info) for info in info_bundle]
+        await db.GamePositionEvaluationMove.bulk_create(moves)
+        thinking.nodes = total_n
+        thinking.q_score = moves[0].q_score
+        thinking.white_score = moves[0].white_score
+        thinking.draw_score = moves[0].draw_score
+        thinking.black_score = moves[0].black_score
+        await thinking.save()
+        await self.ws_notifier.notify_move_observers(
+            updated_positions=[pos], thinkings=[thinking]
+        )
