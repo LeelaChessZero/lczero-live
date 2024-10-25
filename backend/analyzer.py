@@ -193,6 +193,7 @@ class Analyzer:
     ):
         total_n = sum(info.get("nodes", 0) for info in info_bundle)
         logger.debug(f"Total nodes: {total_n}")
+        logger.debug(info_bundle[0])
         evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
             thinking=thinking,
             nodes=total_n,
@@ -222,6 +223,7 @@ class Analyzer:
                 white_score=wdl.wins,
                 draw_score=wdl.draws,
                 black_score=wdl.losses,
+                moves_left=info.get("movesleft", None),
             )
 
         moves = [make_eval_move(info) for info in info_bundle]
@@ -231,6 +233,7 @@ class Analyzer:
         thinking.white_score = moves[0].white_score
         thinking.draw_score = moves[0].draw_score
         thinking.black_score = moves[0].black_score
+        thinking.moves_left = moves[0].moves_left
         await thinking.save()
         await self.ws_notifier.notify_move_observers(
             updated_positions=[pos], thinkings=[thinking]

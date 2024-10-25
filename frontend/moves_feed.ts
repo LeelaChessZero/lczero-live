@@ -11,6 +11,7 @@ export interface GamePositionUpdate {
   scoreW?: number;
   scoreD?: number;
   scoreB?: number;
+  movesLeft?: number;
 }
 
 export interface GamePositionUpdateFrame {

@@ -70,6 +70,7 @@ class GamePositionThinking(Model):
     white_score = fields.IntField()
     draw_score = fields.IntField()
     black_score = fields.IntField()
+    moves_left = fields.IntField(null=True)
 
 
 class GamePositionEvaluation(Model):
@@ -97,6 +98,7 @@ class GamePositionEvaluationMove(Model):
     white_score = fields.IntField()
     draw_score = fields.IntField()
     black_score = fields.IntField()
+    moves_left = fields.IntField(null=True)
 
 
 async def init():

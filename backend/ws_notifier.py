@@ -17,6 +17,7 @@ class GamePositionUpdate(TypedDict):
     scoreW: Optional[int]
     scoreD: Optional[int]
     scoreB: Optional[int]
+    movesLeft: Optional[int]
 
 
 class GamePositionUpdateFrame(TypedDict, total=False):
@@ -63,6 +64,7 @@ class WebsocketNotifier:
                     scoreW=thinking.white_score if thinking else None,
                     scoreD=thinking.draw_score if thinking else None,
                     scoreB=thinking.black_score if thinking else None,
+                    movesLeft=thinking.moves_left if thinking else None,
                 )
             )
 
@@ -76,3 +78,30 @@ class WebsocketNotifier:
             except anyio.BrokenResourceError:
                 await observer.aclose()
         self._move_observers = new_observers
+
+
+class GameThinkingMoveUpdate(TypedDict):
+    moveUci: str
+    moveOppUci: Optional[str]
+    moveSan: str
+    pvSan: str
+    scoreQ: int
+    scoreW: int
+    scoreD: int
+    scoreB: int
+    mateScore: Optional[int]
+    movesLeft: Optional[int]
+
+
+class GameThinkingUpdate(TypedDict):
+    updateId: int
+    nodes: int
+    scoreQ: Optional[int]
+    scoreW: Optional[int]
+    scoreD: Optional[int]
+    scoreB: Optional[int]
+    moves: list[GameThinkingMoveUpdate]
+
+
+class GameThinkingUpdateFrame(TypedDict):
+    thinkings: list[GameThinkingUpdate]
