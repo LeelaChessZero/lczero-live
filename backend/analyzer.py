@@ -5,7 +5,6 @@ import chess
 import chess.engine
 import chess.pgn
 import db
-from anyio.abc import TaskGroup
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from api_types import GamePositionUpdate, GamePositionUpdateFrame
 from pgn_feed import PgnFeed
@@ -126,25 +125,6 @@ class Analyzer:
             await self._notify_moves_observers(moves_websocket_frame)
         return last_pos
 
-    async def _process_position(self, board: chess.Board):
-        uci_send_queue, uci_recv_queue = anyio.create_memory_object_stream[
-            chess.engine.InfoDict
-        ]()
-
-        async with anyio.create_task_group() as uci_tg:
-            uci_tg.start_soon(self._uci.think, uci_send_queue, board)
-            uci_tg.start_soon(self._process_ucis, uci_recv_queue, uci_tg)
-
-    async def _process_ucis(
-        self,
-        uci_recv_queue: MemoryObjectReceiveStream[chess.engine.InfoDict],
-        tg: TaskGroup,
-    ):
-        async for info in uci_recv_queue:
-            if info.get("multipv", 1) == 1:
-                logger.debug(f"Got info: d:{info.get('depth')} n:{info.get('nodes')}")
-        tg.cancel_scope.cancel()
-
     def get_game(self) -> Optional[db.Game]:
         return self._game
 
@@ -184,21 +164,19 @@ class Analyzer:
                         continue
                     self._current_position = last_pos
                     async with anyio.create_task_group() as tg:
-                        logger.debug("Position changed.")
                         tg.start_soon(self._uci_worker_think, get_leaf_board(pgn))
                         pgn = await pgn_recv_stream.receive()
                         tg.cancel_scope.cancel()
             except* anyio.EndOfStream:
                 logger.debug("Game is finished.")
                 await db.Game.filter(id=game.id).update(is_finished=True)
+                self._game = None
 
     async def _uci_worker_think(self, board: chess.Board):
-        logger.debug(board)
+        logger.debug(f"Starting thinking:\n{board}")
         with await self._engine.analysis(board=board, multipv=230) as analysis:
             async for info in analysis:
                 if info.get("multipv", 1) == 1:
                     logger.debug(
                         f"Got info: d:{info.get('depth')} n:{info.get('nodes')}"
                     )
-
-    # await queue.send(info)
