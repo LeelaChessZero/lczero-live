@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-import click
-from tortoise import run_async
-import lichess
-from rich.table import Table
-from rich.console import Console
-import datetime
-import db
 import asyncio
+import datetime
+
+import click
+import db
+import lichess
+from rich.console import Console
+from rich.table import Table
+from tortoise import run_async
 
 
 @click.group()

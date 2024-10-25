@@ -5,10 +5,10 @@ import chess
 import chess.engine
 import chess.pgn
 import db
-from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
-from api_types import GamePositionUpdate, GamePositionUpdateFrame
+from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
+from ws_notifier import WebsocketNotifier
 
 
 def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
@@ -24,7 +24,7 @@ class Analyzer:
     _current_position: Optional[db.GamePosition]
     _engine: chess.engine.Protocol
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
-    _move_observers: set[MemoryObjectSendStream[GamePositionUpdateFrame]]
+    ws_notifier: WebsocketNotifier
 
     def __init__(
         self, uci_config: dict, next_task_callback: Callable[[], Awaitable[db.Game]]
@@ -33,28 +33,7 @@ class Analyzer:
         self._game = None
         self._get_next_task_callback = next_task_callback
         self._current_position = None
-        self._move_observers = set()
-
-    def add_moves_observer(
-        self,
-    ) -> MemoryObjectReceiveStream[GamePositionUpdateFrame]:
-        send_stream, recv_stream = anyio.create_memory_object_stream[
-            GamePositionUpdateFrame
-        ]()
-        self._move_observers.add(send_stream)
-        return recv_stream
-
-    async def _notify_moves_observers(self, frame: GamePositionUpdateFrame):
-        new_observers = set()
-        for observer in self._move_observers:
-            try:
-                await observer.send(frame)
-                new_observers.add(observer)
-            except anyio.EndOfStream:
-                await observer.aclose()
-            except anyio.BrokenResourceError:
-                await observer.aclose()
-        self._move_observers = new_observers
+        self.ws_notifier = WebsocketNotifier()
 
     # returns the last ply number.
     async def _update_game_db(
@@ -64,7 +43,7 @@ class Analyzer:
         white_clock: Optional[int] = None
         black_clock: Optional[int] = None
 
-        moves_websocket_frame = GamePositionUpdateFrame(positions=[])
+        added_game_positions: list[db.GamePosition] = []
 
         async def create_pos(
             ply: int,
@@ -83,21 +62,7 @@ class Analyzer:
                 },
             )
             if created:
-                moves_websocket_frame.setdefault("positions", []).append(
-                    GamePositionUpdate(
-                        ply=ply,
-                        thinkingId=None,
-                        moveUci=move_uci,
-                        moveSan=move_san,
-                        fen=res.fen,
-                        whiteClock=white_clock,
-                        blackClock=black_clock,
-                        scoreQ=None,
-                        scoreW=None,
-                        scoreD=None,
-                        scoreB=None,
-                    )
-                )
+                added_game_positions.append(res)
 
             return res
 
@@ -121,8 +86,9 @@ class Analyzer:
                 move_uci=node.move.uci(),
                 move_san=san,
             )
-        if moves_websocket_frame.get("positions"):
-            await self._notify_moves_observers(moves_websocket_frame)
+        await self.ws_notifier.notify_move_observers(
+            updated_positions=added_game_positions
+        )
         return last_pos
 
     def get_game(self) -> Optional[db.Game]:
@@ -174,7 +140,9 @@ class Analyzer:
 
     async def _uci_worker_think(self, board: chess.Board):
         logger.debug(f"Starting thinking:\n{board}")
-        with await self._engine.analysis(board=board, multipv=230) as analysis:
+        with await self._engine.analysis(
+            board=board, multipv=self._config["max_multipv"]
+        ) as analysis:
             async for info in analysis:
                 if info.get("multipv", 1) == 1:
                     logger.debug(

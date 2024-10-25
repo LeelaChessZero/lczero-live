@@ -1,7 +1,6 @@
+from config import DB_MODULES, DB_PATH
+from tortoise import Tortoise, fields
 from tortoise.models import Model
-from tortoise import fields, Tortoise
-
-from config import DB_PATH, DB_MODULES
 
 
 class Tournament(Model):

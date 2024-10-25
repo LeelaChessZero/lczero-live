@@ -1,14 +1,15 @@
-from sanic import Sanic
-from sanic.log import logger
-import sanic.config
+from typing import Optional
+
 import anyio
-from analyzer import Analyzer
 import db
+import sanic.config
+from analyzer import Analyzer
+from anyio.streams.memory import MemoryObjectReceiveStream
 from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
-from anyio.streams.memory import MemoryObjectReceiveStream
-from api_types import GamePositionUpdateFrame
-from typing import Optional
+from sanic import Sanic
+from sanic.log import logger
+from ws_notifier import GamePositionUpdateFrame
 
 
 class App:
@@ -26,7 +27,7 @@ class App:
         for a in self.analysises:
             game = a.get_game()
             if game and game.id == game_id:
-                return a.add_moves_observer()
+                return a.ws_notifier.add_moves_observer()
 
     def __init__(self, app: Sanic):
         self.app = app

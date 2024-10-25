@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-from app import App
-from api import api
-from tortoise.contrib.sanic import register_tortoise
-from tortoise import Tortoise
-
 import sanic
-
+from api import api
+from app import App
+from tortoise import Tortoise
+from tortoise.contrib.sanic import register_tortoise
 
 app = sanic.Sanic("LCZeroLive")
 app.update_config("./config.py")

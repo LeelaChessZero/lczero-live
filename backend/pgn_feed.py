@@ -1,9 +1,10 @@
-import aiohttp
-import chess.pgn
 from io import StringIO
 from typing import Tuple
-from sanic.log import logger
+
+import aiohttp
+import chess.pgn
 from anyio.streams.memory import MemoryObjectSendStream
+from sanic.log import logger
 
 
 class PgnFeed:

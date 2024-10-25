@@ -1,8 +1,9 @@
-import ndjson
+import io
 import json
+
 import aiohttp
 import chess.pgn
-import io
+import ndjson
 
 
 async def get_tournaments() -> list[dict]:

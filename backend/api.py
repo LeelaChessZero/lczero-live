@@ -1,10 +1,10 @@
 from typing import Optional, TypedDict
 
 import db
-from api_types import GamePositionUpdate, GamePositionUpdateFrame
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
 from sanic.response import json
+from ws_notifier import GamePositionUpdate, GamePositionUpdateFrame
 
 api = Blueprint("api", url_prefix="/api")
 

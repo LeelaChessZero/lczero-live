@@ -1,10 +1,11 @@
-import dataclasses
-from sanic.log import logger
-from db import Game, Tournament, GameFilter
-import lichess
 import asyncio
+import dataclasses
+from typing import Any, Optional
+
 import chess.pgn
-from typing import Optional, Any
+import lichess
+from db import Game, GameFilter, Tournament
+from sanic.log import logger
 from tortoise.transactions import in_transaction
 
 
