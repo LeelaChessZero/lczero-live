@@ -1,13 +1,13 @@
-import {GamePositionResponse} from './moves_feed';
+import {GamePositionUpdate} from './moves_feed';
 
 export interface MoveSelectionObserver {
-  onMoveSelected(position: GamePositionResponse): void;
+  onMoveSelected(position: GamePositionUpdate): void;
 }
 
 export class MoveList {
   private element: HTMLElement;
-  private positions: GamePositionResponse[] = [];
-  private positionIdx: number = 0;
+  private positions: GamePositionUpdate[] = [];
+  private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
 
   constructor(element: HTMLElement) {
@@ -69,23 +69,40 @@ export class MoveList {
     this.notifyObservers();
   }
 
-  public setPositions(positions: GamePositionResponse[]): void {
-    this.positions = positions;
-    this.element.innerHTML = '';
-    positions.forEach(position => {
-      if (position.ply === 0) return;
-      const move_idx = Math.floor((position.ply + 1) / 2);
-      const is_black = (position.ply % 2) === 0;
+  private updateSinglePosition(position: GamePositionUpdate): void {
+    while (position.ply >= this.positions.length) {
+      const emptyPosition: GamePositionUpdate = {
+        ply: this.positions.length,
+        fen: '',
+      };
+      this.positions.push(emptyPosition);
+    }
+    this.positions[position.ply] = position;
+    if (position.ply === 0) return;
 
-      const rowEl = document.createElement('div');
-      rowEl.classList.add('movelist-item');
-      rowEl.setAttribute('ply-idx', position.ply.toString());
-      rowEl.innerHTML =
-          `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
-              position.moveSan}`;
-      this.element.appendChild(rowEl);
-    });
-    this.selectPly(this.positions.length - 1);
+    const move_idx = Math.floor((position.ply + 1) / 2);
+    const is_black = (position.ply % 2) === 0;
+
+    const newRow = document.createElement('div');
+    newRow.classList.add('movelist-item');
+    newRow.setAttribute('ply-idx', position.ply.toString());
+    newRow.innerHTML = `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
+        position.moveSan}`;
+
+    const existingRow = this.element.querySelector(
+                            `[ply-idx="${position.ply}"]`) as HTMLDivElement;
+    if (existingRow) {
+      existingRow.innerHTML = newRow.innerHTML;
+    } else {
+      this.element.appendChild(newRow);
+    }
+  }
+
+  public setPositions(positions: GamePositionUpdate[]): void {
+    const wasAtEnd = (this.positionIdx === this.positions.length - 1) ||
+        this.positions.length <= 1;
+    positions.forEach(position => this.updateSinglePosition(position));
+    if (wasAtEnd) this.selectPly(this.positions.length - 1);
   }
 
   public clearPositions(): void {

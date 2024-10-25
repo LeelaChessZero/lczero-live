@@ -1,6 +1,6 @@
-from typing import Iterable
-from types import ModuleType
 import datetime
+from types import ModuleType
+from typing import Iterable
 
 DB_PATH = "sqlite://../.db/lczero_live.db"
 # DB_PATH = "sqlite://:memory:"

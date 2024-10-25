@@ -1,8 +1,10 @@
-from sanic import Blueprint, Websocket, Request
-from sanic.response import json
-from sanic.helpers import json_dumps
 from typing import Optional, TypedDict
+
 import db
+from api_types import GamePositionUpdate, GamePositionUpdateFrame
+from sanic import Blueprint, Request, Websocket
+from sanic.helpers import json_dumps
+from sanic.response import json
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -80,27 +82,10 @@ async def game(request, game_id):
     )
 
 
-class GamePositionResponse(TypedDict):
-    ply: int  # 0 for startpos
-    thinkingId: Optional[int]
-    moveUci: Optional[str]
-    moveSan: Optional[str]
-    fen: str
-    whiteClock: Optional[int]
-    blackClock: Optional[int]
-    scoreQ: Optional[int]
-    scoreW: Optional[int]
-    scoreD: Optional[int]
-    scoreB: Optional[int]
-
-
-class MovesFeed(TypedDict, total=False):
-    positions: list[GamePositionResponse]
-
-
 @api.websocket("/ws/game/<game_id:int>/moves")
 async def game_moves(request: Request, ws: Websocket, game_id):
     game = await db.Game.get(id=game_id)
+    updates_stream = request.app.ctx.app.add_moves_observer(game_id)
 
     positions: list[db.GamePosition] = (
         await db.GamePosition.filter(game=game).order_by("ply_number").all()
@@ -119,9 +104,9 @@ async def game_moves(request: Request, ws: Websocket, game_id):
 
     await ws.send(
         json_dumps(
-            MovesFeed(
+            GamePositionUpdateFrame(
                 positions=[
-                    GamePositionResponse(
+                    GamePositionUpdate(
                         ply=pos.ply_number,
                         thinkingId=None,
                         moveUci=pos.move_uci,
@@ -139,3 +124,8 @@ async def game_moves(request: Request, ws: Websocket, game_id):
             )
         )
     )
+
+    if updates_stream:
+        with updates_stream:
+            async for message in updates_stream:
+                await ws.send(json_dumps(message))

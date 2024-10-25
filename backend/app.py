@@ -6,6 +6,9 @@ from analyzer import Analyzer
 import db
 from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
+from anyio.streams.memory import MemoryObjectReceiveStream
+from api_types import GamePositionUpdateFrame
+from typing import Optional
 
 
 class App:
@@ -16,6 +19,14 @@ class App:
 
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self.analysises if (g := a.get_game()) is not None]
+
+    def add_moves_observer(
+        self, game_id: int
+    ) -> Optional[MemoryObjectReceiveStream[GamePositionUpdateFrame]]:
+        for a in self.analysises:
+            game = a.get_game()
+            if game and game.id == game_id:
+                return a.add_moves_observer()
 
     def __init__(self, app: Sanic):
         self.app = app

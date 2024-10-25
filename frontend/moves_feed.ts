@@ -1,5 +1,5 @@
 
-export interface GamePositionResponse {
+export interface GamePositionUpdate {
   ply: number;  // 0 for startpos
   thinkingId?: number;
   moveUci?: string;
@@ -13,12 +13,12 @@ export interface GamePositionResponse {
   scoreB?: number;
 }
 
-export interface MovesFeedResponse {
-  positions?: GamePositionResponse[];
+export interface GamePositionUpdateFrame {
+  positions?: GamePositionUpdate[];
 }
 
 export interface MovesFeedObserver {
-  onMovesReceived(moves: MovesFeedResponse): void;
+  onMovesReceived(moves: GamePositionUpdateFrame): void;
 }
 
 export class MovesFeed {
@@ -43,7 +43,7 @@ export class MovesFeed {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-  private notifyObservers(response: MovesFeedResponse): void {
+  private notifyObservers(response: GamePositionUpdateFrame): void {
     this.observers.forEach(observer => observer.onMovesReceived(response));
   }
 
@@ -52,7 +52,7 @@ export class MovesFeed {
   }
 
   private onMessage(event: MessageEvent): void {
-    const response = JSON.parse(event.data) as MovesFeedResponse;
+    const response = JSON.parse(event.data) as GamePositionUpdateFrame;
     this.notifyObservers(response);
   }
 };

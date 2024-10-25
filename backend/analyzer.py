@@ -1,14 +1,15 @@
-import db
-from typing import List, Optional
-from pgn_feed import PgnFeed
+from typing import Awaitable, Callable, List, Optional
+
 import anyio
-import chess.pgn
-import chess.engine
 import chess
-from sanic.log import logger
-from typing import Awaitable, Callable
-from anyio.streams.memory import MemoryObjectReceiveStream
+import chess.engine
+import chess.pgn
+import db
 from anyio.abc import TaskGroup
+from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+from api_types import GamePositionUpdate, GamePositionUpdateFrame
+from pgn_feed import PgnFeed
+from sanic.log import logger
 
 
 def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
@@ -24,6 +25,7 @@ class Analyzer:
     _current_position: Optional[db.GamePosition]
     _engine: chess.engine.Protocol
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
+    _move_observers: set[MemoryObjectSendStream[GamePositionUpdateFrame]]
 
     def __init__(
         self, uci_config: dict, next_task_callback: Callable[[], Awaitable[db.Game]]
@@ -32,6 +34,28 @@ class Analyzer:
         self._game = None
         self._get_next_task_callback = next_task_callback
         self._current_position = None
+        self._move_observers = set()
+
+    def add_moves_observer(
+        self,
+    ) -> MemoryObjectReceiveStream[GamePositionUpdateFrame]:
+        send_stream, recv_stream = anyio.create_memory_object_stream[
+            GamePositionUpdateFrame
+        ]()
+        self._move_observers.add(send_stream)
+        return recv_stream
+
+    async def _notify_moves_observers(self, frame: GamePositionUpdateFrame):
+        new_observers = set()
+        for observer in self._move_observers:
+            try:
+                await observer.send(frame)
+                new_observers.add(observer)
+            except anyio.EndOfStream:
+                await observer.aclose()
+            except anyio.BrokenResourceError:
+                await observer.aclose()
+        self._move_observers = new_observers
 
     # returns the last ply number.
     async def _update_game_db(
@@ -41,12 +65,14 @@ class Analyzer:
         white_clock: Optional[int] = None
         black_clock: Optional[int] = None
 
+        moves_websocket_frame = GamePositionUpdateFrame(positions=[])
+
         async def create_pos(
             ply: int,
             move_uci: Optional[str],
             move_san: Optional[str],
         ) -> db.GamePosition:
-            res, _ = await db.GamePosition.get_or_create(
+            res, created = await db.GamePosition.get_or_create(
                 game=game,
                 ply_number=ply,
                 defaults={
@@ -57,6 +83,23 @@ class Analyzer:
                     "black_clock": black_clock,
                 },
             )
+            if created:
+                moves_websocket_frame.setdefault("positions", []).append(
+                    GamePositionUpdate(
+                        ply=ply,
+                        thinkingId=None,
+                        moveUci=move_uci,
+                        moveSan=move_san,
+                        fen=res.fen,
+                        whiteClock=white_clock,
+                        blackClock=black_clock,
+                        scoreQ=None,
+                        scoreW=None,
+                        scoreD=None,
+                        scoreB=None,
+                    )
+                )
+
             return res
 
         last_pos: db.GamePosition = await create_pos(
@@ -79,6 +122,8 @@ class Analyzer:
                 move_uci=node.move.uci(),
                 move_san=san,
             )
+        if moves_websocket_frame.get("positions"):
+            await self._notify_moves_observers(moves_websocket_frame)
         return last_pos
 
     async def _process_position(self, board: chess.Board):
@@ -135,8 +180,9 @@ class Analyzer:
                 while True:
                     last_pos: db.GamePosition = await self._update_game_db(pgn, game)
                     logger.info(f"Processing position {last_pos.fen}")
-                    if self._current_position != last_pos:
-                        self._current_position = last_pos
+                    if self._current_position == last_pos:
+                        continue
+                    self._current_position = last_pos
                     async with anyio.create_task_group() as tg:
                         logger.debug("Position changed.")
                         tg.start_soon(self._uci_worker_think, get_leaf_board(pgn))
