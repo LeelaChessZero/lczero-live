@@ -15,6 +15,7 @@ register_tortoise(
 )
 app.ctx.app = App(app)
 app.static("/", "../static/index.html", name="index")
+app.static("/favicon.ico", "../static/favicon.ico", name="favicon")
 app.static("/static/", "../static/static/", name="static_dir")
 app.static("/dist", "../static/dist")
 app.blueprint(api)
