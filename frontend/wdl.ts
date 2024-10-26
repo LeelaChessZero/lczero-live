@@ -1,4 +1,8 @@
 
+export function isValidWdl(w?: number, d?: number, l?: number): boolean {
+  if (w == null || d == null || l == null) return false;
+  return w > 0 || d > 0 || l > 0;
+}
 
 export class WdlBar {
   private element: HTMLElement;

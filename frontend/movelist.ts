@@ -1,5 +1,5 @@
 import {GamePositionUpdate} from './moves_feed';
-import {WdlBar} from './wdl';
+import {isValidWdl, WdlBar} from './wdl';
 
 export interface MoveSelectionObserver {
   onMoveSelected(position: GamePositionUpdate, pos_changed: boolean): void;
@@ -99,14 +99,11 @@ export class MoveList {
         `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
             position.moveSan}`;
     newRow.appendChild(moveText);
-    if (position.scoreD != null && position.scoreW != null &&
-        position.scoreB != null &&
-        (position.scoreD != 0 || position.scoreW != 0 ||
-         position.scoreB != 0)) {
+    if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
       const newSpan = document.createElement('td');
       newRow.appendChild(newSpan);
       const wdlBar = new WdlBar(
-          newSpan, position.scoreW, position.scoreD, position.scoreB);
+          newSpan, position.scoreW!, position.scoreD!, position.scoreB!);
       wdlBar.render();
 
       const scoreText = document.createElement('td');
