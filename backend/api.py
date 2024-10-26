@@ -4,7 +4,7 @@ import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
 from sanic.response import json
-from ws_notifier import GamePositionUpdate, GamePositionUpdateFrame
+from ws_notifier import make_moves_update_frame
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -97,30 +97,15 @@ async def game_moves(request: Request, ws: Websocket, game_id):
         .all()
     )
 
-    positions_with_thinking = []
+    thinkings: list[Optional[db.GamePositionThinking]] = []
     for pos in positions:
-        best_thinking = max(pos.thinkings, key=lambda t: t.nodes, default=None)
-        positions_with_thinking.append((pos, best_thinking))
+        thinkings.append(max(pos.thinkings, key=lambda t: t.nodes, default=None))
 
     await ws.send(
         json_dumps(
-            GamePositionUpdateFrame(
-                positions=[
-                    GamePositionUpdate(
-                        ply=pos.ply_number,
-                        thinkingId=None,
-                        moveUci=pos.move_uci,
-                        moveSan=pos.move_san,
-                        fen=pos.fen,
-                        whiteClock=pos.white_clock,
-                        blackClock=pos.black_clock,
-                        scoreQ=None,
-                        scoreW=None,
-                        scoreD=None,
-                        scoreB=None,
-                    )
-                    for pos in positions
-                ],
+            make_moves_update_frame(
+                updated_positions=positions,
+                thinkings=thinkings,
             )
         )
     )
