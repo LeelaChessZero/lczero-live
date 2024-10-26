@@ -1,14 +1,30 @@
 import {GameThinkingUpdate} from './thinking_feed';
-import {WdlBar, isValidWdl} from './wdl';
+import {isValidWdl, WdlBar} from './wdl';
 
 export class MultiPvView {
   private parent: HTMLElement;
-  private element: HTMLTableElement;
+  private element: HTMLElement;
 
   constructor(parent: HTMLElement) {
     this.parent = parent;
-    this.element = document.createElement('table');
-    this.parent.appendChild(this.element);
+    const table = document.createElement('table');
+    this.parent.appendChild(table);
+    const hdr = document.createElement('thead');
+    table.appendChild(hdr);
+    const tr = document.createElement('tr');
+    hdr.appendChild(tr);
+    function addTr(text: string): void {
+      let th = document.createElement('th');
+      th.textContent = text;
+      tr.appendChild(th);
+    }
+    addTr('Move');
+    addTr('White / Draw / Black probability');
+    addTr('Nodes');
+    addTr('PV');
+
+    this.element = document.createElement('tbody');
+    table.appendChild(this.element);
   }
 
   public clear(): void {
