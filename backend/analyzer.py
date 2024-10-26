@@ -99,9 +99,7 @@ class Analyzer:
                 move_uci=node.move.uci(),
                 move_san=san,
             )
-        await self.ws_notifier.notify_move_observers(
-            updated_positions=added_game_positions
-        )
+        await self.ws_notifier.notify_move_observers(positions=added_game_positions)
         return last_pos
 
     def get_game(self) -> Optional[db.Game]:
@@ -167,8 +165,9 @@ class Analyzer:
                     black_score=0,
                 )
                 logger.debug(f"Starting thinking:\n{board}, {thinking.id}")
+                await self.ws_notifier.set_thinking_update_id(thinking.id)
                 await self.ws_notifier.notify_move_observers(
-                    updated_positions=[pos], thinkings=[thinking]
+                    positions=[pos], thinkings=[thinking]
                 )
                 multipv = min(self._config["max_multipv"], board.legal_moves.count())
                 info_bundle: list[chess.engine.InfoDict] = []
@@ -198,7 +197,7 @@ class Analyzer:
     ):
         total_n = sum(info.get("nodes", 0) for info in info_bundle)
         logger.debug(f"Total nodes: {total_n}")
-        logger.debug(info_bundle[0])
+        # logger.debug(info_bundle[0])
         evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
             thinking=thinking,
             nodes=total_n,
@@ -241,5 +240,8 @@ class Analyzer:
         thinking.moves_left = moves[0].moves_left
         await thinking.save()
         await self.ws_notifier.notify_move_observers(
-            updated_positions=[pos], thinkings=[thinking]
+            positions=[pos], thinkings=[thinking]
+        )
+        await self.ws_notifier.notify_thinking_observers(
+            thinking_id=thinking.id, thinkings=[evaluation], moves=[moves]
         )

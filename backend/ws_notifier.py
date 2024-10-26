@@ -24,42 +24,15 @@ class GamePositionUpdateFrame(TypedDict, total=False):
     positions: list[GamePositionUpdate]
 
 
-class GameThinkingMoveUpdate(TypedDict):
-    moveUci: str
-    moveOppUci: Optional[str]
-    moveSan: str
-    pvSan: str
-    scoreQ: int
-    scoreW: int
-    scoreD: int
-    scoreB: int
-    mateScore: Optional[int]
-    movesLeft: Optional[int]
-
-
-class GameThinkingUpdate(TypedDict):
-    updateId: int
-    nodes: int
-    scoreQ: Optional[int]
-    scoreW: Optional[int]
-    scoreD: Optional[int]
-    scoreB: Optional[int]
-    moves: list[GameThinkingMoveUpdate]
-
-
-class GameThinkingUpdateFrame(TypedDict):
-    thinkings: list[GameThinkingUpdate]
-
-
 def make_moves_update_frame(
-    updated_positions: list[db.GamePosition],
+    positions: list[db.GamePosition],
     thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
 ) -> GamePositionUpdateFrame:
     if thinkings is None:
-        thinkings = [None for x in range(len(updated_positions))]
+        thinkings = [None for x in range(len(positions))]
     moves_websocket_frame = GamePositionUpdateFrame(positions=[])
 
-    for pos, thinking in zip(updated_positions, thinkings):
+    for pos, thinking in zip(positions, thinkings):
         moves_websocket_frame.setdefault("positions", []).append(
             GamePositionUpdate(
                 ply=pos.ply_number,
@@ -80,13 +53,124 @@ def make_moves_update_frame(
     return moves_websocket_frame
 
 
+class GameThinkingMoveUpdate(TypedDict):
+    moveUci: str
+    moveOppUci: Optional[str]
+    moveSan: str
+    pvSan: str
+    scoreQ: int
+    scoreW: int
+    scoreD: int
+    scoreB: int
+    mateScore: Optional[int]
+    movesLeft: Optional[int]
+
+
+class GameThinkingUpdate(TypedDict):
+    updateId: int
+    nodes: int
+    time: int
+    depth: int
+    seldepth: int
+    moves: list[GameThinkingMoveUpdate]
+
+
+class GameThinkingUpdateFrame(TypedDict):
+    thinkings: list[GameThinkingUpdate]
+
+
+def make_thinkings_update_frame(
+    thinkings: list[db.GamePositionEvaluation],
+    moves: list[list[db.GamePositionEvaluationMove]],
+):
+    thinkings_websocket_frame = GameThinkingUpdateFrame(thinkings=[])
+    for thinking, thinking_moves in zip(thinkings, moves):
+        moves_update: list[GameThinkingMoveUpdate] = []
+        for move in thinking_moves:
+            moves_update.append(
+                GameThinkingMoveUpdate(
+                    moveUci=move.move_uci,
+                    moveOppUci=move.move_opp_uci,
+                    moveSan=move.move_san,
+                    pvSan=move.pv_san,
+                    scoreQ=move.q_score,
+                    scoreW=move.white_score,
+                    scoreD=move.draw_score,
+                    scoreB=move.black_score,
+                    mateScore=move.mate_score,
+                    movesLeft=move.moves_left,
+                )
+            )
+        thinkings_websocket_frame.setdefault("thinkings", []).append(
+            GameThinkingUpdate(
+                updateId=thinking.id,
+                nodes=thinking.nodes,
+                time=thinking.time,
+                depth=thinking.depth,
+                seldepth=thinking.seldepth,
+                moves=moves_update,
+            )
+        )
+
+    return thinkings_websocket_frame
+
+
 class WebsocketNotifier:
     _move_observers: set[MemoryObjectSendStream[GamePositionUpdateFrame]]
     _thinking_observers: set[MemoryObjectSendStream[GameThinkingUpdateFrame]]
+    _current_thinking_update_id: Optional[int] = None
 
     def __init__(self):
         self._move_observers = set()
         self._thinking_observers = set()
+
+    async def set_thinking_update_id(self, thinking_id: int):
+        if self._current_thinking_update_id != thinking_id:
+            self._current_thinking_update_id = thinking_id
+            async with anyio.create_task_group() as tg:
+                for observer in self._thinking_observers:
+                    tg.start_soon(observer.aclose)
+            self._thinking_observers.clear()
+
+    def add_thinking_observer(
+        self,
+        thinking_id: int,
+    ) -> MemoryObjectReceiveStream[GameThinkingUpdateFrame]:
+        send_stream, recv_stream = anyio.create_memory_object_stream[
+            GameThinkingUpdateFrame
+        ]()
+        if self._current_thinking_update_id == thinking_id:
+            send_stream.close()
+        else:
+            self._thinking_observers.add(send_stream)
+        return recv_stream
+
+    async def notify_thinking_observers(
+        self,
+        thinking_id: int,
+        thinkings: list[db.GamePositionEvaluation],
+        moves: list[list[db.GamePositionEvaluationMove]],
+    ):
+        if thinking_id != self._current_thinking_update_id:
+            return
+
+        if not thinkings:
+            return
+
+        thinkings_websocket_frame = make_thinkings_update_frame(
+            thinkings=thinkings, moves=moves
+        )
+
+        new_observers = set()
+        for observer in self._thinking_observers:
+            try:
+                await observer.send(thinkings_websocket_frame)
+                new_observers.add(observer)
+            except anyio.EndOfStream:
+                await observer.aclose()
+            except anyio.BrokenResourceError:
+                await observer.aclose()
+        self._thinking_observers = new_observers
 
     def add_moves_observer(
         self,
@@ -99,14 +183,14 @@ class WebsocketNotifier:
 
     async def notify_move_observers(
         self,
-        updated_positions: list[db.GamePosition],
+        positions: list[db.GamePosition],
         thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
     ):
-        if not updated_positions:
+        if not positions:
             return
 
         moves_websocket_frame = make_moves_update_frame(
-            updated_positions=updated_positions, thinkings=thinkings
+            positions=positions, thinkings=thinkings
         )
 
         new_observers = set()

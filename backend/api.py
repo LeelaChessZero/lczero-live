@@ -3,8 +3,9 @@ from typing import Optional, TypedDict
 import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
+import asyncio
 from sanic.response import json
-from ws_notifier import make_moves_update_frame
+from ws_notifier import make_moves_update_frame, make_thinkings_update_frame
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -104,7 +105,7 @@ async def game_moves(request: Request, ws: Websocket, game_id):
     await ws.send(
         json_dumps(
             make_moves_update_frame(
-                updated_positions=positions,
+                positions=positions,
                 thinkings=thinkings,
             )
         )
@@ -114,3 +115,35 @@ async def game_moves(request: Request, ws: Websocket, game_id):
         with updates_stream:
             async for message in updates_stream:
                 await ws.send(json_dumps(message))
+
+
+@api.websocket("/ws/game/<game_id:int>/thinking/<thinking_id:int>")
+async def game_thinking(request: Request, ws: Websocket, game_id, thinking_id):
+    updates_stream = request.app.ctx.app.add_thinking_observer(game_id, thinking_id)
+
+    evaluations: list[db.GamePositionEvaluation] = (
+        await db.GamePositionEvaluation.filter(thinking_id=thinking_id).order_by("id")
+    )
+
+    moves: list[list[db.GamePositionEvaluationMove]] = await asyncio.gather(
+        *[
+            db.GamePositionEvaluationMove.filter(evaluation=evaluation).order_by(
+                "-nodes"
+            )
+            for evaluation in evaluations
+        ]
+    )
+
+    if evaluations:
+        await ws.send(
+            json_dumps(
+                make_thinkings_update_frame(
+                    thinkings=evaluations,
+                    moves=moves,
+                )
+            )
+        )
+
+    with updates_stream:
+        async for message in updates_stream:
+            await ws.send(json_dumps(message))
