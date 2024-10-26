@@ -1,4 +1,5 @@
 import {GamePositionUpdate} from './moves_feed';
+import {WdlBar} from './wdl';
 
 export interface MoveSelectionObserver {
   onMoveSelected(position: GamePositionUpdate): void;
@@ -88,6 +89,19 @@ export class MoveList {
     newRow.setAttribute('ply-idx', position.ply.toString());
     newRow.innerHTML = `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
         position.moveSan}`;
+    if (position.scoreD !== null && position.scoreW !== null &&
+        position.scoreB !== null) {
+      const newSpan = document.createElement('span');
+      newRow.appendChild(newSpan);
+      const wdlBar = new WdlBar(
+          newSpan, position.scoreW, position.scoreD, position.scoreB);
+      wdlBar.render();
+
+      const scoreText = document.createElement('span');
+      scoreText.innerText = ` ${position.scoreW! / 10}% / ${
+          position.scoreD! / 10}% / ${position.scoreB! / 10}%`;
+      newRow.appendChild(scoreText);
+    }
 
     const existingRow = this.element.querySelector(
                             `[ply-idx="${position.ply}"]`) as HTMLDivElement;

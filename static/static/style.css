@@ -45,3 +45,22 @@ svg.board .square.dark.lastmove {
 svg.board .square.light.lastmove {
     fill: #cdd16a;
 }
+
+/* WDL bar */
+
+svg.wdl-bar .wdl-outer {
+    stroke: black;
+    fill: transparent;
+}
+
+svg.wdl-bar .wdl-white {
+    fill: #f0f0f0;
+}
+
+svg.wdl-bar .wdl-draw {
+    fill: #808080;
+}
+
+svg.wdl-bar .wdl-black {
+    fill: #202020;
+}
