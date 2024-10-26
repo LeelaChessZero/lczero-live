@@ -29,7 +29,11 @@ body {
 
 .movelist-item {
     cursor: pointer;
-    padding: 1px;
+    padding: 0;
+}
+
+.movelist-item td {
+    padding: 0;
 }
 
 .movelist-selected {

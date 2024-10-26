@@ -6,17 +6,20 @@ export interface MoveSelectionObserver {
 }
 
 export class MoveList {
-  private element: HTMLElement;
+  private parent: HTMLElement;
+  private element: HTMLTableElement;
   private positions: GamePositionUpdate[] = [];
   private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
 
-  constructor(element: HTMLElement) {
-    this.element = element;
+  constructor(parent: HTMLElement) {
+    this.parent = parent;
+    this.element = document.createElement('table');
     this.element.setAttribute('tabindex', '0');
     this.element.addEventListener('click', this.onClick.bind(this));
     this.element.addEventListener('keydown', this.onKeydown.bind(this));
     this.element.addEventListener('wheel', this.onWheel.bind(this));
+    this.parent.appendChild(this.element);
   }
 
   private onWheel(event: WheelEvent): void {
@@ -30,8 +33,8 @@ export class MoveList {
 
   private onClick(event: Event): void {
     const target = event.target as HTMLElement;
-    const plyIdx = target.getAttribute('ply-idx');
-    if (plyIdx !== null) this.selectPly(parseInt(plyIdx, 10));
+    const plyIdx = target.closest('[ply-idx]')?.getAttribute('ply-idx');
+    if (plyIdx != null) this.selectPly(parseInt(plyIdx, 10));
   }
 
   private onKeydown(event: KeyboardEvent): void {
@@ -84,23 +87,28 @@ export class MoveList {
     const move_idx = Math.floor((position.ply + 1) / 2);
     const is_black = (position.ply % 2) === 0;
 
-    const newRow = document.createElement('div');
+    const newRow = document.createElement('tr');
     newRow.classList.add('movelist-item');
     newRow.setAttribute('ply-idx', position.ply.toString());
-    newRow.innerHTML = `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
-        position.moveSan}`;
+    const moveText = document.createElement('td');
+    moveText.innerHTML =
+        `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
+            position.moveSan}`;
+    newRow.appendChild(moveText);
     if (position.scoreD !== null && position.scoreW !== null &&
         position.scoreB !== null) {
-      const newSpan = document.createElement('span');
+      const newSpan = document.createElement('td');
       newRow.appendChild(newSpan);
       const wdlBar = new WdlBar(
           newSpan, position.scoreW, position.scoreD, position.scoreB);
       wdlBar.render();
 
-      const scoreText = document.createElement('span');
+      const scoreText = document.createElement('td');
       scoreText.innerText = ` ${position.scoreW! / 10}% / ${
           position.scoreD! / 10}% / ${position.scoreB! / 10}%`;
       newRow.appendChild(scoreText);
+    } else {
+      moveText.setAttribute('colspan', '3');
     }
 
     const existingRow = this.element.querySelector(
