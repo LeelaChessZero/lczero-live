@@ -13,6 +13,14 @@ body {
     font-size: 10px;
 }
 
+.main-pane {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+/* Move list */
+
 #movelist {
     height: 400px;
     width: 400px;
