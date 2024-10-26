@@ -27,8 +27,9 @@ export class MovesFeed {
   private observers: MovesFeedObserver[] = [];
 
   constructor(gameId: number) {
-    this.websocket =
-        new WebSocket(`ws://${window.location.host}/api/ws/moves/${gameId}`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    this.websocket = new WebSocket(
+        `${protocol}//${window.location.host}/api/ws/moves/${gameId}`);
     this.websocket.onopen = this.onOpen.bind(this);
   }
 

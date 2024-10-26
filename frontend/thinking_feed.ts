@@ -35,8 +35,9 @@ export class ThinkingFeed {
   private observers: ThinkingFeedObserver[] = [];
 
   constructor(thinkingId: number) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     this.websocket = new WebSocket(
-        `ws://${window.location.host}/api/ws/thinking/${thinkingId}`);
+        `${protocol}//${window.location.host}/api/ws/thinking/${thinkingId}`);
     this.websocket.onopen = this.onOpen.bind(this);
   }
 
