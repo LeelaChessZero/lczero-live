@@ -8,8 +8,7 @@ export class WdlBar {
   private width: number = 200;
   private height: number = 14;
 
-  constructor(
-      element: HTMLElement, w: number = 0, d: number = 1, l: number = 0) {
+  constructor(element: HTMLElement, w: number, d: number, l: number) {
     this.element = element;
     this.w = w;
     this.d = d;
@@ -23,7 +22,6 @@ export class WdlBar {
     svg.setAttribute('class', 'wdl-bar');
     svg.setAttribute('height', this.height.toString());
     svg.setAttribute('width', this.width.toString());
-
 
     const total = this.w + this.d + this.l;
 

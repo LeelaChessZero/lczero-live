@@ -95,8 +95,10 @@ export class MoveList {
         `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
             position.moveSan}`;
     newRow.appendChild(moveText);
-    if (position.scoreD !== null && position.scoreW !== null &&
-        position.scoreB !== null) {
+    if (position.scoreD != null && position.scoreW != null &&
+        position.scoreB != null &&
+        (position.scoreD != 0 || position.scoreW != 0 ||
+         position.scoreB != 0)) {
       const newSpan = document.createElement('td');
       newRow.appendChild(newSpan);
       const wdlBar = new WdlBar(
@@ -120,7 +122,7 @@ export class MoveList {
     }
   }
 
-  public setPositions(positions: GamePositionUpdate[]): void {
+  public updatePositions(positions: GamePositionUpdate[]): void {
     const wasAtEnd = (this.positionIdx === this.positions.length - 1) ||
         this.positions.length <= 1;
     positions.forEach(position => this.updateSinglePosition(position));

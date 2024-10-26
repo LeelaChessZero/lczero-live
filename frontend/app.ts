@@ -1,7 +1,8 @@
 import {Board} from './board';
 import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
-import {GamePositionUpdate, MovesFeed, GamePositionUpdateFrame} from './moves_feed';
+import {GamePositionUpdate, GamePositionUpdateFrame, MovesFeed} from './moves_feed';
+import {MultiPvView} from './multipv_view';
 
 interface PlayerResponse {
   name: string;
@@ -20,6 +21,7 @@ interface GameResponse {
 export class App implements GameSelectionObserver, MoveSelectionObserver {
   private gameSelection: GameSelection;
   private moveList: MoveList;
+  private multiPvView: MultiPvView;
   private board: Board;
   private movesFeed?: MovesFeed = undefined;
 
@@ -33,15 +35,15 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     this.moveList.addObserver(this);
     this.board = new Board(document.getElementById('board') as HTMLElement);
     this.board.render();
+    this.multiPvView =
+        new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
   }
 
   public onGameSelected(gameId: number): void {
     fetch(`/api/game/${gameId}`)
         .then(response => response.json() as Promise<GameResponse>)
         .then(data => {
-          console.log('Game data:', data);
           this.startMovesFeed(data.gameId);
-          // this.moveList.setPositions(data.positions);
           this.updatePgnFeedUrl(data.feedUrl);
         })
         .catch(error => console.error('Error fetching game:', error));
@@ -74,7 +76,7 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
 
   public onMovesReceived(moves: GamePositionUpdateFrame): void {
     if (moves.positions) {
-      this.moveList.setPositions(moves.positions);
+      this.moveList.updatePositions(moves.positions);
     }
   }
 };
