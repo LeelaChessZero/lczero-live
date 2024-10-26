@@ -8,7 +8,7 @@ DB_MODULES: dict[str, Iterable[str | ModuleType]] = {"lc0live": ["db"]}
 UCI_ANALYZERS = [
     {
         "command": [
-            "/home/crem/dev/lc0/build/release/lc0",
+            "../../lc0/build/release/lc0",
             "--backend=trivial",
             # "--backend=multiplexing",
             # "--backend-opts=a(backend=demux,(backend=cuda-fp16,gpu=0),(backend=cuda-fp16,gpu=1),(backend=cuda-fp16,gpu=2),(backend=cuda-fp16,gpu=3)),b(backend=demux,(backend=cuda-fp16,gpu=4),(backend=cuda-fp16,gpu=5),(backend=cuda-fp16,gpu=6),(backend=cuda-fp16,gpu=7))",
