@@ -1,3 +1,4 @@
+import {Bar} from './bar';
 import {GameThinkingUpdate} from './thinking_feed';
 import {isValidWdl, WdlBar} from './wdl';
 
@@ -47,6 +48,7 @@ export class MultiPvView {
       } else {
         addCell();
       }
+      new Bar(addCell(), row.nodes, update.moves[0].nodes).render();
       addCell().textContent = row.nodes.toString();
       addCell().textContent = row.pvSan;
 

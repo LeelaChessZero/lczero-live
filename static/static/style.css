@@ -76,3 +76,14 @@ svg.wdl-bar .wdl-draw {
 svg.wdl-bar .wdl-black {
     fill: #202020;
 }
+
+/* Nodes bar */
+
+svg.nodes-bar .nodes-outer {
+    stroke: black;
+    fill: transparent;
+}
+
+svg.nodes-bar .nodes-inner {
+    fill: #8552fa;
+}
