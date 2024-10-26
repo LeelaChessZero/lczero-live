@@ -1,7 +1,7 @@
 import {Board} from './board';
 import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
-import {GamePositionResponse, MovesFeed, MovesFeedResponse} from './moves_feed';
+import {GamePositionUpdate, MovesFeed, GamePositionUpdateFrame} from './moves_feed';
 
 interface PlayerResponse {
   name: string;
@@ -53,7 +53,7 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     pgnFeed.innerText = feedUrl;
   }
 
-  public onMoveSelected(position: GamePositionResponse): void {
+  public onMoveSelected(position: GamePositionUpdate): void {
     this.board.fromFen(position.fen);
     this.board.clearHighlights();
     if (position.moveUci) {
@@ -72,7 +72,7 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     this.movesFeed.addObserver(this);
   }
 
-  public onMovesReceived(moves: MovesFeedResponse): void {
+  public onMovesReceived(moves: GamePositionUpdateFrame): void {
     if (moves.positions) {
       this.moveList.setPositions(moves.positions);
     }
