@@ -89,6 +89,7 @@ class GamePositionEvaluationMove(Model):
     evaluation = fields.ForeignKeyField(
         model_name="lc0live.GamePositionEvaluation", related_name="pv"
     )
+    nodes = fields.IntField()
     move_uci = fields.CharField(max_length=5)
     move_opp_uci = fields.CharField(max_length=5, null=True)
     move_san = fields.CharField(max_length=10)

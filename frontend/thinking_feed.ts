@@ -1,4 +1,5 @@
 export interface GameThinkingMoveUpdate {
+  nodes: number;
   moveUci: string;
   moveOppUci?: string;
   moveSan: string;
@@ -24,18 +25,18 @@ export interface GameThinkingUpdateFrame {
   thinkings: GameThinkingUpdate[];
 }
 
-export interface MovesFeedObserver {
-  onMovesReceived(moves: GameThinkingUpdateFrame): void;
+export interface ThinkingFeedObserver {
+  onThinkingReceived(moves: GameThinkingUpdateFrame): void;
 }
 
 
 export class ThinkingFeed {
   private websocket: WebSocket;
-  private observers: MovesFeedObserver[] = [];
+  private observers: ThinkingFeedObserver[] = [];
 
-  constructor(gameId: number, thinkingId: number) {
-    this.websocket = new WebSocket(`ws://${window.location.host}/api/ws/game/${
-        gameId}/thinking/${thinkingId}`);
+  constructor(thinkingId: number) {
+    this.websocket = new WebSocket(
+        `ws://${window.location.host}/api/ws/thinking/${thinkingId}`);
     this.websocket.onopen = this.onOpen.bind(this);
   }
 
@@ -43,16 +44,16 @@ export class ThinkingFeed {
     this.websocket.close();
   }
 
-  public addObserver(observer: MovesFeedObserver): void {
+  public addObserver(observer: ThinkingFeedObserver): void {
     this.observers.push(observer);
   }
 
-  public removeObserver(observer: MovesFeedObserver): void {
+  public removeObserver(observer: ThinkingFeedObserver): void {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
   private notifyObservers(response: GameThinkingUpdateFrame): void {
-    this.observers.forEach(observer => observer.onMovesReceived(response));
+    this.observers.forEach(observer => observer.onThinkingReceived(response));
   }
 
   private onOpen(): void {

@@ -2,7 +2,7 @@ import {GamePositionUpdate} from './moves_feed';
 import {WdlBar} from './wdl';
 
 export interface MoveSelectionObserver {
-  onMoveSelected(position: GamePositionUpdate): void;
+  onMoveSelected(position: GamePositionUpdate, pos_changed: boolean): void;
 }
 
 export class MoveList {
@@ -54,23 +54,27 @@ export class MoveList {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-  private notifyObservers(): void {
+  private notifyObservers(move_changed: boolean): void {
     this.observers.forEach(
-        observer => observer.onMoveSelected(this.positions[this.positionIdx]));
+        observer => observer.onMoveSelected(
+            this.positions[this.positionIdx], move_changed));
   }
 
   private selectPly(positionIdx: number): void {
     if (positionIdx < 0 || positionIdx >= this.positions.length) return;
-    if (this.positionIdx === positionIdx) return;
-    Array.from(this.element.children)
-        .forEach(row => row.classList.remove('movelist-selected'));
-    const targetRow =
-        Array.from(this.element.children)
-            .find(row => row.getAttribute('ply-idx') === String(positionIdx));
-    targetRow?.classList.add('movelist-selected');
-    targetRow?.scrollIntoView({block: 'nearest'});
-    this.positionIdx = positionIdx;
-    this.notifyObservers();
+    if (this.positionIdx === positionIdx) {
+      this.notifyObservers(false);
+    } else {
+      Array.from(this.element.children)
+          .forEach(row => row.classList.remove('movelist-selected'));
+      const targetRow =
+          Array.from(this.element.children)
+              .find(row => row.getAttribute('ply-idx') === String(positionIdx));
+      targetRow?.classList.add('movelist-selected');
+      targetRow?.scrollIntoView({block: 'nearest'});
+      this.positionIdx = positionIdx;
+      this.notifyObservers(true);
+    }
   }
 
   private updateSinglePosition(position: GamePositionUpdate): void {

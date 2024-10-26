@@ -25,6 +25,8 @@ def make_pv_san_string(board: chess.Board, pv: List[chess.Move]) -> str:
         res = f"{board.fullmove_number}…"
     for move in pv:
         if board.turn == chess.WHITE:
+            if res:
+                res += " "
             res += f"{board.fullmove_number}."
         res += " " + board.san(move)
         board.push(move)
@@ -104,6 +106,9 @@ class Analyzer:
 
     def get_game(self) -> Optional[db.Game]:
         return self._game
+
+    def get_thinking_id(self) -> Optional[int]:
+        return self.ws_notifier.get_thinking_update_id()
 
     async def run(self):
         _, self._engine = await chess.engine.popen_uci(self._config["command"])
@@ -201,7 +206,7 @@ class Analyzer:
         evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
             thinking=thinking,
             nodes=total_n,
-            time=int(info_bundle[0].get("time", 0)) * 1000,
+            time=int(info_bundle[0].get("time", 0) * 1000),
             depth=info_bundle[0].get("depth", 0),
             seldepth=info_bundle[0].get("seldepth", 0),
         )
@@ -218,6 +223,7 @@ class Analyzer:
             ).white()
             return db.GamePositionEvaluationMove(
                 evaluation=evaluation,
+                nodes=info.get("nodes", 0),
                 move_uci=move.uci(),
                 move_opp_uci=pv[1].uci() if len(pv) > 1 else None,
                 move_san=board.san(move),
@@ -230,7 +236,9 @@ class Analyzer:
                 moves_left=info.get("movesleft", None),
             )
 
-        moves = [make_eval_move(info) for info in info_bundle]
+        moves: List[db.GamePositionEvaluationMove] = [
+            make_eval_move(info) for info in info_bundle
+        ]
         await db.GamePositionEvaluationMove.bulk_create(moves)
         thinking.nodes = total_n
         thinking.q_score = moves[0].q_score
@@ -243,5 +251,5 @@ class Analyzer:
             positions=[pos], thinkings=[thinking]
         )
         await self.ws_notifier.notify_thinking_observers(
-            thinking_id=thinking.id, thinkings=[evaluation], moves=[moves]
+            thinkings=[evaluation], moves=[moves]
         )

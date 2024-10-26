@@ -9,7 +9,7 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic.log import logger
-from ws_notifier import GamePositionUpdateFrame
+from ws_notifier import GamePositionUpdateFrame, GameThinkingUpdateFrame
 
 
 class App:
@@ -28,6 +28,13 @@ class App:
             game = a.get_game()
             if game and game.id == game_id:
                 return a.ws_notifier.add_moves_observer()
+
+    def add_thinking_observer(
+        self, thinkings_id: int
+    ) -> Optional[MemoryObjectReceiveStream[GameThinkingUpdateFrame]]:
+        for a in self.analysises:
+            if a.get_thinking_id() == thinkings_id:
+                return a.ws_notifier.add_thinking_observer()
 
     def __init__(self, app: Sanic):
         self.app = app

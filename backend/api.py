@@ -4,8 +4,10 @@ import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
 import asyncio
+from anyio.streams.memory import MemoryObjectReceiveStream
+from ws_notifier import GamePositionUpdateFrame, GameThinkingUpdateFrame
 from sanic.response import json
-from ws_notifier import make_moves_update_frame, make_thinkings_update_frame
+from ws_notifier import make_moves_update_frame, make_thinking_update_frame
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -83,10 +85,12 @@ async def game(request, game_id):
     )
 
 
-@api.websocket("/ws/game/<game_id:int>/moves")
+@api.websocket("/ws/moves/<game_id:int>")
 async def game_moves(request: Request, ws: Websocket, game_id):
     game = await db.Game.get(id=game_id)
-    updates_stream = request.app.ctx.app.add_moves_observer(game_id)
+    updates_stream: Optional[MemoryObjectReceiveStream[GamePositionUpdateFrame]] = (
+        request.app.ctx.app.add_moves_observer(game_id)
+    )
 
     positions: list[db.GamePosition] = (
         await db.GamePosition.filter(game=game).order_by("ply_number").all()
@@ -117,9 +121,11 @@ async def game_moves(request: Request, ws: Websocket, game_id):
                 await ws.send(json_dumps(message))
 
 
-@api.websocket("/ws/game/<game_id:int>/thinking/<thinking_id:int>")
-async def game_thinking(request: Request, ws: Websocket, game_id, thinking_id):
-    updates_stream = request.app.ctx.app.add_thinking_observer(game_id, thinking_id)
+@api.websocket("/ws/thinking/<thinking_id:int>")
+async def game_thinking(request: Request, ws: Websocket, thinking_id):
+    updates_stream: Optional[MemoryObjectReceiveStream[GameThinkingUpdateFrame]] = (
+        request.app.ctx.app.add_thinking_observer(thinking_id)
+    )
 
     evaluations: list[db.GamePositionEvaluation] = (
         await db.GamePositionEvaluation.filter(thinking_id=thinking_id).order_by("id")
@@ -137,13 +143,14 @@ async def game_thinking(request: Request, ws: Websocket, game_id, thinking_id):
     if evaluations:
         await ws.send(
             json_dumps(
-                make_thinkings_update_frame(
+                make_thinking_update_frame(
                     thinkings=evaluations,
                     moves=moves,
                 )
             )
         )
 
-    with updates_stream:
-        async for message in updates_stream:
-            await ws.send(json_dumps(message))
+    if updates_stream:
+        with updates_stream:
+            async for message in updates_stream:
+                await ws.send(json_dumps(message))

@@ -3,6 +3,7 @@ import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
 import {GamePositionUpdate, GamePositionUpdateFrame, MovesFeed} from './moves_feed';
 import {MultiPvView} from './multipv_view';
+import {GameThinkingUpdateFrame, ThinkingFeed} from './thinking_feed';
 
 interface PlayerResponse {
   name: string;
@@ -21,9 +22,11 @@ interface GameResponse {
 export class App implements GameSelectionObserver, MoveSelectionObserver {
   private gameSelection: GameSelection;
   private moveList: MoveList;
+  private currentThinkingId?: number;
   private multiPvView: MultiPvView;
   private board: Board;
   private movesFeed?: MovesFeed = undefined;
+  private thinkingFeed?: ThinkingFeed = undefined;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -37,6 +40,25 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     this.board.render();
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
+    this.currentThinkingId = undefined;
+  }
+
+  public startThinking(thinkingId?: number): void {
+    if (this.currentThinkingId == thinkingId) return;
+    if (this.thinkingFeed) this.thinkingFeed.close();
+    this.multiPvView.clear();
+    this.currentThinkingId = thinkingId;
+
+    if (thinkingId != undefined) {
+      this.thinkingFeed = new ThinkingFeed(thinkingId);
+      this.thinkingFeed.addObserver(this);
+    }
+  }
+
+  public onThinkingReceived(moves: GameThinkingUpdateFrame): void {
+    if (moves.thinkings) {
+      this.multiPvView.updateMultiPv(moves.thinkings.at(-1)!);
+    }
   }
 
   public onGameSelected(gameId: number): void {
@@ -55,14 +77,22 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     pgnFeed.innerText = feedUrl;
   }
 
-  public onMoveSelected(position: GamePositionUpdate): void {
-    this.board.fromFen(position.fen);
-    this.board.clearHighlights();
-    if (position.moveUci) {
-      this.board.addHighlight(position.moveUci.slice(0, 2));
-      this.board.addHighlight(position.moveUci.slice(2, 4));
+  public onMoveSelected(
+      position: GamePositionUpdate,
+      pos_changed: boolean,
+      ): void {
+    if (pos_changed) {
+      this.board.fromFen(position.fen);
+      this.board.clearHighlights();
+      if (position.moveUci) {
+        this.board.addHighlight(position.moveUci.slice(0, 2));
+        this.board.addHighlight(position.moveUci.slice(2, 4));
+      }
+      this.board.render();
     }
-    this.board.render();
+    if (position.thinkingId) {
+      this.startThinking(position.thinkingId);
+    }
   }
 
   private startMovesFeed(gameId: number): void {
