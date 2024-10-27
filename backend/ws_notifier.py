@@ -1,8 +1,8 @@
 from typing import Optional, TypedDict
 
-import anyio
 import db
-from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+
+# from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 
 
 # Global data
@@ -94,9 +94,35 @@ class WebsocketRequest(TypedDict, total=False):
 
 class WebsocketResponse(TypedDict, total=False):
     status: WsGlobalData
-    game: list[WsGameData]
-    position: list[WsPositionData]
-    evaluation: list[WsVariationData]
+    games: list[WsGameData]
+    positions: list[WsPositionData]
+    evaluations: list[WsVariationData]
+
+
+def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGameData]:
+    return [
+        WsGameData(
+            gameId=game.id,
+            name=f"{game.game_name} ({game.round_name}) --- " f"{game.tournament.name}",
+            isFinished=game.is_finished,
+            isBeingAnalyzed=game.id in analyzed_games,
+            player1=WsPlayerData(
+                name=game.player1_name,
+                rating=game.player1_rating,
+                fideId=game.player1_fide_id,
+                fed=game.player1_fed,
+            ),
+            player2=WsPlayerData(
+                name=game.player2_name,
+                rating=game.player2_rating,
+                fideId=game.player2_fide_id,
+                fed=game.player2_fed,
+            ),
+            feedUrl="https://lichess.org/broadcast/-/-/"
+            f"{game.lichess_round_id}/{game.lichess_id}",
+        )
+        for game in games
+    ]
 
 
 class WebsocketNotifier:

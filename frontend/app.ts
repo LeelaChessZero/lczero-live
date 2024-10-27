@@ -23,13 +23,12 @@ export class App implements WebsocketObserver {
   private moveList: MoveList;
   private multiPvView: MultiPvView;
   private board: Board;
-  private websocketFeed: WebSocketFeed = undefined;
+  private websocketFeed: WebSocketFeed;
 
   constructor() {
     this.gameSelection = new GameSelection(
         document.getElementById('game-selection') as HTMLSelectElement);
     this.gameSelection.addObserver(this);
-    this.gameSelection.fetchGamesFromServer();
     this.moveList =
         new MoveList(document.getElementById('movelist') as HTMLElement);
     this.moveList.addObserver(this);
@@ -37,14 +36,16 @@ export class App implements WebsocketObserver {
     this.board.render();
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
-
     this.websocketFeed = new WebSocketFeed();
+    this.websocketFeed.addObserver(this);
   }
 
   public onConnect(): void {}
   public onDisconnect(): void {}
   public onStatusReceived(status: WsGlobalData): void {}
-  public onGamesReceived(games: WsGameData[]): void {}
+  public onGamesReceived(games: WsGameData[]): void {
+    this.gameSelection.updateGames(games);
+  }
   public onPositionReceived(position: WsPositionData[]): void {}
   public onEvaluationReceived(evaluation: WsVariationData[]): void {}
 

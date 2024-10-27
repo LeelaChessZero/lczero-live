@@ -75,9 +75,9 @@ export interface WebsocketRequest {
 
 export interface WebsocketResponse {
   status: WsGlobalData;
-  game: WsGameData[];
-  position: WsPositionData[];
-  evaluation: WsVariationData[];
+  games: WsGameData[];
+  positions: WsPositionData[];
+  evaluations: WsVariationData[];
 }
 
 export interface WebsocketObserver {
@@ -166,16 +166,16 @@ export class WebSocketFeed {
       this.notifyObservers(
           observer => observer.onStatusReceived(response.status));
     }
-    if (response.game) {
-      this.notifyObservers(observer => observer.onGamesReceived(response.game));
+    if (response.games) {
+      this.notifyObservers(observer => observer.onGamesReceived(response.games));
     }
-    if (response.position) {
+    if (response.positions) {
       this.notifyObservers(
-          observer => observer.onPositionReceived(response.position));
+          observer => observer.onPositionReceived(response.positions));
     }
-    if (response.evaluation) {
+    if (response.evaluations) {
       this.notifyObservers(
-          observer => observer.onEvaluationReceived(response.evaluation));
+          observer => observer.onEvaluationReceived(response.evaluations));
     }
   }
 }

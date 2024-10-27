@@ -1,32 +1,19 @@
+import {WsGameData} from './ws_feed';
+
 export interface GameSelectionObserver {
   onGameSelected(game: number): void;
 }
 
-interface GameData {
-  id: number;
-  name: string;
-  isFinished: boolean;
-  isBeingAnalyzed: boolean;
-}
-
-interface GamesResponse {
-  games: GameData[];
-}
-
 export class GameSelection {
   private element: HTMLSelectElement;
-  private games: GameData[] = [];
+  private games: WsGameData[] = [];
   private observers: GameSelectionObserver[] = [];
+  private followLiveGames: boolean = true;
 
   constructor(element: HTMLSelectElement) {
     this.element = element;
-    this.element.addEventListener('change', () => {
-      const selectedGameId = parseInt(this.element.value);
-      this.observers.forEach(
-          observer => observer.onGameSelected(selectedGameId));
-    });
+    this.element.addEventListener('change', this.onChange);
   }
-
 
   public addObserver(observer: GameSelectionObserver): void {
     this.observers.push(observer);
@@ -36,54 +23,60 @@ export class GameSelection {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-  public getGames(): GameData[] {
-    return [...this.games];
-  }
 
-  public fetchGamesFromServer(): void {
-    fetch('/api/games')
-        .then(response => response.json() as Promise<GamesResponse>)
-        .then(data => {
-          this.games = data.games;
-          this.renderGames();
-        })
-        .catch(error => console.error('Error fetching games:', error));
+  public getGames(): WsGameData[] {
+    return [...this.games];
   }
 
   public getSelectedGameId(): number {
     return parseInt(this.element.value);
   }
 
-  private renderGames(): void {
-    this.element.innerHTML = '';
-    let selectedGame: GameData|undefined;
-
-    this.games.forEach(game => {
-      const option = document.createElement('option');
-      option.value = game.id.toString();
-      const prefix = game.isBeingAnalyzed ? '🔴 ' :
-          (!game.isFinished)              ? '⏸️ ' :
-                                            '';
-      option.textContent = prefix + game.name;
-      this.element.appendChild(option);
-
-      if (!selectedGame ||
-          (game.isBeingAnalyzed && !selectedGame.isBeingAnalyzed) ||
-          (!game.isFinished && selectedGame.isFinished)) {
-        selectedGame = game;
-      }
-    });
-
-    if (selectedGame) {
-      this.element.value = selectedGame.id.toString();
+  public updateGames(games: WsGameData[]): void {
+    if (!games) return;
+    const wasEmpty = this.games.length === 0;
+    games.forEach(game => this.updateSingleGame(game));
+    if (wasEmpty ||
+        this.followLiveGames &&
+            !this.games[this.getSelectedGameId()].isBeingAnalyzed) {
+      let newSel = this.games.find(g => g.isBeingAnalyzed);
+      if (!newSel) newSel = this.games.find(g => !g.isFinished);
+      if (!newSel) newSel = this.games[0];
+      this.element.value = newSel.gameId.toString();
+      this.notifyObservers(newSel.gameId);
     }
-
-    this.notifyObservers();
   }
 
-  private notifyObservers(): void {
-    this.observers.forEach(observer => {
-      observer.onGameSelected(parseInt(this.element.value));
-    });
+  private onChange() {
+    const gameId = parseInt(this.element.value);
+    this.followLiveGames = this.games.every(x => !x.isBeingAnalyzed) ||
+        this.games.find(x => x.gameId === gameId)!.isBeingAnalyzed;
+    this.notifyObservers(gameId);
+  }
+
+  private notifyObservers(gameId: number): void {
+    this.observers.forEach(observer => observer.onGameSelected(gameId));
+  }
+
+  private updateSingleGame(game: WsGameData): void {
+    const existingGame = this.games.findIndex(g => g.gameId === game.gameId);
+    const option = this.makeOption(game);
+    if (existingGame === -1) {
+      this.games.push(game);
+      this.element.appendChild(option);
+    } else {
+      this.games[existingGame] = game;
+      this.element.replaceChild(option, this.element.childNodes[existingGame]);
+    }
+  }
+
+  private makeOption(game: WsGameData): HTMLOptionElement {
+    const option = document.createElement('option');
+    option.value = game.gameId.toString();
+    const prefix = game.isBeingAnalyzed ? '🔴 ' :
+        (!game.isFinished)              ? '⏸️ ' :
+                                          '';
+    option.textContent = prefix + game.name;
+    return option;
   }
 };
