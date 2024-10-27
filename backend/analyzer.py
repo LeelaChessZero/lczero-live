@@ -39,16 +39,19 @@ class Analyzer:
     _current_position: Optional[db.GamePosition]
     _engine: chess.engine.Protocol
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
-    ws_notifier: WebsocketNotifier
+    _ws_notifier: WebsocketNotifier
 
     def __init__(
-        self, uci_config: dict, next_task_callback: Callable[[], Awaitable[db.Game]]
+        self,
+        uci_config: dict,
+        next_task_callback: Callable[[], Awaitable[db.Game]],
+        ws_notifier: WebsocketNotifier,
     ):
         self._config = uci_config
         self._game = None
         self._get_next_task_callback = next_task_callback
         self._current_position = None
-        self.ws_notifier = WebsocketNotifier()
+        self._ws_notifier = ws_notifier
 
     # returns the last ply number.
     async def _update_game_db(
@@ -101,7 +104,9 @@ class Analyzer:
                 move_uci=node.move.uci(),
                 move_san=san,
             )
-        await self.ws_notifier.notify_move_observers(positions=added_game_positions)
+        await self._ws_notifier.send_game_update(
+            game_id=game.id, positions=added_game_positions
+        )
         return last_pos
 
     def get_game(self) -> Optional[db.Game]:
@@ -170,9 +175,10 @@ class Analyzer:
                     black_score=0,
                 )
                 logger.debug(f"Starting thinking:\n{board}, {thinking.id}")
-                await self.ws_notifier.set_thinking_update_id(thinking.id)
-                await self.ws_notifier.notify_move_observers(
-                    positions=[pos], thinkings=[thinking]
+                game = self._game
+                assert game is not None
+                await self._ws_notifier.send_game_update(
+                    game.id, positions=[pos], thinkings=[thinking]
                 )
                 multipv = min(self._config["max_multipv"], board.legal_moves.count())
                 info_bundle: list[chess.engine.InfoDict] = []
@@ -247,9 +253,12 @@ class Analyzer:
         thinking.black_score = moves[0].black_score
         thinking.moves_left = moves[0].moves_left
         await thinking.save()
-        await self.ws_notifier.notify_move_observers(
-            positions=[pos], thinkings=[thinking]
-        )
-        await self.ws_notifier.notify_thinking_observers(
-            thinkings=[evaluation], moves=[moves]
+        game = self._game
+        assert game is not None
+        await self._ws_notifier.send_game_update(
+            game_id=game.id,
+            positions=[pos],
+            thinkings=[thinking],
+            evaluations=[evaluation],
+            moves=[moves],
         )

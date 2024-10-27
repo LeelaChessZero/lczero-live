@@ -1,9 +1,8 @@
 import {Board} from './board';
 import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
-import {GamePositionUpdate, GamePositionUpdateFrame, MovesFeed} from './moves_feed';
 import {MultiPvView} from './multipv_view';
-import {GameThinkingUpdateFrame, ThinkingFeed} from './thinking_feed';
+import {WebSocketFeed, WebsocketObserver, WsGameData, WsGlobalData, WsPositionData, WsVariationData} from './ws_feed';
 
 interface PlayerResponse {
   name: string;
@@ -19,14 +18,12 @@ interface GameResponse {
   feedUrl: string;
 }
 
-export class App implements GameSelectionObserver, MoveSelectionObserver {
+export class App implements WebsocketObserver {
   private gameSelection: GameSelection;
   private moveList: MoveList;
-  private currentThinkingId?: number;
   private multiPvView: MultiPvView;
   private board: Board;
-  private movesFeed?: MovesFeed = undefined;
-  private thinkingFeed?: ThinkingFeed = undefined;
+  private websocketFeed: WebSocketFeed = undefined;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -40,8 +37,16 @@ export class App implements GameSelectionObserver, MoveSelectionObserver {
     this.board.render();
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
-    this.currentThinkingId = undefined;
+
+    this.websocketFeed = new WebSocketFeed();
   }
+
+  public onConnect(): void {}
+  public onDisconnect(): void {}
+  public onStatusReceived(status: WsGlobalData): void {}
+  public onGamesReceived(games: WsGameData[]): void {}
+  public onPositionReceived(position: WsPositionData[]): void {}
+  public onEvaluationReceived(evaluation: WsVariationData[]): void {}
 
   public startThinking(thinkingId?: number): void {
     if (this.currentThinkingId == thinkingId) return;

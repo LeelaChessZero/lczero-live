@@ -9,44 +9,35 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic.log import logger
-from ws_notifier import GamePositionUpdateFrame, GameThinkingUpdateFrame
+from ws_notifier import WebsocketNotifier
 
 
 class App:
     app: Sanic
     config: sanic.config.Config
-    analysises: list[Analyzer]
-    game_assignment_lock: anyio.Lock
-
-    def get_games_being_analyzed(self) -> list[db.Game]:
-        return [g for a in self.analysises if (g := a.get_game()) is not None]
-
-    def add_moves_observer(
-        self, game_id: int
-    ) -> Optional[MemoryObjectReceiveStream[GamePositionUpdateFrame]]:
-        for a in self.analysises:
-            game = a.get_game()
-            if game and game.id == game_id:
-                return a.ws_notifier.add_moves_observer()
-
-    def add_thinking_observer(
-        self, thinkings_id: int
-    ) -> Optional[MemoryObjectReceiveStream[GameThinkingUpdateFrame]]:
-        for a in self.analysises:
-            if a.get_thinking_id() == thinkings_id:
-                return a.ws_notifier.add_thinking_observer()
+    _analysises: list[Analyzer]
+    _game_assignment_lock: anyio.Lock
+    _ws_notifier: WebsocketNotifier
 
     def __init__(self, app: Sanic):
         self.app = app
         self.config = app.config
-        self.analysises = [
-            Analyzer(uci_config=cfg, next_task_callback=self._get_next_game)
+        self._ws_notifier = WebsocketNotifier()
+        self._analysises = [
+            Analyzer(
+                uci_config=cfg,
+                next_task_callback=self._get_next_game,
+                ws_notifier=self._ws_notifier,
+            )
             for cfg in self.config.UCI_ANALYZERS
         ]
-        self.game_assignment_lock = anyio.Lock()
+        self._game_assignment_lock = anyio.Lock()
+
+    def get_games_being_analyzed(self) -> list[db.Game]:
+        return [g for a in self._analysises if (g := a.get_game()) is not None]
 
     async def _get_next_game(self) -> db.Game:
-        async with self.game_assignment_lock:
+        async with self._game_assignment_lock:
             while True:
                 # Check whether there are any active games that are not covered.
                 games = await db.Game.filter(is_finished=False)
@@ -65,7 +56,7 @@ class App:
 
     async def run(self):
         async with anyio.create_task_group() as tg:
-            for a in self.analysises:
+            for a in self._analysises:
                 tg.start_soon(a.run)
 
     async def shutdown(self, app: Sanic):
