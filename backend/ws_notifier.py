@@ -222,6 +222,7 @@ class WebsocketNotifier:
         self,
         game_id: int,
         positions: Optional[list[db.GamePosition]] = None,
+        ply: Optional[int] = None,
         evaluations: Optional[list[db.GamePositionEvaluation]] = None,
         moves: Optional[list[list[db.GamePositionEvaluationMove]]] = None,
     ):
@@ -229,6 +230,14 @@ class WebsocketNotifier:
         if positions is not None:
             response.update(
                 positions=make_positions_update(game_id=game_id, positions=positions)
+            )
+        if evaluations is not None:
+            assert moves is not None
+            assert ply is not None
+            response.update(
+                evaluations=make_evaluations_update(
+                    game_id=game_id, ply=ply, evaluations=evaluations, moves=moves
+                )
             )
         await self._notify_observers(response, game_id=game_id)
 

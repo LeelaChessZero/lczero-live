@@ -260,6 +260,7 @@ class Analyzer:
         await self._ws_notifier.send_game_update(
             game_id=game.id,
             positions=[pos],
+            ply=pos.ply_number,
             evaluations=[evaluation],
             moves=[moves],
         )
