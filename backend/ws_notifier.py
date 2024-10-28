@@ -61,7 +61,7 @@ class WsPositionData(TypedDict):
 # Per evaluation data
 
 
-class WsVariationData(TypedDict):
+class WsVariationData(TypedDict, total=False):
     moveUci: str
     nodes: int
     moveSan: str
@@ -144,22 +144,30 @@ def make_evaluations_update(
             seldepth=eval_.seldepth,
             movesLeft=eval_.moves_left,
             variations=[
-                WsVariationData(
-                    moveUci=move.move_uci,
-                    nodes=move.nodes,
-                    moveSan=move.move_san,
-                    pvSan=move.pv_san,
-                    pvUci=move.pv_uci,
-                    scoreQ=move.q_score,
-                    scoreW=move.white_score,
-                    scoreD=move.draw_score,
-                    scoreB=move.black_score,
-                    mateScore=move.mate_score,
+                (
+                    WsVariationData(
+                        moveUci=move.move_uci,
+                        nodes=move.nodes,
+                        moveSan=move.move_san,
+                        pvSan=move.pv_san,
+                        pvUci=move.pv_uci,
+                        scoreQ=move.q_score,
+                        scoreW=move.white_score,
+                        scoreD=move.draw_score,
+                        scoreB=move.black_score,
+                        mateScore=move.mate_score,
+                    )
+                    if i == len(evaluations) - 1
+                    else WsVariationData(
+                        moveUci=move.move_uci,
+                        nodes=move.nodes,
+                        moveSan=move.move_san,
+                    )
                 )
                 for move in moves
             ],
         )
-        for eval_, moves in zip(evaluations, moves)
+        for i, (eval_, moves) in enumerate(zip(evaluations, moves))
     ]
 
 
