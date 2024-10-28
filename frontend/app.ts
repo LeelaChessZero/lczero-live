@@ -48,7 +48,9 @@ export class App implements WebsocketObserver {
   public onGamesReceived(games: WsGameData[]): void {
     this.gameSelection.updateGames(games);
   }
-  public onPositionReceived(position: WsPositionData[]): void {}
+  public onPositionReceived(position: WsPositionData[]): void {
+    this.moveList.updatePositions(position);
+  }
   public onEvaluationReceived(evaluation: WsVariationData[]): void {}
 
   public startThinking(thinkingId?: number): void {
@@ -106,11 +108,5 @@ export class App implements WebsocketObserver {
     this.moveList.clearPositions();
     this.movesFeed = new MovesFeed(gameId);
     this.movesFeed.addObserver(this);
-  }
-
-  public onMovesReceived(moves: GamePositionUpdateFrame): void {
-    if (moves.positions) {
-      this.moveList.updatePositions(moves.positions);
-    }
   }
 };

@@ -4,6 +4,7 @@ from typing import Optional, TypedDict
 import anyio
 import db
 from sanic import Websocket
+from sanic.helpers import json_dumps
 from sanic.log import logger
 from websockets.exceptions import ConnectionClosed
 
@@ -173,6 +174,14 @@ class WebsocketNotifier:
     def unregister(self, ws: Websocket) -> None:
         self._subscriptions.pop(ws)
 
+    def set_game_id(self, ws: Websocket, game_id: int) -> bool:
+        entry = self._subscriptions[ws]
+        changed = entry.game_id != game_id
+        entry.game_id = game_id
+        if changed:
+            entry.ply = None
+        return changed
+
     async def send_game_update(
         self,
         game_id: int,
@@ -187,6 +196,16 @@ class WebsocketNotifier:
             )
         await self._notify_observers(response, game_id=game_id)
 
+    async def send_text(self, ws: Websocket, response: str):
+        try:
+            await ws.send(response)
+        except ConnectionClosed as e:
+            logger.info(f"Connection closed, {e}")
+            pass
+
+    async def send_response(self, ws: Websocket, response: WebsocketResponse):
+        await self.send_text(ws, json_dumps(response))
+
     async def _notify_observers(
         self,
         response: WebsocketResponse,
@@ -195,20 +214,14 @@ class WebsocketNotifier:
     ) -> None:
         subs = list(self._subscriptions.values())
 
-        async def send(ws: Websocket, response: WebsocketResponse):
-            try:
-                await ws.send(response)
-            except ConnectionClosed as e:
-                logger.info(f"Connection closed, {e}")
-                pass
-
+        raw_response = json_dumps(response)
         async with anyio.create_task_group() as tg:
             for sub in subs:
                 if game_id is not None and sub.game_id != game_id:
                     continue
                 if ply is not None and sub.ply != ply:
                     continue
-                tg.start_soon(send, sub.ws, response)
+                tg.start_soon(self.send_text, sub.ws, raw_response)
 
 
 # class GamePositionUpdate(TypedDict):

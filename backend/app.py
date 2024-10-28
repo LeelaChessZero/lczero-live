@@ -5,6 +5,7 @@ from analyzer import Analyzer
 from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
+from sanic import Websocket
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
 
@@ -30,11 +31,21 @@ class App:
         ]
         self._game_assignment_lock = anyio.Lock()
 
-    def register_ws(self, ws):
-        self._ws_notifier.register(ws)
+    def get_ws_notifier(self) -> WebsocketNotifier:
+        return self._ws_notifier
 
-    def unregister_ws(self, ws):
-        self._ws_notifier.unregister(ws)
+    async def set_game_id(self, ws: Websocket, game_id: int):
+        self._ws_notifier.set_game_id(ws, game_id)
+        analysis: Analyzer | None = next(
+            (
+                a
+                for a in self._analysises
+                if (game := a.get_game()) is not None and game.id == game_id
+            ),
+            None,
+        )
+        if analysis is not None:
+            await analysis.dump_moves(ws)
 
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]

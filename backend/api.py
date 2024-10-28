@@ -1,28 +1,40 @@
 import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
-from ws_notifier import WebsocketResponse, make_game_data
+from ws_notifier import (
+    WebsocketNotifier,
+    WebsocketRequest,
+    WebsocketResponse,
+    make_game_data,
+)
+import json
 
 api = Blueprint("api", url_prefix="/api")
 
 
 @api.websocket("/ws")
-async def ws(request: Request, ws: Websocket):
+async def ws(req: Request, ws: Websocket):
     games = await db.Game.all()
-    analyzed_games = set(g.id for g in request.app.ctx.app.get_games_being_analyzed())
+    analyzed_games = set(g.id for g in req.app.ctx.app.get_games_being_analyzed())
     games = await db.Game.filter(
         is_hidden=False, tournament__is_hidden=False
     ).prefetch_related("tournament")
 
     resp = WebsocketResponse()
+    ws_notifier: WebsocketNotifier = req.app.ctx.app.get_ws_notifier()
     try:
-        request.app.ctx.app.register_ws(ws)
+        ws_notifier.register(ws)
         resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
         await ws.send(json_dumps(resp))
+        while True:
+            data = await ws.recv()
+            if not data:
+                continue
+            request: WebsocketRequest = json.loads(data)
+            if "gameId" in request:
+                await req.app.ctx.app.set_game_id(ws, request["gameId"])
     finally:
-        request.app.ctx.app.unregister_ws(ws)
-
-    await ws.close()
+        ws_notifier.unregister(ws)
 
 
 #     return json(

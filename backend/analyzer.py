@@ -8,7 +8,7 @@ import db
 from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
-from ws_notifier import WebsocketNotifier
+from ws_notifier import WebsocketNotifier, make_positions_update, WebsocketResponse
 
 
 def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
@@ -52,6 +52,18 @@ class Analyzer:
         self._get_next_task_callback = next_task_callback
         self._current_position = None
         self._ws_notifier = ws_notifier
+
+    async def dump_moves(self, ws):
+        game: db.Game | None = self._game
+        if game is None:
+            return
+        positions: list[db.GamePosition] = (
+            await db.GamePosition.filter(game=game).order_by("ply_number").all()
+        )
+        response = WebsocketResponse(
+            positions=make_positions_update(game_id=game.id, positions=positions)
+        )
+        await self._ws_notifier.send_response(ws, response)
 
     # returns the last ply number.
     async def _update_game_db(
