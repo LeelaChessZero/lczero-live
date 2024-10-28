@@ -2,7 +2,7 @@ import {Board} from './board';
 import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
 import {MultiPvView} from './multipv_view';
-import {WebSocketFeed, WebsocketObserver, WsGameData, WsGlobalData, WsPositionData, WsVariationData} from './ws_feed';
+import {WebSocketFeed, WebsocketObserver, WsEvaluationData, WsGameData, WsGlobalData, WsPositionData, WsVariationData} from './ws_feed';
 
 interface PlayerResponse {
   name: string;
@@ -49,10 +49,12 @@ export class App implements WebsocketObserver {
     this.gameSelection.updateGames(games);
   }
   public onPositionReceived(position: WsPositionData[]): void {
-    this.moveList.updatePositions(position);
+    this.moveList.updatePositions(
+        position.filter(p => p.gameId == this.curGameId));
   }
-  public onEvaluationReceived(evaluation: WsVariationData[]): void {
-    debugger;
+  public onEvaluationReceived(evaluation: WsEvaluationData[]): void {
+    let evals = evaluation.filter(
+        e => e.gameId == this.curGameId && e.ply == this.curPly);
   }
 
   public startThinking(thinkingId?: number): void {

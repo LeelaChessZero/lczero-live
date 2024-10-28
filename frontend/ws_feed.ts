@@ -1,10 +1,11 @@
-
-
+// Global data
 
 export interface WsGlobalData {
-  message: string;
-  numViewers: number;
+  message?: string;
+  numViewers?: number;
 }
+
+// Per game data
 
 export interface WsPlayerData {
   name: string;
@@ -22,6 +23,8 @@ export interface WsGameData {
   player2: WsPlayerData;
   feedUrl: string;
 }
+
+// Per position data
 
 export interface WsPositionData {
   gameId: number;
@@ -42,10 +45,11 @@ export interface WsPositionData {
   seldepth?: number;
 }
 
+// Per evaluation data
+
 export interface WsVariationData {
   moveUci: string;
   nodes: number;
-  moveOppUci?: string;
   moveSan: string;
   pvSan: string;
   pvUci: string;
@@ -68,6 +72,8 @@ export interface WsEvaluationData {
   variations: WsVariationData[];
 }
 
+// Websocket frame
+
 export interface WebsocketRequest {
   gameId?: number;
   ply?: number;
@@ -77,8 +83,10 @@ export interface WebsocketResponse {
   status: WsGlobalData;
   games: WsGameData[];
   positions: WsPositionData[];
-  evaluations: WsVariationData[];
+  evaluations: WsEvaluationData[];
 }
+// ---
+
 
 export interface WebsocketObserver {
   onConnect(): void;
@@ -86,9 +94,10 @@ export interface WebsocketObserver {
   onStatusReceived(status: WsGlobalData): void;
   onGamesReceived(games: WsGameData[]): void;
   onPositionReceived(position: WsPositionData[]): void;
-  onEvaluationReceived(evaluation: WsVariationData[]): void;
+  onEvaluationReceived(evaluation: WsEvaluationData[]): void;
 }
 
+// WebSocketFeed class
 
 export class WebSocketFeed {
   private websocket: WebSocket;

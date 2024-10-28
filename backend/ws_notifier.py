@@ -98,7 +98,7 @@ class WebsocketResponse(TypedDict, total=False):
     status: WsGlobalData
     games: list[WsGameData]
     positions: list[WsPositionData]
-    evaluations: list[WsVariationData]
+    evaluations: list[WsEvaluationData]
 
 
 def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGameData]:

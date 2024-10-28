@@ -6,9 +6,14 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic import Websocket
-from typing import Optional
+from typing import Optional, cast
 from sanic.log import logger
-from ws_notifier import WebsocketNotifier, make_positions_update, WebsocketResponse
+from ws_notifier import (
+    WebsocketNotifier,
+    make_positions_update,
+    WebsocketResponse,
+    make_evaluations_update,
+)
 
 
 class App:
@@ -44,12 +49,48 @@ class App:
         )
         await self._ws_notifier.send_response(ws, response)
 
+    async def dump_eval(self, ws, game_id: int, ply: int):
+        pos: db.GamePosition | None = await db.GamePosition.get_or_none(
+            game=game_id, ply_number=ply
+        )
+        if pos is None:
+            return
+        evaluations: list[db.GamePositionEvaluation] = (
+            await db.GamePositionEvaluation.filter(position=pos).order_by("id")
+        )
+        moveses: list[list[db.GamePositionEvaluationMove]] = cast(
+            list[list[db.GamePositionEvaluationMove]], [None for _ in evaluations]
+        )
+
+        async def get_moves(evaluation: db.GamePositionEvaluation, idx: int):
+            res: list[db.GamePositionEvaluationMove] = (
+                await db.GamePositionEvaluationMove.filter(
+                    evaluation=evaluation
+                ).order_by("-nodes")
+            )
+            moveses[idx] = res
+
+        async with anyio.create_task_group() as tg:
+            for idx, evaluation in enumerate(evaluations):
+                tg.start_soon(get_moves, evaluation, idx)
+        response = WebsocketResponse(
+            evaluations=make_evaluations_update(
+                game_id=game_id,
+                ply=ply,
+                evaluations=evaluations,
+                moves=moveses,
+            )
+        )
+        await self._ws_notifier.send_response(ws, response)
+
     async def set_game_and_ply(
         self, ws: Websocket, game_id: int, ply: Optional[int] = None
     ):
         game_changed = self._ws_notifier.set_game_and_ply(ws, game_id, ply)
         if game_changed:
             await self.dump_moves(ws, game_id)
+        if ply is not None:
+            await self.dump_eval(ws, game_id, ply)
 
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]
