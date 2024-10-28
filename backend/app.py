@@ -30,6 +30,12 @@ class App:
         ]
         self._game_assignment_lock = anyio.Lock()
 
+    def register_ws(self, ws):
+        self._ws_notifier.register(ws)
+
+    def unregister_ws(self, ws):
+        self._ws_notifier.unregister(ws)
+
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]
 

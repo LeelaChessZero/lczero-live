@@ -1,9 +1,11 @@
+import dataclasses
 from typing import Optional, TypedDict
 
-import db
-
-from anyio.streams.memory import MemoryObjectSendStream, MemoryObjectReceiveStream
 import anyio
+import db
+from sanic import Websocket
+from sanic.log import logger
+from websockets.exceptions import ConnectionClosed
 
 # Global data
 
@@ -152,18 +154,24 @@ def make_positions_update(
     ]
 
 
+@dataclasses.dataclass
+class WebsocketSubscription:
+    ws: Websocket
+    game_id: Optional[int] = None
+    ply: Optional[int] = None
+
+
 class WebsocketNotifier:
-    _observers: set[MemoryObjectSendStream[WebsocketResponse]]
+    _subscriptions: dict[Websocket, WebsocketSubscription]
 
     def __init__(self):
-        self._observers = set()
+        self._subscriptions = dict()
 
-    def add_observer(self) -> MemoryObjectReceiveStream[WebsocketResponse]:
-        send_stream, recv_stream = anyio.create_memory_object_stream[
-            WebsocketResponse
-        ]()
-        self._observers.add(send_stream)
-        return recv_stream
+    def register(self, ws: Websocket) -> None:
+        self._subscriptions[ws] = WebsocketSubscription(ws=ws)
+
+    def unregister(self, ws: Websocket) -> None:
+        self._subscriptions.pop(ws)
 
     async def send_game_update(
         self,
@@ -177,15 +185,30 @@ class WebsocketNotifier:
             response.update(
                 positions=make_positions_update(game_id=game_id, positions=positions)
             )
-        await self._notify_observers(response)
+        await self._notify_observers(response, game_id=game_id)
 
-    async def _notify_observers(self, response: WebsocketResponse):
-        for observer in list(self._observers):
+    async def _notify_observers(
+        self,
+        response: WebsocketResponse,
+        game_id: Optional[int] = None,
+        ply: Optional[int] = None,
+    ) -> None:
+        subs = list(self._subscriptions.values())
+
+        async def send(ws: Websocket, response: WebsocketResponse):
             try:
-                await observer.send(response)
-            except anyio.BrokenResourceError:
-                self._observers.remove(observer)
-                await observer.aclose()
+                await ws.send(response)
+            except ConnectionClosed as e:
+                logger.info(f"Connection closed, {e}")
+                pass
+
+        async with anyio.create_task_group() as tg:
+            for sub in subs:
+                if game_id is not None and sub.game_id != game_id:
+                    continue
+                if ply is not None and sub.ply != ply:
+                    continue
+                tg.start_soon(send, sub.ws, response)
 
 
 # class GamePositionUpdate(TypedDict):

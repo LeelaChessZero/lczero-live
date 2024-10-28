@@ -15,8 +15,12 @@ async def ws(request: Request, ws: Websocket):
     ).prefetch_related("tournament")
 
     resp = WebsocketResponse()
-    resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
-    await ws.send(json_dumps(resp))
+    try:
+        request.app.ctx.app.register_ws(ws)
+        resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
+        await ws.send(json_dumps(resp))
+    finally:
+        request.app.ctx.app.unregister_ws(ws)
 
     await ws.close()
 
