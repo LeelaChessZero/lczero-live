@@ -55,24 +55,8 @@ export class App implements WebsocketObserver {
   public onEvaluationReceived(evaluation: WsEvaluationData[]): void {
     let evals = evaluation.filter(
         e => e.gameId == this.curGameId && e.ply == this.curPly);
-  }
-
-  public startThinking(thinkingId?: number): void {
-    if (this.currentThinkingId == thinkingId) return;
-    if (this.thinkingFeed) this.thinkingFeed.close();
-    this.multiPvView.clear();
-    this.currentThinkingId = thinkingId;
-
-    if (thinkingId != undefined) {
-      this.thinkingFeed = new ThinkingFeed(thinkingId);
-      this.thinkingFeed.addObserver(this);
-    }
-  }
-
-  public onThinkingReceived(moves: GameThinkingUpdateFrame): void {
-    if (moves.thinkings) {
-      this.multiPvView.updateMultiPv(moves.thinkings.at(-1)!);
-    }
+    if (evals.length == 0) return;
+    this.multiPvView.updateMultiPv(evals.at(-1)!);
   }
 
   public onGameSelected(game: WsGameData): void {
@@ -93,6 +77,7 @@ export class App implements WebsocketObserver {
       pos_changed: boolean,
       ): void {
     if (pos_changed) {
+      this.curPly = position.ply;
       this.board.fromFen(position.fen);
       this.board.clearHighlights();
       if (position.moveUci) {
@@ -100,7 +85,8 @@ export class App implements WebsocketObserver {
         this.board.addHighlight(position.moveUci.slice(2, 4));
       }
       this.board.render();
+      this.multiPvView.clear();
+      this.websocketFeed.setPosition(position.ply);
     }
-    this.websocketFeed.setPosition(position.ply);
   }
 };
