@@ -18,6 +18,8 @@ async def ws(request: Request, ws: Websocket):
     resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
     await ws.send(json_dumps(resp))
 
+    await ws.close()
+
 
 #     return json(
 
