@@ -77,6 +77,11 @@ class Analyzer:
                     "move_san": move_san,
                     "white_clock": white_clock,
                     "black_clock": black_clock,
+                    "nodes": 0,
+                    "q_score": 0,
+                    "white_score": 0,
+                    "draw_score": 0,
+                    "black_score": 0,
                 },
             )
             if created:
@@ -111,9 +116,6 @@ class Analyzer:
 
     def get_game(self) -> Optional[db.Game]:
         return self._game
-
-    def get_thinking_id(self) -> Optional[int]:
-        return self.ws_notifier.get_thinking_update_id()
 
     async def run(self):
         _, self._engine = await chess.engine.popen_uci(self._config["command"])
@@ -166,20 +168,10 @@ class Analyzer:
             with await self._engine.analysis(
                 board=board, multipv=self._config["max_multipv"]
             ) as analysis:
-                thinking = await db.GamePositionThinking.create(
-                    position=pos,
-                    nodes=0,
-                    q_score=0,
-                    white_score=0,
-                    draw_score=0,
-                    black_score=0,
-                )
-                logger.debug(f"Starting thinking:\n{board}, {thinking.id}")
+                logger.debug(f"Starting thinking:\n{board}, {pos.ply_number}")
                 game = self._game
                 assert game is not None
-                await self._ws_notifier.send_game_update(
-                    game.id, positions=[pos], thinkings=[thinking]
-                )
+                await self._ws_notifier.send_game_update(game.id, positions=[pos])
                 multipv = min(self._config["max_multipv"], board.legal_moves.count())
                 info_bundle: list[chess.engine.InfoDict] = []
                 async for info in analysis:
@@ -193,7 +185,9 @@ class Analyzer:
                     info_bundle.append(info)
                     if len(info_bundle) == multipv:
                         await self._process_info_bundle(
-                            info_bundle, board, pos, thinking
+                            info_bundle=info_bundle,
+                            board=board,
+                            pos=pos,
                         )
                         info_bundle = []
         except AssertionError as e:
@@ -204,13 +198,12 @@ class Analyzer:
         info_bundle: list[chess.engine.InfoDict],
         board: chess.Board,
         pos: db.GamePosition,
-        thinking: db.GamePositionThinking,
     ):
         total_n = sum(info.get("nodes", 0) for info in info_bundle)
         logger.debug(f"Total nodes: {total_n}")
         # logger.debug(info_bundle[0])
         evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
-            thinking=thinking,
+            position=pos,
             nodes=total_n,
             time=int(info_bundle[0].get("time", 0) * 1000),
             depth=info_bundle[0].get("depth", 0),
@@ -246,19 +239,18 @@ class Analyzer:
             make_eval_move(info) for info in info_bundle
         ]
         await db.GamePositionEvaluationMove.bulk_create(moves)
-        thinking.nodes = total_n
-        thinking.q_score = moves[0].q_score
-        thinking.white_score = moves[0].white_score
-        thinking.draw_score = moves[0].draw_score
-        thinking.black_score = moves[0].black_score
-        thinking.moves_left = moves[0].moves_left
-        await thinking.save()
+        pos.nodes = total_n
+        pos.q_score = moves[0].q_score
+        pos.white_score = moves[0].white_score
+        pos.draw_score = moves[0].draw_score
+        pos.black_score = moves[0].black_score
+        pos.moves_left = moves[0].moves_left
+        await pos.save()
         game = self._game
         assert game is not None
         await self._ws_notifier.send_game_update(
             game_id=game.id,
             positions=[pos],
-            thinkings=[thinking],
             evaluations=[evaluation],
             moves=[moves],
         )

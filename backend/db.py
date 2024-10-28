@@ -53,18 +53,6 @@ class GamePosition(Model):
     # Zero-based ply number
     white_clock = fields.IntField(null=True)
     black_clock = fields.IntField(null=True)
-
-    thinkings: fields.ReverseRelation["GamePositionThinking"]
-
-    class Meta:
-        unique_together = (("game", "ply_number"),)
-
-
-class GamePositionThinking(Model):
-    id = fields.IntField(primary_key=True)
-    position = fields.ForeignKeyField(
-        model_name="lc0live.GamePosition", related_name="thinkings"
-    )
     nodes = fields.IntField()
     q_score = fields.IntField()
     white_score = fields.IntField()
@@ -75,11 +63,14 @@ class GamePositionThinking(Model):
     depth = fields.IntField(null=True)
     seldepth = fields.IntField(null=True)
 
+    class Meta:
+        unique_together = (("game", "ply_number"),)
+
 
 class GamePositionEvaluation(Model):
     id = fields.IntField(primary_key=True)
-    thinking = fields.ForeignKeyField(
-        model_name="lc0live.GamePositionThinking", related_name="evaluations"
+    position = fields.ForeignKeyField(
+        model_name="lc0live.GamePosition", related_name="evaluations"
     )
     nodes = fields.IntField()
     time = fields.IntField()

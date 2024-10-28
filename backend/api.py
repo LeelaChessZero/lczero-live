@@ -1,11 +1,6 @@
-from typing import Optional, TypedDict
-
 import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
-import asyncio
-from anyio.streams.memory import MemoryObjectReceiveStream
-from sanic.response import json
 from ws_notifier import WebsocketResponse, make_game_data
 
 api = Blueprint("api", url_prefix="/api")
@@ -20,7 +15,7 @@ async def ws(request: Request, ws: Websocket):
     ).prefetch_related("tournament")
 
     resp = WebsocketResponse()
-    resp['games'] = make_game_data(games=games, analyzed_games=analyzed_games)
+    resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
     await ws.send(json_dumps(resp))
 
 

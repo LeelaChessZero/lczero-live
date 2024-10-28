@@ -1,10 +1,7 @@
-from typing import Optional
-
 import anyio
 import db
 import sanic.config
 from analyzer import Analyzer
-from anyio.streams.memory import MemoryObjectReceiveStream
 from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic

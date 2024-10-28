@@ -128,10 +128,7 @@ def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGam
 def make_positions_update(
     game_id: int,
     positions: list[db.GamePosition],
-    thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
 ) -> list[WsPositionData]:
-    if thinkings is None:
-        thinkings = [None for x in range(len(positions))]
     return [
         WsPositionData(
             gameId=game_id,
@@ -141,17 +138,17 @@ def make_positions_update(
             fen=pos.fen,
             whiteClock=pos.white_clock,
             blackClock=pos.black_clock,
-            scoreQ=thinking.q_score if thinking else None,
-            scoreW=thinking.white_score if thinking else None,
-            scoreD=thinking.draw_score if thinking else None,
-            scoreB=thinking.black_score if thinking else None,
-            movesLeft=thinking.moves_left if thinking else None,
-            nodes=thinking.nodes if thinking else None,
-            time=thinking.time if thinking else None,
-            depth=thinking.depth if thinking else None,
-            seldepth=thinking.seldepth if thinking else None,
+            scoreQ=pos.q_score,
+            scoreW=pos.white_score,
+            scoreD=pos.draw_score,
+            scoreB=pos.black_score,
+            movesLeft=pos.moves_left,
+            nodes=pos.nodes,
+            time=pos.time,
+            depth=pos.depth,
+            seldepth=pos.seldepth,
         )
-        for pos, thinking in zip(positions, thinkings)
+        for pos in positions
     ]
 
 
@@ -172,16 +169,13 @@ class WebsocketNotifier:
         self,
         game_id: int,
         positions: Optional[list[db.GamePosition]] = None,
-        thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
         evaluations: Optional[list[db.GamePositionEvaluation]] = None,
         moves: Optional[list[list[db.GamePositionEvaluationMove]]] = None,
     ):
         response = WebsocketResponse()
         if positions is not None:
             response.update(
-                positions=make_positions_update(
-                    game_id=game_id, positions=positions, thinkings=thinkings
-                )
+                positions=make_positions_update(game_id=game_id, positions=positions)
             )
         await self._notify_observers(response)
 
