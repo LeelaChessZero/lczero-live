@@ -6,6 +6,7 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic import Websocket
+from typing import Optional
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
 
@@ -34,8 +35,10 @@ class App:
     def get_ws_notifier(self) -> WebsocketNotifier:
         return self._ws_notifier
 
-    async def set_game_id(self, ws: Websocket, game_id: int):
-        self._ws_notifier.set_game_id(ws, game_id)
+    async def set_game_and_ply(
+        self, ws: Websocket, game_id: int, ply: Optional[int] = None
+    ):
+        game_changed = self._ws_notifier.set_game_and_ply(ws, game_id, ply)
         analysis: Analyzer | None = next(
             (
                 a
@@ -45,7 +48,9 @@ class App:
             None,
         )
         if analysis is not None:
-            await analysis.dump_moves(ws)
+            if game_changed:
+                await analysis.dump_moves(ws)
+            await analysis.dump_eval(ws)
 
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]

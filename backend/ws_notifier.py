@@ -64,7 +64,6 @@ class WsPositionData(TypedDict):
 class WsVariationData(TypedDict):
     moveUci: str
     nodes: int
-    moveOppUci: Optional[str]
     moveSan: str
     pvSan: str
     pvUci: str
@@ -128,6 +127,42 @@ def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGam
     ]
 
 
+def make_evaluations_update(
+    game_id: int,
+    ply: int,
+    evaluations: list[db.GamePositionEvaluation],
+    moves: list[list[db.GamePositionEvaluationMove]],
+) -> list[WsEvaluationData]:
+    return [
+        WsEvaluationData(
+            gameId=game_id,
+            ply=ply,
+            evalId=eval_.id,
+            nodes=eval_.nodes,
+            time=eval_.time,
+            depth=eval_.depth,
+            seldepth=eval_.seldepth,
+            movesLeft=eval_.moves_left,
+            variations=[
+                WsVariationData(
+                    moveUci=move.move_uci,
+                    nodes=move.nodes,
+                    moveSan=move.move_san,
+                    pvSan=move.pv_san,
+                    pvUci=move.pv_uci,
+                    scoreQ=move.q_score,
+                    scoreW=move.white_score,
+                    scoreD=move.draw_score,
+                    scoreB=move.black_score,
+                    mateScore=move.mate_score,
+                )
+                for move in moves
+            ],
+        )
+        for eval_, moves in zip(evaluations, moves)
+    ]
+
+
 def make_positions_update(
     game_id: int,
     positions: list[db.GamePosition],
@@ -174,13 +209,14 @@ class WebsocketNotifier:
     def unregister(self, ws: Websocket) -> None:
         self._subscriptions.pop(ws)
 
-    def set_game_id(self, ws: Websocket, game_id: int) -> bool:
+    def set_game_and_ply(
+        self, ws: Websocket, game_id: int, ply: Optional[int] = None
+    ) -> bool:
         entry = self._subscriptions[ws]
-        changed = entry.game_id != game_id
+        game_changed = entry.game_id != game_id
         entry.game_id = game_id
-        if changed:
-            entry.ply = None
-        return changed
+        entry.ply = ply
+        return game_changed
 
     async def send_game_update(
         self,

@@ -76,6 +76,7 @@ class GamePositionEvaluation(Model):
     time = fields.IntField()
     depth = fields.IntField()
     seldepth = fields.IntField()
+    moves_left = fields.IntField(null=True)
 
 
 class GamePositionEvaluationMove(Model):
@@ -85,10 +86,10 @@ class GamePositionEvaluationMove(Model):
     )
     nodes = fields.IntField()
     move_uci = fields.CharField(max_length=5)
-    move_opp_uci = fields.CharField(max_length=5, null=True)
     move_san = fields.CharField(max_length=10)
     q_score = fields.IntField()
     pv_san = fields.TextField()
+    pv_uci = fields.TextField()
     mate_score = fields.IntField(null=True)
     white_score = fields.IntField()
     draw_score = fields.IntField()

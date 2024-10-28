@@ -33,6 +33,15 @@ def make_pv_san_string(board: chess.Board, pv: List[chess.Move]) -> str:
     return res
 
 
+def make_pv_uci_string(board: chess.Board, pv: List[chess.Move]) -> str:
+    board = board.copy()
+    moves = []
+    for move in pv:
+        moves.append(move.uci())
+        board.push(move)
+    return " ".join(moves)
+
+
 class Analyzer:
     _config: dict
     _game: Optional[db.Game]
@@ -52,6 +61,32 @@ class Analyzer:
         self._get_next_task_callback = next_task_callback
         self._current_position = None
         self._ws_notifier = ws_notifier
+
+    async def dump_eval(self, ws):
+        game: db.Game | None = self._game
+        if game is None:
+            return
+        pos = self._current_position
+        if pos is None:
+            return
+        evaluations: list[db.GamePositionEvaluation] = (
+            await db.GamePositionEvaluation.filter(position=pos).order_by("id")
+        )
+        moveses: list[Optional[list[db.GamePositionEvaluationMove]]] = [
+            None for _ in evaluations
+        ]
+
+        async def get_moves(evaluation: db.GamePositionEvaluation, idx: int):
+            res: List[db.GamePositionEvaluationMove] = (
+                await db.GamePositionEvaluationMove.filter(
+                    evaluation=evaluation
+                ).order_by("-nodes")
+            )
+            moveses[idx] = res
+
+        async with anyio.create_task_group() as tg:
+            for idx, evaluation in enumerate(evaluations):
+                tg.start_soon(get_moves, evaluation, idx)
 
     async def dump_moves(self, ws):
         game: db.Game | None = self._game
@@ -236,10 +271,10 @@ class Analyzer:
                 evaluation=evaluation,
                 nodes=info.get("nodes", 0),
                 move_uci=move.uci(),
-                move_opp_uci=pv[1].uci() if len(pv) > 1 else None,
                 move_san=board.san(move),
                 q_score=score.score(mate_score=20000),
                 pv_san=make_pv_san_string(board, pv),
+                pv_uci=make_pv_uci_string(board, pv),
                 mate_score=score.mate() if score.is_mate() else None,
                 white_score=wdl.wins,
                 draw_score=wdl.draws,

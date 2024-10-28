@@ -32,7 +32,9 @@ async def ws(req: Request, ws: Websocket):
                 continue
             request: WebsocketRequest = json.loads(data)
             if "gameId" in request:
-                await req.app.ctx.app.set_game_id(ws, request["gameId"])
+                await req.app.ctx.app.set_game_and_ply(
+                    ws, request["gameId"], request.get("ply")
+                )
     finally:
         ws_notifier.unregister(ws)
 

@@ -1,14 +1,14 @@
-import {GamePositionUpdate} from './moves_feed';
+import {WsPositionData} from './ws_feed';
 import {isValidWdl, WdlBar} from './wdl';
 
 export interface MoveSelectionObserver {
-  onMoveSelected(position: GamePositionUpdate, pos_changed: boolean): void;
+  onMoveSelected(position: WsPositionData, pos_changed: boolean): void;
 }
 
 export class MoveList {
   private parent: HTMLElement;
   private element: HTMLTableElement;
-  private positions: GamePositionUpdate[] = [];
+  private positions: WsPositionData[] = [];
   private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
 
@@ -77,9 +77,10 @@ export class MoveList {
     }
   }
 
-  private updateSinglePosition(position: GamePositionUpdate): void {
+  private updateSinglePosition(position: WsPositionData): void {
     while (position.ply >= this.positions.length) {
-      const emptyPosition: GamePositionUpdate = {
+      const emptyPosition: WsPositionData = {
+        gameId: -1,
         ply: this.positions.length,
         fen: '',
       };
@@ -123,7 +124,7 @@ export class MoveList {
     }
   }
 
-  public updatePositions(positions: GamePositionUpdate[]): void {
+  public updatePositions(positions: WsPositionData[]): void {
     const wasAtEnd = (this.positionIdx === this.positions.length - 1) ||
         this.positions.length <= 1;
     positions.forEach(position => this.updateSinglePosition(position));

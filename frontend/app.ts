@@ -84,7 +84,7 @@ export class App implements WebsocketObserver {
   }
 
   public onMoveSelected(
-      position: GamePositionUpdate,
+      position: WsPositionData,
       pos_changed: boolean,
       ): void {
     if (pos_changed) {
@@ -96,17 +96,6 @@ export class App implements WebsocketObserver {
       }
       this.board.render();
     }
-    if (position.thinkingId) {
-      this.startThinking(position.thinkingId);
-    }
-  }
-
-  private startMovesFeed(gameId: number): void {
-    if (this.movesFeed) {
-      this.movesFeed.close();
-    }
-    this.moveList.clearPositions();
-    this.movesFeed = new MovesFeed(gameId);
-    this.movesFeed.addObserver(this);
+    this.websocketFeed.setPosition(position.ply);
   }
 };
