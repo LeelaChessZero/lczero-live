@@ -2,8 +2,8 @@ from typing import Optional, TypedDict
 
 import db
 
-# from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
-
+from anyio.streams.memory import MemoryObjectSendStream, MemoryObjectReceiveStream
+import anyio
 
 # Global data
 
@@ -125,7 +125,49 @@ def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGam
     ]
 
 
+def make_positions_update(
+    game_id: int,
+    positions: list[db.GamePosition],
+    thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
+) -> list[WsPositionData]:
+    if thinkings is None:
+        thinkings = [None for x in range(len(positions))]
+    return [
+        WsPositionData(
+            gameId=game_id,
+            ply=pos.ply_number,
+            moveUci=pos.move_uci,
+            moveSan=pos.move_san,
+            fen=pos.fen,
+            whiteClock=pos.white_clock,
+            blackClock=pos.black_clock,
+            scoreQ=thinking.q_score if thinking else None,
+            scoreW=thinking.white_score if thinking else None,
+            scoreD=thinking.draw_score if thinking else None,
+            scoreB=thinking.black_score if thinking else None,
+            movesLeft=thinking.moves_left if thinking else None,
+            nodes=thinking.nodes if thinking else None,
+            time=thinking.time if thinking else None,
+            depth=thinking.depth if thinking else None,
+            seldepth=thinking.seldepth if thinking else None,
+        )
+        for pos, thinking in zip(positions, thinkings)
+    ]
+
+
 class WebsocketNotifier:
+    _observers: set[MemoryObjectSendStream[WebsocketResponse]]
+
+    def __init__(self):
+        self._observers = set()
+
+    def add_observer(self) -> MemoryObjectReceiveStream[WebsocketResponse]:
+        send_stream, recv_stream = anyio.create_memory_object_stream[
+            WebsocketResponse
+        ]()
+        self._observers.add(send_stream)
+        return recv_stream
+
     async def send_game_update(
         self,
         game_id: int,
@@ -133,7 +175,23 @@ class WebsocketNotifier:
         thinkings: Optional[list[Optional[db.GamePositionThinking]]] = None,
         evaluations: Optional[list[db.GamePositionEvaluation]] = None,
         moves: Optional[list[list[db.GamePositionEvaluationMove]]] = None,
-    ): ...
+    ):
+        response = WebsocketResponse()
+        if positions is not None:
+            response.update(
+                positions=make_positions_update(
+                    game_id=game_id, positions=positions, thinkings=thinkings
+                )
+            )
+        await self._notify_observers(response)
+
+    async def _notify_observers(self, response: WebsocketResponse):
+        for observer in list(self._observers):
+            try:
+                await observer.send(response)
+            except anyio.BrokenResourceError:
+                self._observers.remove(observer)
+                await observer.aclose()
 
 
 # class GamePositionUpdate(TypedDict):

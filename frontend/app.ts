@@ -24,6 +24,8 @@ export class App implements WebsocketObserver {
   private multiPvView: MultiPvView;
   private board: Board;
   private websocketFeed: WebSocketFeed;
+  private curGameId?: number;
+  private curPly?: number;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -67,14 +69,10 @@ export class App implements WebsocketObserver {
     }
   }
 
-  public onGameSelected(gameId: number): void {
-    fetch(`/api/game/${gameId}`)
-        .then(response => response.json() as Promise<GameResponse>)
-        .then(data => {
-          this.startMovesFeed(data.gameId);
-          this.updatePgnFeedUrl(data.feedUrl);
-        })
-        .catch(error => console.error('Error fetching game:', error));
+  public onGameSelected(game: WsGameData): void {
+    this.curGameId = game.gameId;
+    this.websocketFeed.setGameId(game.gameId);
+    this.updatePgnFeedUrl(game.feedUrl);
   }
 
   private updatePgnFeedUrl(feedUrl: string): void {

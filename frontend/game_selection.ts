@@ -1,7 +1,7 @@
 import {WsGameData} from './ws_feed';
 
 export interface GameSelectionObserver {
-  onGameSelected(game: number): void;
+  onGameSelected(game: WsGameData): void;
 }
 
 export class GameSelection {
@@ -43,19 +43,20 @@ export class GameSelection {
       if (!newSel) newSel = this.games.find(g => !g.isFinished);
       if (!newSel) newSel = this.games[0];
       this.element.value = newSel.gameId.toString();
-      this.notifyObservers(newSel.gameId);
+      this.notifyObservers(newSel);
     }
   }
 
   private onChange() {
     const gameId = parseInt(this.element.value);
+    const game = this.games.find(g => g.gameId === gameId)!;
     this.followLiveGames = this.games.every(x => !x.isBeingAnalyzed) ||
-        this.games.find(x => x.gameId === gameId)!.isBeingAnalyzed;
-    this.notifyObservers(gameId);
+        game.isBeingAnalyzed;
+    this.notifyObservers(game);
   }
 
-  private notifyObservers(gameId: number): void {
-    this.observers.forEach(observer => observer.onGameSelected(gameId));
+  private notifyObservers(game: WsGameData): void {
+    this.observers.forEach(observer => observer.onGameSelected(game));
   }
 
   private updateSingleGame(game: WsGameData): void {

@@ -71,6 +71,9 @@ class GamePositionThinking(Model):
     draw_score = fields.IntField()
     black_score = fields.IntField()
     moves_left = fields.IntField(null=True)
+    time = fields.IntField(null=True)
+    depth = fields.IntField(null=True)
+    seldepth = fields.IntField(null=True)
 
 
 class GamePositionEvaluation(Model):
