@@ -88,17 +88,7 @@ class Analyzer:
             for idx, evaluation in enumerate(evaluations):
                 tg.start_soon(get_moves, evaluation, idx)
 
-    async def dump_moves(self, ws):
-        game: db.Game | None = self._game
-        if game is None:
-            return
-        positions: list[db.GamePosition] = (
-            await db.GamePosition.filter(game=game).order_by("ply_number").all()
-        )
-        response = WebsocketResponse(
-            positions=make_positions_update(game_id=game.id, positions=positions)
-        )
-        await self._ws_notifier.send_response(ws, response)
+
 
     # returns the last ply number.
     async def _update_game_db(

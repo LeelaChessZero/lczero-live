@@ -134,6 +134,6 @@ export class MoveList {
   public clearPositions(): void {
     this.positions = [];
     this.element.innerHTML = '';
-    this.positionIdx = 0;
+    this.positionIdx = -1;
   }
 };

@@ -8,7 +8,7 @@ from sanic import Sanic
 from sanic import Websocket
 from typing import Optional
 from sanic.log import logger
-from ws_notifier import WebsocketNotifier
+from ws_notifier import WebsocketNotifier, make_positions_update, WebsocketResponse
 
 
 class App:
@@ -35,22 +35,21 @@ class App:
     def get_ws_notifier(self) -> WebsocketNotifier:
         return self._ws_notifier
 
+    async def dump_moves(self, ws, game_id: int):
+        positions: list[db.GamePosition] = (
+            await db.GamePosition.filter(game=game_id).order_by("ply_number").all()
+        )
+        response = WebsocketResponse(
+            positions=make_positions_update(game_id=game_id, positions=positions)
+        )
+        await self._ws_notifier.send_response(ws, response)
+
     async def set_game_and_ply(
         self, ws: Websocket, game_id: int, ply: Optional[int] = None
     ):
         game_changed = self._ws_notifier.set_game_and_ply(ws, game_id, ply)
-        analysis: Analyzer | None = next(
-            (
-                a
-                for a in self._analysises
-                if (game := a.get_game()) is not None and game.id == game_id
-            ),
-            None,
-        )
-        if analysis is not None:
-            if game_changed:
-                await analysis.dump_moves(ws)
-            await analysis.dump_eval(ws)
+        if game_changed:
+            await self.dump_moves(ws, game_id)
 
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]

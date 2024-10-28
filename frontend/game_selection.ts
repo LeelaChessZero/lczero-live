@@ -12,7 +12,7 @@ export class GameSelection {
 
   constructor(element: HTMLSelectElement) {
     this.element = element;
-    this.element.addEventListener('change', this.onChange);
+    this.element.addEventListener('change', this.onChange.bind(this));
   }
 
   public addObserver(observer: GameSelectionObserver): void {
