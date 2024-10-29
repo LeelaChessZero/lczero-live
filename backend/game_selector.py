@@ -20,9 +20,12 @@ class GameInfo:
 async def get_game_candidates() -> list[GameInfo]:
     # Gather ongoing games from unfinished tournaments.
     ongoing_tournaments = await Tournament.filter(is_finished=False)
-    tournaments = [
-        await lichess.get_tournament(t.lichess_id) for t in ongoing_tournaments
-    ]
+    tournaments = []
+    for i, t in enumerate(ongoing_tournaments):
+        if i != 0:
+            await asyncio.sleep(0.2)
+        tournaments.append(await lichess.get_tournament(t.lichess_id))
+
     # Check for finished tournaments.
     for db_t, tournament in zip(ongoing_tournaments, tournaments):
         if all(r.get("finished", False) for r in tournament["rounds"]):
