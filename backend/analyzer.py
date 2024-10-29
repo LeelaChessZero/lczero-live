@@ -49,6 +49,7 @@ class Analyzer:
     _engine: chess.engine.Protocol
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
     _ws_notifier: WebsocketNotifier
+    _uci_lock: anyio.Lock
 
     def __init__(
         self,
@@ -61,6 +62,7 @@ class Analyzer:
         self._get_next_task_callback = next_task_callback
         self._current_position = None
         self._ws_notifier = ws_notifier
+        self._uci_lock = anyio.Lock()
 
     # returns the last ply number.
     async def _update_game_db(
@@ -127,7 +129,10 @@ class Analyzer:
         return self._game
 
     async def run(self):
-        _, self._engine = await chess.engine.popen_uci(self._config["command"])
+        async with self._uci_lock:
+            _, self._engine = await chess.engine.popen_uci(
+                command=self._config["command"]
+            )
         while True:
             self._game = await self._get_next_task_callback()
             await self._run_single_game(self._game)
@@ -174,31 +179,34 @@ class Analyzer:
 
     async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
         try:
-            with await self._engine.analysis(
-                board=board, multipv=self._config["max_multipv"]
-            ) as analysis:
-                logger.debug(f"Starting thinking:\n{board}, {pos.ply_number}")
-                game = self._game
-                assert game is not None
-                await self._ws_notifier.send_game_update(game.id, positions=[pos])
-                multipv = min(self._config["max_multipv"], board.legal_moves.count())
-                info_bundle: list[chess.engine.InfoDict] = []
-                async for info in analysis:
-                    if "multipv" not in info:
-                        logger.debug(f"Got info without multipv: {info}")
-                        continue
-                    if info["multipv"] != len(info_bundle) + 1:
-                        logger.debug(f"Got info for wrong multipv: {info}")
-                        info_bundle = []
-                        continue
-                    info_bundle.append(info)
-                    if len(info_bundle) == multipv:
-                        await self._process_info_bundle(
-                            info_bundle=info_bundle,
-                            board=board,
-                            pos=pos,
-                        )
-                        info_bundle = []
+            async with self._uci_lock:
+                with await self._engine.analysis(
+                    board=board, multipv=self._config["max_multipv"]
+                ) as analysis:
+                    logger.debug(f"Starting thinking:\n{board}, {pos.ply_number}")
+                    game = self._game
+                    assert game is not None
+                    await self._ws_notifier.send_game_update(game.id, positions=[pos])
+                    multipv = min(
+                        self._config["max_multipv"], board.legal_moves.count()
+                    )
+                    info_bundle: list[chess.engine.InfoDict] = []
+                    async for info in analysis:
+                        if "multipv" not in info:
+                            logger.debug(f"Got info without multipv: {info}")
+                            continue
+                        if info["multipv"] != len(info_bundle) + 1:
+                            logger.debug(f"Got info for wrong multipv: {info}")
+                            info_bundle = []
+                            continue
+                        info_bundle.append(info)
+                        if len(info_bundle) == multipv:
+                            await self._process_info_bundle(
+                                info_bundle=info_bundle,
+                                board=board,
+                                pos=pos,
+                            )
+                            info_bundle = []
         except AssertionError as e:
             logger.error(f"Assertion error: {e}")
 
