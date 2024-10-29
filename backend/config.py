@@ -25,6 +25,7 @@ UCI_ANALYZERS = [
                 f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log'
             ),
             "--per-pv-counters",
+            "--nps-limit=5000",
             "--preload",
             "--score-type=Q",
         ],

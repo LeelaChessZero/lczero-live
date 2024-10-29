@@ -14,7 +14,7 @@ class Tournament(Model):
 class Game(Model):
     id = fields.IntField(primary_key=True)
     tournament = fields.ForeignKeyField(
-        model_name="lc0live.Tournament", related_name="games"
+        model_name="lc0live.Tournament", related_name="games", index=True
     )
     game_name = fields.CharField(max_length=255)
     lichess_round_id = fields.CharField(max_length=16)
@@ -64,13 +64,14 @@ class GamePosition(Model):
     seldepth = fields.IntField(null=True)
 
     class Meta:
-        unique_together = (("game", "ply_number"),)
+        unique_together: tuple[tuple[str, str]] = (("game", "ply_number"),)
+        indexes: tuple[tuple[str, str]] = (("game", "ply_number"),)
 
 
 class GamePositionEvaluation(Model):
     id = fields.IntField(primary_key=True)
     position = fields.ForeignKeyField(
-        model_name="lc0live.GamePosition", related_name="evaluations"
+        model_name="lc0live.GamePosition", related_name="evaluations", index=True
     )
     nodes = fields.IntField()
     time = fields.IntField()
@@ -82,7 +83,7 @@ class GamePositionEvaluation(Model):
 class GamePositionEvaluationMove(Model):
     id = fields.IntField(primary_key=True)
     evaluation = fields.ForeignKeyField(
-        model_name="lc0live.GamePositionEvaluation", related_name="pv"
+        model_name="lc0live.GamePositionEvaluation", related_name="pv", index=True
     )
     nodes = fields.IntField()
     move_uci = fields.CharField(max_length=5)

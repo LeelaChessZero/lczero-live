@@ -5,6 +5,7 @@ import aiohttp
 import chess.pgn
 from anyio.streams.memory import MemoryObjectSendStream
 from sanic.log import logger
+import anyio
 
 
 class PgnFeed:
@@ -41,7 +42,7 @@ class PgnFeed:
                 return True
         return False
 
-    async def _fetch_url(self, session: aiohttp.ClientSession, pgn_url: str):
+    async def _fetch_url(self, session: aiohttp.ClientSession, pgn_url: str) -> bool:
         async with session.get(pgn_url) as response:
             buffer = ""
             async for data, _ in response.content.iter_chunks():
@@ -51,12 +52,16 @@ class PgnFeed:
                     if not set:
                         break
                     if await self._maybe_send_game(pre):
-                        return
+                        return True
                     buffer = post
+        return False
 
     async def _worker(self, pgn_url: str):
         with self.queue:
-            timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                await self._fetch_url(session, pgn_url)
-            logger.info("Leaving the pgn fetch.")
+            while True:
+                timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    if await self._fetch_url(session, pgn_url):
+                        break
+                logger.info(f"Pgn connection to {pgn_url} closed unexpectedly.")
+                await anyio.sleep(1)
