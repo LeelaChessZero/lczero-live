@@ -2,9 +2,12 @@
 
 esbuild frontend/main.ts --bundle --outfile=static/dist/main.js --minify
 
-HASH=$(sha1sum static/dist/main.js | cut -f 1 -d ' ')
+JSHASH=$(sha1sum static/dist/main.js | cut -f 1 -d ' ')
+CSSHASH=$(sha1sum static/static/style.css | cut -f 1 -d ' ')
 
-sed "s|dist/main.js|dist/main.js?$HASH|g" static/index.template.html > static/index.html
+cat static/index.template.html | \
+sed -e "s|dist/main.js|dist/main.js?$JSHASH|g" | \
+sed -e "s|static/style.css|static/style.css?$CSSHASH|g" > static/index.html
 
 cd backend
 sanic main -p 8914
