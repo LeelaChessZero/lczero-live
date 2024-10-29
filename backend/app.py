@@ -12,6 +12,7 @@ from ws_notifier import (
     WebsocketNotifier,
     make_positions_update,
     WebsocketResponse,
+    WsGlobalData,
     make_evaluations_update,
 )
 
@@ -95,6 +96,16 @@ class App:
     def get_games_being_analyzed(self) -> list[db.Game]:
         return [g for a in self._analysises if (g := a.get_game()) is not None]
 
+    def get_status(self) -> WsGlobalData:
+        return WsGlobalData(numViewers=self._ws_notifier.num_subscribers())
+
+    async def send_status_periodically(self):
+        while True:
+            await anyio.sleep(delay=33)
+            await self._ws_notifier.notify_observers(
+                WebsocketResponse(status=self.get_status())
+            )
+
     async def _get_next_game(self) -> db.Game:
         async with self._game_assignment_lock:
             while True:
@@ -115,6 +126,7 @@ class App:
 
     async def run(self):
         async with anyio.create_task_group() as tg:
+            tg.start_soon(self.send_status_periodically)
             for a in self._analysises:
                 tg.start_soon(a.run)
 

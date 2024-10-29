@@ -156,13 +156,16 @@ export class WebSocketFeed {
     this.websocket =
         new WebSocket(`${protocol}//${window.location.host}/api/ws`);
     this.websocket.onopen = this.onOpen.bind(this);
+    this.websocket.onerror = () => {
+      setTimeout(() => {
+        this.connect();
+      }, 5000);
+    };
   }
 
   private onClose(): void {
     this.notifyObservers(observer => observer.onDisconnect());
-    setTimeout(() => {
-      this.connect();
-    }, 5000);
+    this.connect();
   }
 
   private notifyObservers(callback: (WebsocketObserver) => void): void {
@@ -176,7 +179,8 @@ export class WebSocketFeed {
           observer => observer.onStatusReceived(response.status));
     }
     if (response.games) {
-      this.notifyObservers(observer => observer.onGamesReceived(response.games));
+      this.notifyObservers(
+          observer => observer.onGamesReceived(response.games));
     }
     if (response.positions) {
       this.notifyObservers(

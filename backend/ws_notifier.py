@@ -217,6 +217,9 @@ class WebsocketNotifier:
     def unregister(self, ws: Websocket) -> None:
         self._subscriptions.pop(ws)
 
+    def num_subscribers(self) -> int:
+        return len(self._subscriptions)
+
     def set_game_and_ply(
         self, ws: Websocket, game_id: int, ply: Optional[int] = None
     ) -> bool:
@@ -247,7 +250,7 @@ class WebsocketNotifier:
                     game_id=game_id, ply=ply, evaluations=evaluations, moves=moves
                 )
             )
-        await self._notify_observers(response, game_id=game_id)
+        await self.notify_observers(response, game_id=game_id)
 
     async def send_text(self, ws: Websocket, response: str):
         try:
@@ -259,7 +262,7 @@ class WebsocketNotifier:
     async def send_response(self, ws: Websocket, response: WebsocketResponse):
         await self.send_text(ws, json_dumps(response))
 
-    async def _notify_observers(
+    async def notify_observers(
         self,
         response: WebsocketResponse,
         game_id: Optional[int] = None,

@@ -11,6 +11,37 @@
 body {
     font-family: verdana, Helvetica, Arial, sans-serif;
     font-size: 10px;
+    background-color: #eee;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+
+#header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+
+#logo {
+    display: inline-block;
+    width: 70px;
+    margin-right: 40px;
+}
+
+#logo img {
+    width: 100%;
+    height: auto;
+}
+
+#game-selection {
+    margin-right: auto;
 }
 
 .main-pane {
@@ -66,7 +97,7 @@ svg.wdl-bar .wdl-outer {
 }
 
 svg.wdl-bar .wdl-white {
-    fill: #f0f0f0;
+    fill: #fff;
 }
 
 svg.wdl-bar .wdl-draw {

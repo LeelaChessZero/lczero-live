@@ -5,6 +5,7 @@ from ws_notifier import (
     WebsocketNotifier,
     WebsocketRequest,
     WebsocketResponse,
+    WsGlobalData,
     make_game_data,
 )
 import json
@@ -24,6 +25,7 @@ async def ws(req: Request, ws: Websocket):
     ws_notifier: WebsocketNotifier = req.app.ctx.app.get_ws_notifier()
     try:
         ws_notifier.register(ws)
+        resp["status"] = req.app.ctx.app.get_status()
         resp["games"] = make_game_data(games=games, analyzed_games=analyzed_games)
         await ws.send(json_dumps(resp))
         while True:

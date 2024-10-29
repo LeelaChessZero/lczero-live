@@ -42,9 +42,19 @@ export class App implements WebsocketObserver {
     this.websocketFeed.addObserver(this);
   }
 
-  public onConnect(): void {}
-  public onDisconnect(): void {}
-  public onStatusReceived(status: WsGlobalData): void {}
+  public onConnect(): void {
+    document.getElementById('connection-status')!.innerText = '';
+  }
+  public onDisconnect(): void {
+    document.getElementById('connection-status')!.innerText =
+        '🔄 Reconnecting...';
+  }
+  public onStatusReceived(status: WsGlobalData): void {
+    if (status.numViewers) {
+      document.getElementById('connection-status')!.innerText =
+          `${status.numViewers} watching`;
+    }
+  }
   public onGamesReceived(games: WsGameData[]): void {
     this.gameSelection.updateGames(games);
   }
