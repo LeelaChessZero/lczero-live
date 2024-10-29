@@ -10,7 +10,7 @@ export class WdlBar {
   private d: number;
   private l: number;
   private width: number = 200;
-  private height: number = 14;
+  private height: number = 16;
 
   constructor(element: HTMLElement, w: number, d: number, l: number) {
     this.element = element;
