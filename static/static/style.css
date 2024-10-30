@@ -65,6 +65,11 @@ table {
     overflow-y: auto;
 }
 
+#movelist table {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
 .movelist-item {
     cursor: pointer;
     padding: 0;
@@ -98,6 +103,11 @@ svg.board .square.light.lastmove {
 }
 
 /* WDL bar */
+
+svg.wdl-bar {
+    vertical-align: middle;
+    margin: 1px;
+}
 
 svg.wdl-bar .wdl-outer {
     stroke: rgba(0, 0, 0, 0.8);

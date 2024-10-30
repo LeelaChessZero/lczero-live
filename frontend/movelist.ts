@@ -71,7 +71,11 @@ export class MoveList {
           Array.from(this.element.children)
               .find(row => row.getAttribute('ply-idx') === String(positionIdx));
       targetRow?.classList.add('movelist-selected');
-      targetRow?.scrollIntoView({block: 'nearest'});
+      if (positionIdx == this.positions.length - 1) {
+        this.parent.scrollTo({top: this.element.scrollHeight});
+      } else {
+        targetRow?.scrollIntoView({block: 'nearest'});
+      }
       this.positionIdx = positionIdx;
       this.notifyObservers(true);
     }
