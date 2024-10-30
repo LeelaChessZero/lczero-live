@@ -27,6 +27,15 @@ export class WdlBar {
     svg.setAttribute('height', this.height.toString());
     svg.setAttribute('width', this.width.toString());
 
+    const mkEl = (tag: string, attrs: {[key: string]: string}): SVGElement => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [key, value] of Object.entries(attrs)) {
+        el.setAttribute(key, value);
+      }
+      svg.appendChild(el);
+      return el;
+    };
+
     const total = this.w + this.d + this.l;
 
     const d: number = this.d / total * this.width;
@@ -37,25 +46,62 @@ export class WdlBar {
     const subbars: [string, number][] =
         [['wdl-white', w], ['wdl-draw', d], ['wdl-black', l]];
     for (const [color, width] of subbars) {
-      const bar =
-          document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      bar.setAttribute('x', curX.toString());
-      bar.setAttribute('y', '0');
-      bar.setAttribute('width', width.toString());
-      bar.setAttribute('height', this.height.toString());
-      bar.setAttribute('class', color);
-      svg.appendChild(bar);
+      mkEl('rect', {
+        x: curX.toString(),
+        y: '0',
+        width: width.toString(),
+        height: this.height.toString(),
+        class: color
+      });
       curX += width;
     }
-    const outer =
-        document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    outer.setAttribute('x', '0');
-    outer.setAttribute('y', '0');
-    outer.setAttribute('width', this.width.toString());
-    outer.setAttribute('height', this.height.toString());
-    outer.setAttribute('class', 'wdl-outer');
-    svg.appendChild(outer);
 
+    const writeText = (text: string, x: number, className: string): void => {
+      mkEl('text', {
+        x: x.toString(),
+        y: (this.height / 2).toString(),
+        class: `${className}`
+      }).innerHTML = text;
+    };
+
+    let drawTextAnchor = w + 0.5 * d;
+    if (drawTextAnchor < 35) drawTextAnchor = 35;
+    if (drawTextAnchor > this.width - 35) drawTextAnchor = this.width - 35;
+    const textsAndStyles: {x: number, text: string, cls: string}[] = [
+      {x: 2, text: `${(this.w / 10).toFixed(1)}%`, cls: 'text wdl-white-text'},
+      {
+        x: this.width - 2,
+        text: `${(this.l / 10).toFixed(1)}%`,
+        cls: 'text wdl-text-right wdl-black-text'
+      },
+      {
+        x: drawTextAnchor,
+        text: `${(this.d / 10).toFixed(1)}%`,
+        cls: `text ${(this.w < this.l) ? '' : 'wdl-text-right '}wdl-draw-text`
+      }
+    ];
+
+    for (const {x, text, cls} of textsAndStyles) {
+      writeText(text, x, cls + '-shadow');
+    }
+    mkEl('line', {
+      x1: (w + d / 2).toString(),
+      y1: '0',
+      x2: (w + d / 2).toString(),
+      y2: this.height.toString(),
+      class: 'wdl-middle'
+    });
+    for (const {x, text, cls} of textsAndStyles) {
+      writeText(text, x, cls);
+    }
+
+    mkEl('rect', {
+      x: '0',
+      y: '0',
+      width: this.width.toString(),
+      height: this.height.toString(),
+      class: 'wdl-outer'
+    });
     this.element.appendChild(svg);
   }
 }

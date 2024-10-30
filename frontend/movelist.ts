@@ -1,5 +1,5 @@
-import {WsPositionData} from './ws_feed';
 import {isValidWdl, WdlBar} from './wdl';
+import {WsPositionData} from './ws_feed';
 
 export interface MoveSelectionObserver {
   onMoveSelected(position: WsPositionData, pos_changed: boolean): void;
@@ -106,13 +106,8 @@ export class MoveList {
       const wdlBar = new WdlBar(
           newSpan, position.scoreW!, position.scoreD!, position.scoreB!);
       wdlBar.render();
-
-      const scoreText = document.createElement('td');
-      scoreText.innerText = ` ${position.scoreW! / 10}% / ${
-          position.scoreD! / 10}% / ${position.scoreB! / 10}%`;
-      newRow.appendChild(scoreText);
     } else {
-      moveText.setAttribute('colspan', '3');
+      moveText.setAttribute('colspan', '2');
     }
 
     const existingRow = this.element.querySelector(

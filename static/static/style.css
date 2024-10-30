@@ -21,10 +21,6 @@ table {
 }
 
 
-td svg {
-    vertical-align: top;
-}
-
 /* Header */
 
 #header {
@@ -104,7 +100,7 @@ svg.board .square.light.lastmove {
 /* WDL bar */
 
 svg.wdl-bar .wdl-outer {
-    stroke: rgba(64, 64, 64, 0.3);
+    stroke: rgba(0, 0, 0, 0.8);
     fill: transparent;
 }
 
@@ -119,6 +115,49 @@ svg.wdl-bar .wdl-draw {
 svg.wdl-bar .wdl-black {
     fill: #202020;
 }
+
+svg.wdl-bar .wdl-middle {
+    stroke: #a1f8a1;
+    stroke-width: 2px;
+}
+
+svg.wdl-bar .text {
+    font-family: verdana, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    alignment-baseline: middle;
+}
+
+svg.wdl-bar .wdl-white-text-shadow {
+    stroke-width: 2;
+    stroke: #fff;
+}
+
+svg.wdl-bar .wdl-white-text {
+    fill: #000;
+}
+
+svg.wdl-bar .wdl-text-right {
+    text-anchor: end;
+}
+
+svg.wdl-bar .wdl-black-text-shadow {
+    stroke-width: 2;
+    stroke: #202020;
+}
+
+svg.wdl-bar .wdl-black-text {
+    fill: #fff;
+}
+
+svg.wdl-bar .wdl-draw-text-shadow {
+    stroke-width: 2;
+    stroke: #808080;
+}
+
+svg.wdl-bar .wdl-draw-text {
+    fill: #fff;
+}
+
 
 /* Nodes bar */
 
