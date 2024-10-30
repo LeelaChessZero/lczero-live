@@ -65,8 +65,8 @@ export class WdlBar {
     };
 
     let drawTextAnchor = w + 0.5 * d;
-    if (drawTextAnchor < 35) drawTextAnchor = 35;
-    if (drawTextAnchor > this.width - 35) drawTextAnchor = this.width - 35;
+    if (drawTextAnchor < 40) drawTextAnchor = 40;
+    if (drawTextAnchor > this.width - 40) drawTextAnchor = this.width - 40;
     const textsAndStyles: {x: number, text: string, cls: string}[] = [
       {x: 2, text: `${(this.w / 10).toFixed(1)}%`, cls: 'text wdl-white-text'},
       {
