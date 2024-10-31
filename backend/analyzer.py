@@ -201,10 +201,11 @@ class Analyzer:
     async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
         try:
             async with self._uci_lock:
+                logger.info(f"Starting thinking:\n{board}, {pos.ply_number}")
                 with await self._engine.analysis(
                     board=board, multipv=self._config["max_multipv"]
                 ) as analysis:
-                    logger.debug(f"Starting thinking:\n{board}, {pos.ply_number}")
+                    logger.info(f"Started thinking:\n{board}, {pos.ply_number}")
                     game = self._game
                     assert game is not None
                     await self._ws_notifier.send_game_update(game.id, positions=[pos])
@@ -214,10 +215,10 @@ class Analyzer:
                     info_bundle: list[chess.engine.InfoDict] = []
                     async for info in analysis:
                         if "multipv" not in info:
-                            logger.debug(f"Got info without multipv: {info}")
+                            logger.warning(f"Got info without multipv: {info}")
                             continue
                         if info["multipv"] != len(info_bundle) + 1:
-                            logger.debug(f"Got info for wrong multipv: {info}")
+                            logger.error(f"Got info for wrong multipv: {info}")
                             info_bundle = []
                             continue
                         info_bundle.append(info)

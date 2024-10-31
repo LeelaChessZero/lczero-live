@@ -37,7 +37,7 @@ class PgnFeed:
             )
             await self.queue.send(game)
             if game.headers.get("Result") != "*":
-                logger.info(f"Game {game.headers['Event']} finished, cloding queue.")
+                logger.info(f"Game {game.headers['Event']} finished, closing queue.")
                 await self.queue.aclose()
                 return True
         return False
