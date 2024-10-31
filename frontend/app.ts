@@ -1,4 +1,4 @@
-import {Board} from './board';
+import {BoardArea} from './board_area';
 import {GameSelection, GameSelectionObserver} from './game_selection';
 import {MoveList, MoveSelectionObserver} from './movelist';
 import {MultiPvView} from './multipv_view';
@@ -22,10 +22,10 @@ export class App implements WebsocketObserver {
   private gameSelection: GameSelection;
   private moveList: MoveList;
   private multiPvView: MultiPvView;
-  private board: Board;
   private websocketFeed: WebSocketFeed;
   private curGameId?: number;
   private curPly?: number;
+  private boardArea: BoardArea;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -34,8 +34,7 @@ export class App implements WebsocketObserver {
     this.moveList =
         new MoveList(document.getElementById('movelist') as HTMLElement);
     this.moveList.addObserver(this);
-    this.board = new Board(document.getElementById('board') as HTMLElement);
-    this.board.render();
+    this.boardArea = new BoardArea();
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
     this.websocketFeed = new WebSocketFeed();
@@ -71,6 +70,7 @@ export class App implements WebsocketObserver {
 
   public onGameSelected(game: WsGameData): void {
     this.curGameId = game.gameId;
+    this.boardArea.updatePlayers(game);
     this.moveList.clearPositions();
     this.websocketFeed.setGameId(game.gameId);
     this.updatePgnFeedUrl(game.feedUrl);
@@ -88,13 +88,7 @@ export class App implements WebsocketObserver {
       ): void {
     if (pos_changed) {
       this.curPly = position.ply;
-      this.board.fromFen(position.fen);
-      this.board.clearHighlights();
-      if (position.moveUci) {
-        this.board.addHighlight(position.moveUci.slice(0, 2));
-        this.board.addHighlight(position.moveUci.slice(2, 4));
-      }
-      this.board.render();
+      this.boardArea.updatePosition(position);
       this.multiPvView.clear();
       this.websocketFeed.setPosition(position.ply);
     }
