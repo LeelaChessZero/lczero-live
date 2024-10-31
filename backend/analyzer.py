@@ -201,11 +201,11 @@ class Analyzer:
     async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
         try:
             async with self._uci_lock:
-                logger.info(f"Starting thinking:\n{board}, {pos.ply_number}")
+                logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
                 with await self._engine.analysis(
                     board=board, multipv=self._config["max_multipv"]
                 ) as analysis:
-                    logger.info(f"Started thinking:\n{board}, {pos.ply_number}")
+                    logger.debug(f"Started thinking: {board.fen()}, ply {pos.ply_number}")
                     game = self._game
                     assert game is not None
                     await self._ws_notifier.send_game_update(game.id, positions=[pos])
