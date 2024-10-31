@@ -148,9 +148,15 @@ class Analyzer:
             "https://lichess.org/api/stream/broadcast/round/"
             f"{game.lichess_round_id}.pgn"
         )
-        async with anyio.create_task_group() as game_tg:
-            game_tg.start_soon(PgnFeed.run, pgn_send_queue, url, filters)
-            game_tg.start_soon(self._uci_worker, pgn_recv_queue, game)
+        try:
+            async with anyio.create_task_group() as game_tg:
+                logger.info(f"Starting tasks for pgn feed game_id={game.id}, {url}")
+                game_tg.start_soon(PgnFeed.run, pgn_send_queue, url, filters)
+                game_tg.start_soon(self._uci_worker, pgn_recv_queue, game)
+        except Exception as e:
+            logger.warning(f"Leaving the _run_single_game with exception: {e}")
+            raise e
+        logger.info(f"Leaving the _run_single_game normally for game {game.id}")
 
     async def _uci_worker(
         self,
@@ -159,21 +165,36 @@ class Analyzer:
     ):
         with pgn_recv_stream:
             try:
-                pgn: chess.pgn.Game = await pgn_recv_stream.receive()
+                pgn: Optional[chess.pgn.Game] = None
                 while True:
-                    last_pos: db.GamePosition = await self._update_game_db(pgn, game)
-                    logger.info(f"Processing position {last_pos.fen}")
-                    if self._current_position == last_pos:
-                        continue
-                    self._current_position = last_pos
                     async with anyio.create_task_group() as tg:
-                        tg.start_soon(
-                            self._uci_worker_think, get_leaf_board(pgn), last_pos
-                        )
-                        pgn = await pgn_recv_stream.receive()
+                        if pgn is not None:
+                            assert self._current_position is not None
+                            logger.info(
+                                f"Processing position {self._current_position.fen}"
+                            )
+                            tg.start_soon(
+                                self._uci_worker_think,
+                                get_leaf_board(pgn),
+                                self._current_position,
+                            )
+                        while True:
+                            pgn = await pgn_recv_stream.receive()
+                            last_pos: db.GamePosition = await self._update_game_db(
+                                pgn, game
+                            )
+                            if self._current_position == last_pos:
+                                logger.warning(
+                                    "New position is the same as the last one, skipping."
+                                )
+                            else:
+                                self._current_position = last_pos
+                                break
+                        logger.debug("Got new pgn, cancelling the old task.")
                         tg.cancel_scope.cancel()
+                    logger.debug("Cancelled the old task.")
             except* anyio.EndOfStream:
-                logger.debug("Game is finished.")
+                logger.info("The PGN feed queue is closed, likely game is finished.")
                 await db.Game.filter(id=game.id).update(is_finished=True)
                 self._game = None
 
