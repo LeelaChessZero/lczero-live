@@ -211,10 +211,24 @@ svg.nodes-bar .nodes-inner {
     fill: #8552fa;
 }
 
+svg.nodes-bar .text-onbar {
+    font-family: verdana, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    fill: #fff;
+    dominant-baseline: middle;
+}
+
+svg.nodes-bar .text-offbar {
+    font-family: verdana, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    fill: #000;
+    dominant-baseline: middle;
+}
+
 .arrow {
     fill-opacity: 0.6;
     stroke-width: 1px;
-    stroke: #333;
+    fill: #333;
 }
 
 .arrow-ply0 {

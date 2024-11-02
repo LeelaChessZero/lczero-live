@@ -31,7 +31,7 @@ export class MultiPvView {
     addTr('');
     addTr('Move');
     addTr('White / Draw / Black probability');
-    addTr('Nodes');
+    addTr('Nodes / Probability of being best');
     addTr('PV');
 
     this.element = document.createElement('tbody');
@@ -77,8 +77,10 @@ export class MultiPvView {
       } else {
         addCell();
       }
-      new Bar(addCell(), row.nodes, update.nodes).render();
-      addCell().textContent = row.nodes.toString();
+      const bar = new Bar(addCell(), row.nodes, update.nodes);
+      bar.lText = row.nodes.toString();
+      bar.rText = `${(100 * row.nodes / update.nodes).toFixed(1)}%`;
+      bar.render();
       addCell().textContent = row.pvSan;
 
       this.element.appendChild(tr);
