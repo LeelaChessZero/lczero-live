@@ -5,11 +5,14 @@ aiosignal==1.3.1
 aiosqlite==0.17.0
 annotated-types==0.7.0
 anyio==4.6.2.post1
+asyncssh==2.18.0
 attrs==24.2.0
 certifi==2024.8.30
+cffi==1.17.1
 charset-normalizer==3.4.0
 chess==1.11.1
 click==8.1.7
+cryptography==43.0.3
 frozenlist==1.4.1
 gevent==24.10.3
 greenlet==3.1.1
@@ -23,6 +26,7 @@ multidict==6.1.0
 ndjson==0.3.1
 plumbum==1.9.0
 propcache==0.2.0
+pycparser==2.22
 pydantic==2.9.2
 pydantic_core==2.23.4
 Pygments==2.18.0
