@@ -55,12 +55,15 @@ async def get_game_candidates() -> list[GameInfo]:
 
 def get_best_game(game_infos: list[GameInfo]) -> GameInfo:
     logger.info(f"Selecting best game from {len(game_infos)} games")
-    return min(
-        game_infos,
-        #  key=lambda gi: max([p.get("rating", 9999) for p in gi.game["players"]]),
-        # key=lambda gi: max([p.get("clock", 999999) for p in gi.game["players"]]),
-        key=lambda gi: int(gi.game["fen"].split()[-1]),
-    )
+    games_with_fen = [x for x in game_infos if "fen" in x.game]
+    if games_with_fen:
+        return min(
+            games_with_fen,
+            #  key=lambda gi: max([p.get("rating", 9999) for p in gi.game["players"]]),
+            # key=lambda gi: max([p.get("clock", 999999) for p in gi.game["players"]]),
+            key=lambda gi: int(gi.game["fen"].split()[-1]),
+        )
+    return game_infos[0]
 
 
 async def make_game(info: GameInfo) -> Game:
