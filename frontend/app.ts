@@ -1,8 +1,8 @@
 import {BoardArea} from './board_area';
-import {GameSelection, GameSelectionObserver} from './game_selection';
-import {MoveList, MoveSelectionObserver} from './movelist';
+import {GameSelection} from './game_selection';
+import {MoveList} from './movelist';
 import {MultiPvView} from './multipv_view';
-import {WebSocketFeed, WebsocketObserver, WsEvaluationData, WsGameData, WsGlobalData, WsPositionData, WsVariationData} from './ws_feed';
+import {WebSocketFeed, WebsocketObserver, WsEvaluationData, WsGameData, WsGlobalData, WsPositionData} from './ws_feed';
 
 interface PlayerResponse {
   name: string;
@@ -66,6 +66,7 @@ export class App implements WebsocketObserver {
         e => e.gameId == this.curGameId && e.ply == this.curPly);
     if (evals.length == 0) return;
     this.multiPvView.updateMultiPv(evals.at(-1)!);
+    this.boardArea.updateEvaluation(evals.at(-1)!);
   }
 
   public onGameSelected(game: WsGameData): void {

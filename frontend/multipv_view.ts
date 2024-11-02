@@ -19,6 +19,7 @@ export class MultiPvView {
       th.textContent = text;
       tr.appendChild(th);
     }
+    addTr('');
     addTr('Move');
     addTr('White / Draw / Black probability');
     addTr('Nodes');
@@ -34,12 +35,30 @@ export class MultiPvView {
 
   public updateMultiPv(update: WsEvaluationData): void {
     this.element.innerHTML = '';
-    for (let row of update.variations) {
+    for (let [ply, row] of update.variations.entries()) {
+      const width =
+          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
+
+
       let tr = document.createElement('tr');
       function addCell(): HTMLElement {
         let td = document.createElement('td');
         tr.appendChild(td);
         return td;
+      }
+      const color = addCell();
+      if (ply <= 6 && (width >= 3 || ply == 0)) {
+        const svg =
+            document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '8');
+        svg.setAttribute('height', '8');
+        const rect =
+            document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '8');
+        rect.setAttribute('height', '8');
+        rect.setAttribute('class', `legend arrow-ply${ply}`);
+        svg.appendChild(rect);
+        color.appendChild(svg);
       }
       addCell().textContent = row.moveSan;
       if (isValidWdl(row.scoreW, row.scoreD, row.scoreB)) {

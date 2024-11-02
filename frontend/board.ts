@@ -1,3 +1,4 @@
+import {Arrow} from './arrow';
 
 
 interface PieceLocation {
@@ -6,10 +7,25 @@ interface PieceLocation {
   file: number;         // 0-based
 }
 
+export interface ArrowLocation {
+  move: string;
+  classes: string;
+  width: number;
+  angle: number;
+  headLength: number;
+  headWidth: number;
+  dashLength: number;
+  dashSpace: number;
+}
+
 const SQUARE_SIZE = 45;
 
 function fileRanktoSquare(rank: number, file: number): string {
   return 'abcdefgh'[file] + (rank + 1).toString();
+}
+
+function squareToFileRank(square: string): [number, number] {
+  return [square.charCodeAt(0) - 'a'.charCodeAt(0), parseInt(square[1]) - 1];
 }
 
 export class Board {
@@ -17,6 +33,7 @@ export class Board {
   private pieces: Set<PieceLocation> = new Set();
   private highlightedSquares: Set<string> = new Set();
   private flipped: boolean = false;
+  private arrows: ArrowLocation[] = [];
 
   constructor(element: HTMLElement) {
     this.element = element;
@@ -27,8 +44,16 @@ export class Board {
     this.highlightedSquares.clear();
   }
 
+  public clearArrows(): void {
+    this.arrows = [];
+  }
+
   public addHighlight(square: string): void {
     this.highlightedSquares.add(square);
+  }
+
+  public addArrow(arrow: ArrowLocation): void {
+    this.arrows.push(arrow);
   }
 
   public render(): void {
@@ -76,11 +101,40 @@ export class Board {
       svg.appendChild(pieceEl);
     });
 
+    this.renderArrows(svg);
     this.element.appendChild(svg);
+  }
+
+  private renderArrows(parent: SVGElement): void {
+    const border = 0;
+    for (let arrow of this.arrows) {
+      const ar = new Arrow();
+      const [file1, rank1] = squareToFileRank(arrow.move.slice(0, 2));
+      const [file2, rank2] = squareToFileRank(arrow.move.slice(2, 4));
+      ar.x1 = (this.flipped ? 7 - file1 : file1) * SQUARE_SIZE +
+          SQUARE_SIZE / 2 + border;
+      ar.y1 = (this.flipped ? rank1 : 7 - rank1) * SQUARE_SIZE +
+          SQUARE_SIZE / 2 +
+
+          border;
+      ar.x2 = (this.flipped ? 7 - file2 : file2) * SQUARE_SIZE +
+          SQUARE_SIZE / 2 + border;
+      ar.y2 = (this.flipped ? rank2 : 7 - rank2) * SQUARE_SIZE +
+          SQUARE_SIZE / 2 + border;
+      ar.classes = arrow.classes;
+      ar.width = arrow.width;
+      ar.angle = arrow.angle;
+      ar.headLength = arrow.headLength;
+      ar.headWidth = arrow.headWidth;
+      ar.dashLength = arrow.dashLength;
+      ar.dashSpace = arrow.dashSpace;
+      ar.render(parent);
+    }
   }
 
   public fromFen(fen: string): void {
     this.pieces.clear();
+    this.clearArrows();
     const rows = fen.split(' ')[0].split('/');
     rows.forEach((row, rowIndex) => {
       let file = 0;

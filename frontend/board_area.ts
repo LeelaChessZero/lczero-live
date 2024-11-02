@@ -1,5 +1,5 @@
 import {Board} from './board';
-import {WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
+import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
 
 function formatClock(seconds?: number): string {
   if (seconds == null) return '';
@@ -46,4 +46,52 @@ export class BoardArea {
         formatClock(position.blackClock);
     this.board.render();
   }
-};
+
+  public updateEvaluation(update: WsEvaluationData): void {
+    this.board.clearArrows();
+    for (let [ply, row] of update.variations.entries()) {
+      if (ply > 6) break;
+      const pv = row.pvUci.split(' ');
+      const width =
+          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
+      if (width < 3 && ply > 0) continue;
+      if (pv.length >= 1) {
+        this.board.addArrow({
+          move: pv[0],
+          classes: `arrow arrow-pv0 arrow-ply${ply} arrow-ply${ply}-pv0`,
+          width: width,
+          angle: 0,
+          headLength: 20,
+          headWidth: 20,
+          dashLength: 1000,
+          dashSpace: 0
+        });
+      }
+      if (pv.length >= 2) {
+        this.board.addArrow({
+          move: pv[1],
+          classes: `arrow arrow-pv1 arrow-ply${ply} arrow-ply${ply}-pv1`,
+          width: 5,
+          angle: Math.PI / 3,
+          headLength: 10,
+          headWidth: 10,
+          dashLength: 10,
+          dashSpace: 10
+        });
+      }
+      if (pv.length >= 3 && pv[0].slice(2, 4) == pv[2].slice(0, 2)) {
+        this.board.addArrow({
+          move: pv[2],
+          classes: `arrow arrow-pv2 arrow-ply${ply} arrow-ply${ply}-pv2`,
+          width: 2,
+          angle: -Math.PI / 2,
+          headLength: 5,
+          headWidth: 10,
+          dashLength: 3,
+          dashSpace: 3
+        });
+      }
+    }
+    this.board.render();
+  }
+}
