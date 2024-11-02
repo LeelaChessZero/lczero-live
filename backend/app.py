@@ -59,21 +59,16 @@ class App:
         evaluations: list[db.GamePositionEvaluation] = (
             await db.GamePositionEvaluation.filter(position=pos).order_by("id")
         )
-        moveses: list[list[db.GamePositionEvaluationMove]] = cast(
-            list[list[db.GamePositionEvaluationMove]], [None for _ in evaluations]
+        moveses_flat: list[db.GamePositionEvaluationMove] = (
+            await db.GamePositionEvaluationMove.filter(
+                evaluation__position=pos
+            ).order_by("-nodes")
         )
+        moveses: list[list[db.GamePositionEvaluationMove]] = [[] for _ in evaluations]
+        eval_id_to_idx = {e.id: idx for idx, e in enumerate(evaluations)}
+        for move in moveses_flat:
+            moveses[eval_id_to_idx[move.evaluation_id]].append(move)
 
-        async def get_moves(evaluation: db.GamePositionEvaluation, idx: int):
-            res: list[db.GamePositionEvaluationMove] = (
-                await db.GamePositionEvaluationMove.filter(
-                    evaluation=evaluation
-                ).order_by("-nodes")
-            )
-            moveses[idx] = res
-
-        async with anyio.create_task_group() as tg:
-            for idx, evaluation in enumerate(evaluations):
-                tg.start_soon(get_moves, evaluation, idx)
         response = WebsocketResponse(
             evaluations=make_evaluations_update(
                 game_id=game_id,
