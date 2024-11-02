@@ -29,8 +29,8 @@ UCI_ANALYZERS = [
             "--preload",
             "--score-type=Q",
         ],
-        "max_multipv": 20,
+        "max_multipv": 230,
+        "show_pv": 20,
     }
 ]
-
 OAS = False

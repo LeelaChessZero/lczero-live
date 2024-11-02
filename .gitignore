@@ -6,3 +6,4 @@ static/dist/**
 *.pyc
 
 static/index.html
+backend/config_local.py

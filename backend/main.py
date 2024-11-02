@@ -4,9 +4,12 @@ from api import api
 from app import App
 from tortoise import Tortoise
 from tortoise.contrib.sanic import register_tortoise
+import os.path
 
 app = sanic.Sanic("LCZeroLive")
 app.update_config("./config.py")
+if os.path.exists("./config_local.py"):
+    app.update_config("./config_local.py")
 
 register_tortoise(
     app,

@@ -5,6 +5,7 @@ import chess
 import chess.engine
 import chess.pgn
 import db
+import asyncssh
 from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
@@ -50,6 +51,7 @@ class Analyzer:
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
     _ws_notifier: WebsocketNotifier
     _uci_lock: anyio.Lock
+    _connection: asyncssh.SSHClientConnection
 
     def __init__(
         self,
@@ -130,9 +132,20 @@ class Analyzer:
 
     async def run(self):
         async with self._uci_lock:
-            _, self._engine = await chess.engine.popen_uci(
-                command=self._config["command"]
-            )
+            if "ssh" in self._config:
+                self._connection = await asyncssh.connect(
+                    self._config["ssh"]["host"],
+                    username=self._config["ssh"]["username"],
+                )
+                _, self._engine = await self._connection.create_subprocess(
+                    protocol_factory=chess.engine.UciProtocol,
+                    command=" ".join(self._config["command"]),
+                )
+            else:
+                _, self._engine = await chess.engine.popen_uci(
+                    command=self._config["command"]
+                )
+            await self._engine.initialize()
         while True:
             self._game = await self._get_next_task_callback()
             await self._run_single_game(self._game)
@@ -205,7 +218,9 @@ class Analyzer:
                 with await self._engine.analysis(
                     board=board, multipv=self._config["max_multipv"]
                 ) as analysis:
-                    logger.debug(f"Started thinking: {board.fen()}, ply {pos.ply_number}")
+                    logger.debug(
+                        f"Started thinking: {board.fen()}, ply {pos.ply_number}"
+                    )
                     game = self._game
                     assert game is not None
                     await self._ws_notifier.send_game_update(game.id, positions=[pos])
@@ -275,7 +290,8 @@ class Analyzer:
             )
 
         moves: List[db.GamePositionEvaluationMove] = [
-            make_eval_move(info) for info in info_bundle
+            make_eval_move(info)
+            for info in info_bundle[: self._config.get("show_pv", 2)]
         ]
         await db.GamePositionEvaluationMove.bulk_create(moves)
         pos.nodes = total_n
