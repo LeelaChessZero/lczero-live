@@ -5,7 +5,7 @@ import {WsEvaluationData} from './ws_feed';
 export function numArrowsToRender(update: WsEvaluationData): number {
   for (let [ply, row] of update.variations.entries()) {
     if (ply == 0) continue;
-    if (row.nodes / update.variations[0].nodes < 1/50) return ply;
+    if (row.nodes / update.variations[0].nodes < 1 / 50) return ply;
     if (ply == 9) return 9;
   }
   return update.variations.length;
@@ -77,7 +77,7 @@ export class MultiPvView {
       } else {
         addCell();
       }
-      new Bar(addCell(), row.nodes, update.variations[0].nodes).render();
+      new Bar(addCell(), row.nodes, update.nodes).render();
       addCell().textContent = row.nodes.toString();
       addCell().textContent = row.pvSan;
 
