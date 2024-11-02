@@ -60,7 +60,7 @@ export class BoardArea {
         this.board.addArrow({
           move: pv[0],
           classes: `arrow arrow-pv0 arrow-ply${ply} arrow-ply${ply}-pv0`,
-          width: width,
+          width: width + 2,
           angle: 0,
           headLength: 20,
           headWidth: width + 10,
