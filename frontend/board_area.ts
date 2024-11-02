@@ -55,15 +55,15 @@ export class BoardArea {
       if (ply >= numArrows) break;
       const pv = row.pvUci.split(' ');
       const width =
-          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.3) * 12;
+          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.7) * 12;
       if (pv.length >= 1) {
         this.board.addArrow({
           move: pv[0],
           classes: `arrow arrow-pv0 arrow-ply${ply} arrow-ply${ply}-pv0`,
-          width: width + 2,
+          width: width + 4,
           angle: 0,
           headLength: 20,
-          headWidth: width + 10,
+          headWidth: width + 14,
           dashLength: 1000,
           dashSpace: 0
         });
@@ -72,10 +72,10 @@ export class BoardArea {
         this.board.addArrow({
           move: pv[1],
           classes: `arrow arrow-pv1 arrow-ply${ply} arrow-ply${ply}-pv1`,
-          width: width / 2 + 1,
+          width: width / 2 + 2,
           angle: Math.PI / 3,
           headLength: 10,
-          headWidth: 10,
+          headWidth: width / 2 + 8,
           dashLength: 10,
           dashSpace: 10
         });
