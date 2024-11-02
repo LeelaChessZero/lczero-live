@@ -157,9 +157,14 @@ svg.wdl-bar .wdl-black {
     fill: #202020;
 }
 
-svg.wdl-bar .wdl-middle {
-    stroke: #a1f8a1;
+svg.wdl-bar .wdl-midline {
+    stroke: #01751c;
     stroke-width: 2px;
+}
+
+svg.wdl-bar .wdl-middle {
+    stroke: hsl(290, 100%, 77%);
+    stroke-width: 3px;
 }
 
 svg.wdl-bar .text {

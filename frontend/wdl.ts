@@ -56,6 +56,14 @@ export class WdlBar {
       curX += width;
     }
 
+    mkEl('line', {
+      x1: (this.width / 2).toString(),
+      y1: '0',
+      x2: (this.width / 2).toString(),
+      y2: this.height.toString(),
+      class: 'wdl-midline'
+    });
+
     const writeText = (text: string, x: number, className: string): void => {
       mkEl('text', {
         x: x.toString(),
