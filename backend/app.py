@@ -6,7 +6,7 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic import Websocket
-from typing import Optional
+from typing import Optional, cast
 from sanic.log import logger
 from ws_notifier import (
     WebsocketNotifier,
@@ -15,7 +15,6 @@ from ws_notifier import (
     WsGlobalData,
     make_evaluations_update,
 )
-import time
 
 
 class App:
@@ -52,29 +51,24 @@ class App:
         await self._ws_notifier.send_response(ws, response)
 
     async def dump_eval(self, ws, game_id: int, ply: int):
-        logger.info(f"Dumping eval for game {game_id} ply {ply}")
-        start = time.time()
         pos: db.GamePosition | None = await db.GamePosition.get_or_none(
             game=game_id, ply_number=ply
         )
-        logger.info(f"Got position in {time.time() - start:.5f}s")
         if pos is None:
             return
         evaluations: list[db.GamePositionEvaluation] = (
             await db.GamePositionEvaluation.filter(position=pos).order_by("id")
         )
-        logger.info(f"Got evaluations in {time.time() - start:.5f}s")
         moveses_flat: list[db.GamePositionEvaluationMove] = (
             await db.GamePositionEvaluationMove.filter(
                 evaluation__position=pos
             ).order_by("-nodes")
         )
-        logger.info(f"Got moveses in {time.time() - start:.5f}s")
         moveses: list[list[db.GamePositionEvaluationMove]] = [[] for _ in evaluations]
         eval_id_to_idx = {e.id: idx for idx, e in enumerate(evaluations)}
         for move in moveses_flat:
             moveses[eval_id_to_idx[move.evaluation_id]].append(move)
-        logger.info(f"Got moveses in {time.time() - start:.5f}s")
+
         response = WebsocketResponse(
             evaluations=make_evaluations_update(
                 game_id=game_id,
@@ -84,7 +78,6 @@ class App:
             )
         )
         await self._ws_notifier.send_response(ws, response)
-        logger.info(f"Sent eval in {time.time() - start:.5f}s")
 
     async def set_game_and_ply(
         self, ws: Websocket, game_id: int, ply: Optional[int] = None
