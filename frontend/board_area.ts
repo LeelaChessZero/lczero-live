@@ -63,7 +63,7 @@ export class BoardArea {
           width: width,
           angle: 0,
           headLength: 20,
-          headWidth: width+10,
+          headWidth: width + 10,
           dashLength: 1000,
           dashSpace: 0
         });
@@ -72,7 +72,7 @@ export class BoardArea {
         this.board.addArrow({
           move: pv[1],
           classes: `arrow arrow-pv1 arrow-ply${ply} arrow-ply${ply}-pv1`,
-          width: 5,
+          width: width / 2 + 1,
           angle: Math.PI / 3,
           headLength: 10,
           headWidth: 10,
@@ -85,7 +85,7 @@ export class BoardArea {
           move: pv[2],
           classes: `arrow arrow-pv2 arrow-ply${ply} arrow-ply${ply}-pv2`,
           width: 2,
-          angle: -Math.PI / 2,
+          angle: -Math.PI / 1.3,
           headLength: 5,
           headWidth: 10,
           dashLength: 3,
