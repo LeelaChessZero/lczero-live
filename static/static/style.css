@@ -226,7 +226,7 @@ svg.nodes-bar .nodes-inner {
 }
 
 .arrow-ply2 {
-    fill: rgb(0, 0, 0);
+    fill: rgb(0, 38, 255);
 }
 
 .arrow-ply3 {
@@ -238,11 +238,23 @@ svg.nodes-bar .nodes-inner {
 }
 
 .arrow-ply5 {
-    fill: rgb(255, 79, 217);
+    fill: rgb(0, 0, 0);
 }
 
 .arrow-ply6 {
+    fill: rgb(255, 79, 217);
+}
+
+.arrow-ply7 {
     fill: rgb(138, 138, 136);
+}
+
+.arrow-ply8 {
+    fill: rgb(196, 196, 31);
+}
+
+.arrow-ply9 {
+    fill: rgb(197, 136, 46);
 }
 
 .legend {

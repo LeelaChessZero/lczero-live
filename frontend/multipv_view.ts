@@ -2,6 +2,15 @@ import {Bar} from './bar';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsEvaluationData} from './ws_feed';
 
+export function numArrowsToRender(update: WsEvaluationData): number {
+  for (let [ply, row] of update.variations.entries()) {
+    if (ply == 0) continue;
+    if (row.nodes / update.variations[0].nodes < 1/50) return ply;
+    if (ply == 9) return 9;
+  }
+  return update.variations.length;
+}
+
 export class MultiPvView {
   private parent: HTMLElement;
   private element: HTMLElement;
@@ -35,6 +44,7 @@ export class MultiPvView {
 
   public updateMultiPv(update: WsEvaluationData): void {
     this.element.innerHTML = '';
+    const numArrows = numArrowsToRender(update);
     for (let [ply, row] of update.variations.entries()) {
       const width =
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
@@ -47,7 +57,7 @@ export class MultiPvView {
         return td;
       }
       const color = addCell();
-      if (ply <= 6 && (width >= 3 || ply == 0)) {
+      if (ply < numArrows) {
         const svg =
             document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('width', '8');

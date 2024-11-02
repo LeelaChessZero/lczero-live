@@ -1,4 +1,5 @@
 import {Board} from './board';
+import {numArrowsToRender} from './multipv_view';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
 
 function formatClock(seconds?: number): string {
@@ -49,12 +50,12 @@ export class BoardArea {
 
   public updateEvaluation(update: WsEvaluationData): void {
     this.board.clearArrows();
+    const numArrows = numArrowsToRender(update);
     for (let [ply, row] of update.variations.entries()) {
-      if (ply > 6) break;
+      if (ply >= numArrows) break;
       const pv = row.pvUci.split(' ');
       const width =
-          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
-      if (width < 3 && ply > 0) continue;
+          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.3) * 12;
       if (pv.length >= 1) {
         this.board.addArrow({
           move: pv[0],
@@ -62,7 +63,7 @@ export class BoardArea {
           width: width,
           angle: 0,
           headLength: 20,
-          headWidth: 20,
+          headWidth: width+10,
           dashLength: 1000,
           dashSpace: 0
         });
