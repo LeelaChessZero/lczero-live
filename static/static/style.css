@@ -253,11 +253,11 @@ svg.nodes-bar .text-offbar {
 }
 
 .arrow-ply4 {
-    fill: rgb(65, 248, 74);
+    fill: rgb(0, 0, 0);
 }
 
 .arrow-ply5 {
-    fill: rgb(0, 0, 0);
+    fill: rgb(102, 248, 65);
 }
 
 .arrow-ply6 {
@@ -269,11 +269,11 @@ svg.nodes-bar .text-offbar {
 }
 
 .arrow-ply8 {
-    fill: rgb(196, 196, 31);
+    fill: rgb(31, 149, 196);
 }
 
 .arrow-ply9 {
-    fill: rgb(197, 136, 46);
+    fill: rgb(236, 224, 48);
 }
 
 .legend {
