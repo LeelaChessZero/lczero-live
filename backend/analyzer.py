@@ -153,6 +153,8 @@ class Analyzer:
             await self._run_single_game(self._game)
 
     async def _run_single_game(self, game: db.Game):
+        await game.fetch_related("tournament")
+        await self._ws_notifier.send_game_entry_update(game, is_being_analyzed=True)
         pgn_send_queue, pgn_recv_queue = anyio.create_memory_object_stream[
             chess.pgn.Game
         ]()
@@ -212,6 +214,11 @@ class Analyzer:
             except* anyio.EndOfStream:
                 logger.info("The PGN feed queue is closed, likely game is finished.")
                 await db.Game.filter(id=game.id).update(is_finished=True)
+                assert self._game is not None
+                self._game.is_finished = True
+                await self._ws_notifier.send_game_entry_update(
+                    game, is_being_analyzed=False
+                )
                 self._game = None
 
     async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):

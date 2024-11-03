@@ -101,30 +101,31 @@ class WebsocketResponse(TypedDict, total=False):
     evaluations: list[WsEvaluationData]
 
 
-def make_game_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGameData]:
-    return [
-        WsGameData(
-            gameId=game.id,
-            name=f"{game.game_name} ({game.round_name}) --- " f"{game.tournament.name}",
-            isFinished=game.is_finished,
-            isBeingAnalyzed=game.id in analyzed_games,
-            player1=WsPlayerData(
-                name=game.player1_name,
-                rating=game.player1_rating,
-                fideId=game.player1_fide_id,
-                fed=game.player1_fed,
-            ),
-            player2=WsPlayerData(
-                name=game.player2_name,
-                rating=game.player2_rating,
-                fideId=game.player2_fide_id,
-                fed=game.player2_fed,
-            ),
-            feedUrl="https://lichess.org/broadcast/-/-/"
-            f"{game.lichess_round_id}/{game.lichess_id}",
-        )
-        for game in games
-    ]
+def make_game_data(game: db.Game, is_being_analyzed: bool) -> WsGameData:
+    return WsGameData(
+        gameId=game.id,
+        name=f"{game.game_name} ({game.round_name}) --- " f"{game.tournament.name}",
+        isFinished=game.is_finished,
+        isBeingAnalyzed=is_being_analyzed,
+        player1=WsPlayerData(
+            name=game.player1_name,
+            rating=game.player1_rating,
+            fideId=game.player1_fide_id,
+            fed=game.player1_fed,
+        ),
+        player2=WsPlayerData(
+            name=game.player2_name,
+            rating=game.player2_rating,
+            fideId=game.player2_fide_id,
+            fed=game.player2_fed,
+        ),
+        feedUrl="https://lichess.org/broadcast/-/-/"
+        f"{game.lichess_round_id}/{game.lichess_id}",
+    )
+
+
+def make_games_data(games: list[db.Game], analyzed_games: set[int]) -> list[WsGameData]:
+    return [make_game_data(game, game.id in analyzed_games) for game in games]
 
 
 def make_evaluations_update(
@@ -228,6 +229,11 @@ class WebsocketNotifier:
         entry.game_id = game_id
         entry.ply = ply
         return game_changed
+
+    async def send_game_entry_update(self, game: db.Game, is_being_analyzed: bool):
+        response = WebsocketResponse()
+        response.update(games=[make_game_data(game, is_being_analyzed)])
+        await self.notify_observers(response)
 
     async def send_game_update(
         self,
