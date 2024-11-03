@@ -51,6 +51,7 @@ class Analyzer:
     _get_next_task_callback: Callable[[], Awaitable[db.Game]]
     _ws_notifier: WebsocketNotifier
     _uci_lock: anyio.Lock
+    _uci_cancelation_lock: anyio.Lock
     _connection: asyncssh.SSHClientConnection
 
     def __init__(
@@ -65,6 +66,7 @@ class Analyzer:
         self._current_position = None
         self._ws_notifier = ws_notifier
         self._uci_lock = anyio.Lock()
+        self._uci_cancelation_lock = anyio.Lock()
 
     # returns the last ply number.
     async def _update_game_db(
@@ -204,7 +206,8 @@ class Analyzer:
                                 self._current_position = last_pos
                                 break
                         logger.debug("Got new pgn, cancelling the old task.")
-                        tg.cancel_scope.cancel()
+                        async with self._uci_cancelation_lock:
+                            tg.cancel_scope.cancel()
                     logger.debug("Cancelled the old task.")
             except* anyio.EndOfStream:
                 logger.info("The PGN feed queue is closed, likely game is finished.")
@@ -212,9 +215,11 @@ class Analyzer:
                 self._game = None
 
     async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
+        cancelation_lock = self._uci_cancelation_lock
         try:
             async with self._uci_lock:
                 logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
+                await cancelation_lock.acquire()
                 with await self._engine.analysis(
                     board=board, multipv=self._config["max_multipv"]
                 ) as analysis:
@@ -229,6 +234,9 @@ class Analyzer:
                     )
                     info_bundle: list[chess.engine.InfoDict] = []
                     async for info in analysis:
+                        if cancelation_lock:
+                            cancelation_lock.release()
+                            cancelation_lock = None
                         if "multipv" not in info:
                             logger.warning(f"Got info without multipv: {info}")
                             continue
@@ -246,6 +254,10 @@ class Analyzer:
                             info_bundle = []
         except AssertionError as e:
             logger.error(f"Assertion error: {e}")
+        finally:
+            if cancelation_lock:
+                cancelation_lock.release()
+                cancelation_lock = None
 
     async def _process_info_bundle(
         self,
