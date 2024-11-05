@@ -10,6 +10,7 @@ from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
+from game_selector import hacky_lock
 
 
 def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
@@ -310,7 +311,8 @@ class Analyzer:
             make_eval_move(info)
             for info in info_bundle[: self._config.get("show_pv", 2)]
         ]
-        await db.GamePositionEvaluationMove.bulk_create(moves)
+        async with hacky_lock:
+            await db.GamePositionEvaluationMove.bulk_create(moves)
         pos.nodes = total_n
         pos.q_score = moves[0].q_score
         pos.white_score = moves[0].white_score

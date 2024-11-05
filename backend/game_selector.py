@@ -1,11 +1,14 @@
 import asyncio
 import dataclasses
 from typing import Any, Optional
+import anyio
 
 import chess.pgn
 import lichess
 from db import Game, GameFilter, Tournament
 from sanic.log import logger
+
+hacky_lock = anyio.Lock()
 
 
 @dataclasses.dataclass
@@ -95,41 +98,42 @@ async def make_game(info: GameInfo) -> Game:
         logger.error(f"Found {len(pgn)} pgns for game {info.game['id']}")
         raise ValueError(f"{len(pgn)} pgns found for game {info.game['id']}")
 
-    game = await Game.create(
-        tournament_id=info.tour_id,
-        game_name=info.game["name"],
-        lichess_round_id=info.round["id"],
-        lichess_id=info.game["id"],
-        round_name=info.round["name"],
-        player1_name=info.game["players"][0]["name"],
-        player1_fide_id=info.game["players"][0].get("fideId"),
-        player1_rating=info.game["players"][0].get("rating"),
-        player1_fed=info.game["players"][0].get("fed"),
-        player2_name=info.game["players"][1]["name"],
-        player2_fide_id=info.game["players"][1].get("fideId"),
-        player2_rating=info.game["players"][1].get("rating"),
-        player2_fed=info.game["players"][1].get("fed"),
-        status=info.game["status"],
-        is_finished=False,
-    )
-    await GameFilter.bulk_create(
-        [
-            GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
-            for attr in [
-                "Event",
-                "Date",
-                "Round",
-                "White",
-                "Black",
-                "WhiteElo",
-                "BlackElo",
-                "WhiteFideId",
-                "BlackFideId",
-                "WhiteFed",
-                "BlackFed",
-                "TimeControl",
-            ]
-            if attr in pgn[0].headers
-        ],
-    )
-    return game
+    async with hacky_lock:
+        game = await Game.create(
+            tournament_id=info.tour_id,
+            game_name=info.game["name"],
+            lichess_round_id=info.round["id"],
+            lichess_id=info.game["id"],
+            round_name=info.round["name"],
+            player1_name=info.game["players"][0]["name"],
+            player1_fide_id=info.game["players"][0].get("fideId"),
+            player1_rating=info.game["players"][0].get("rating"),
+            player1_fed=info.game["players"][0].get("fed"),
+            player2_name=info.game["players"][1]["name"],
+            player2_fide_id=info.game["players"][1].get("fideId"),
+            player2_rating=info.game["players"][1].get("rating"),
+            player2_fed=info.game["players"][1].get("fed"),
+            status=info.game["status"],
+            is_finished=False,
+        )
+        await GameFilter.bulk_create(
+            [
+                GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
+                for attr in [
+                    "Event",
+                    "Date",
+                    "Round",
+                    "White",
+                    "Black",
+                    "WhiteElo",
+                    "BlackElo",
+                    "WhiteFideId",
+                    "BlackFideId",
+                    "WhiteFed",
+                    "BlackFed",
+                    "TimeControl",
+                ]
+                if attr in pgn[0].headers
+            ],
+        )
+        return game
