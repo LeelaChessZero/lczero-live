@@ -25,8 +25,8 @@ export class BoardArea {
   }
 
   public updatePlayers(game: WsGameData): void {
-    const white = this.flipped ? 'bottom' : 'top';
-    const black = this.flipped ? 'top' : 'bottom';
+    const white = this.flipped ? 'top' : 'bottom';
+    const black = this.flipped ? 'bottom' : 'top';
     renderPlayer(game.player1, document.getElementById(`player-${white}`)!);
     renderPlayer(game.player2, document.getElementById(`player-${black}`)!);
   }
@@ -38,8 +38,8 @@ export class BoardArea {
       this.board.addHighlight(position.moveUci.slice(0, 2));
       this.board.addHighlight(position.moveUci.slice(2, 4));
     }
-    const white = this.flipped ? 'bottom' : 'top';
-    const black = this.flipped ? 'top' : 'bottom';
+    const white = this.flipped ? 'top' : 'bottom';
+    const black = this.flipped ? 'bottom' : 'top';
 
     document.getElementById(`player-${white}-clock`)!.innerText =
         formatClock(position.whiteClock);
