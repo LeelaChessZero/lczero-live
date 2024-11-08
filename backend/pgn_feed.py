@@ -6,6 +6,7 @@ import chess.pgn
 from anyio.streams.memory import MemoryObjectSendStream
 from sanic.log import logger
 import anyio
+import aiohttp.client_exceptions
 
 
 class PgnFeed:
@@ -59,9 +60,14 @@ class PgnFeed:
     async def _worker(self, pgn_url: str):
         with self.queue:
             while True:
-                timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
-                async with aiohttp.ClientSession(timeout=timeout) as session:
-                    if await self._fetch_url(session, pgn_url):
-                        break
-                logger.info(f"Pgn connection to {pgn_url} closed unexpectedly.")
+                try:
+                    timeout = aiohttp.ClientTimeout(total=0, sock_read=0)
+                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                        if await self._fetch_url(session, pgn_url):
+                            break
+                except aiohttp.client_exceptions.ClientPayloadError as e:
+                    logger.error(f"ClientPayloadError: {e}")
+                logger.warning(
+                    f"Pgn connection to {pgn_url} closed unexpectedly, retrying."
+                )
                 await anyio.sleep(1)
