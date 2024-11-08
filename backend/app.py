@@ -6,7 +6,7 @@ from game_selector import get_best_game, get_game_candidates, make_game
 from rich import print
 from sanic import Sanic
 from sanic import Websocket
-from typing import Optional, cast
+from typing import Optional
 from sanic.log import logger
 from ws_notifier import (
     WebsocketNotifier,
@@ -15,6 +15,12 @@ from ws_notifier import (
     WsGlobalData,
     make_evaluations_update,
 )
+import hashlib
+
+
+def _get_js_hash() -> str:
+    with open("../static/dist/main.js", "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()
 
 
 class App:
@@ -23,6 +29,7 @@ class App:
     _analysises: list[Analyzer]
     _game_assignment_lock: anyio.Lock
     _ws_notifier: WebsocketNotifier
+    _js_hash: str
 
     def __init__(self, app: Sanic):
         self.app = app
@@ -37,6 +44,7 @@ class App:
             for cfg in self.config.UCI_ANALYZERS
         ]
         self._game_assignment_lock = anyio.Lock()
+        self._js_hash = _get_js_hash()
 
     def get_ws_notifier(self) -> WebsocketNotifier:
         return self._ws_notifier
@@ -92,7 +100,9 @@ class App:
         return [g for a in self._analysises if (g := a.get_game()) is not None]
 
     def get_status(self) -> WsGlobalData:
-        return WsGlobalData(numViewers=self._ws_notifier.num_subscribers())
+        return WsGlobalData(
+            numViewers=self._ws_notifier.num_subscribers(), jsHash=self._js_hash
+        )
 
     async def send_status_periodically(self):
         while True:

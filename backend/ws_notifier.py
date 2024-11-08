@@ -14,6 +14,7 @@ from websockets.exceptions import ConnectionClosed
 class WsGlobalData(TypedDict, total=False):
     message: str
     numViewers: int
+    jsHash: str
 
 
 # Per game data

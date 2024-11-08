@@ -3,6 +3,7 @@
 export interface WsGlobalData {
   message?: string;
   numViewers?: number;
+  jsHash?: string;
 }
 
 // Per game data

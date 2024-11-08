@@ -26,6 +26,7 @@ export class App implements WebsocketObserver {
   private curGameId?: number;
   private curPly?: number;
   private boardArea: BoardArea;
+  private jsHash?: string;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -52,6 +53,12 @@ export class App implements WebsocketObserver {
     if (status.numViewers) {
       document.getElementById('connection-status')!.innerText =
           `${status.numViewers} watching`;
+    }
+    if (status.jsHash) {
+      if (this.jsHash && this.jsHash !== status.jsHash) {
+        location.reload();
+      }
+      this.jsHash = status.jsHash;
     }
   }
   public onGamesReceived(games: WsGameData[]): void {
