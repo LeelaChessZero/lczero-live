@@ -54,7 +54,7 @@ export class MoveList {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-  private notifyObservers(move_changed: boolean): void {
+  private notifyMoveSelected(move_changed: boolean): void {
     this.observers.forEach(
         observer => observer.onMoveSelected(
             this.positions[this.positionIdx], move_changed));
@@ -63,7 +63,7 @@ export class MoveList {
   private selectPly(positionIdx: number): void {
     if (positionIdx < 0 || positionIdx >= this.positions.length) return;
     if (this.positionIdx === positionIdx) {
-      this.notifyObservers(false);
+      this.notifyMoveSelected(false);
     } else {
       Array.from(this.element.children)
           .forEach(row => row.classList.remove('movelist-selected'));
@@ -77,7 +77,7 @@ export class MoveList {
         targetRow?.scrollIntoView({block: 'nearest'});
       }
       this.positionIdx = positionIdx;
-      this.notifyObservers(true);
+      this.notifyMoveSelected(true);
     }
   }
 

@@ -133,6 +133,11 @@ svg.board .square.light.lastmove {
     fill: #cdd16a;
 }
 
+.board-row {
+    display: flex;
+    flex-direction: row;
+}
+
 /* WDL bar */
 
 svg.wdl-bar {
@@ -204,6 +209,86 @@ svg.wdl-bar .wdl-draw-text {
     fill: #fff;
 }
 
+/* Vertical WDL bar */
+
+
+
+#board-score {
+    margin-left: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    padding: 0;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 70px;
+    background-color: #eee;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+svg.vwdl-bar {
+    vertical-align: middle;
+}
+
+svg.vwdl-bar .vwdl-white {
+    fill: #fff;
+}
+
+svg.vwdl-bar .vwdl-draw {
+    fill: #808080;
+}
+
+svg.vwdl-bar .vwdl-black {
+    fill: #202020;
+}
+
+svg.vwdl-bar .vwdl-outer {
+    stroke: rgba(0, 0, 0, 0.8);
+    fill: transparent;
+}
+
+svg.vwdl-bar .text {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    text-anchor: middle;
+}
+
+svg.vwdl-bar .vwdl-top-text {
+    dominant-baseline: text-before-edge;
+}
+
+svg.vwdl-bar .vwdl-bottom-text {
+    dominant-baseline: text-after-edge;
+}
+
+svg.vwdl-bar .vwdl-middle-text {
+    dominant-baseline: middle;
+}
+
+svg.vwdl-bar .vwdl-black-text {
+    fill: #aaa;
+}
+
+svg.vwdl-bar .vwdl-black-text-shadow {
+    stroke-width: 2px;
+    stroke: #000;
+}
+
+svg.vwdl-bar .vwdl-white-text {
+    fill: #888;
+}
+
+svg.vwdl-bar .vwdl-white-text-shadow {
+    stroke-width: 2px;
+    stroke: #fff;
+}
+
+svg.vwdl-bar .vwdl-draw-text {
+    fill: #ddd;
+}
+
+svg.vwdl-bar .vwdl-draw-text-shadow {
+    stroke-width: 2;
+    stroke: #808080;
+}
 
 /* Nodes bar */
 

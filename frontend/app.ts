@@ -96,9 +96,10 @@ export class App implements WebsocketObserver {
       ): void {
     if (pos_changed) {
       this.curPly = position.ply;
-      this.boardArea.updatePosition(position);
+      this.boardArea.changePosition(position);
       this.multiPvView.clear();
       this.websocketFeed.setPosition(position.ply);
     }
+    this.boardArea.updatePosition(position);
   }
 };

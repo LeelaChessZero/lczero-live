@@ -5,19 +5,15 @@ export function isValidWdl(w?: number, d?: number, l?: number): boolean {
 }
 
 export class WdlBar {
-  private element: HTMLElement;
-  private w: number;
-  private d: number;
-  private l: number;
   private width: number = 200;
   private height: number = 16;
 
-  constructor(element: HTMLElement, w: number, d: number, l: number) {
-    this.element = element;
-    this.w = w;
-    this.d = d;
-    this.l = l;
-  }
+  constructor(
+      private element: HTMLElement,
+      private w: number,
+      private d: number,
+      private l: number,
+  ) {}
 
   public render(): void {
     this.element.innerHTML = '';

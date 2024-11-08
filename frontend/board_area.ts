@@ -1,5 +1,7 @@
 import {Board} from './board';
 import {numArrowsToRender} from './multipv_view';
+import {VerticalWdlBar} from './vwdl';
+import {isValidWdl} from './wdl';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
 
 function formatClock(seconds?: number): string {
@@ -31,7 +33,7 @@ export class BoardArea {
     renderPlayer(game.player2, document.getElementById(`player-${black}`)!);
   }
 
-  public updatePosition(position: WsPositionData): void {
+  public changePosition(position: WsPositionData): void {
     this.board.fromFen(position.fen);
     this.board.clearHighlights();
     if (position.moveUci) {
@@ -49,6 +51,10 @@ export class BoardArea {
   }
 
   public updateEvaluation(update: WsEvaluationData): void {
+    this.updateBoardArrows(update);
+  }
+
+  private updateBoardArrows(update: WsEvaluationData): void {
     this.board.clearArrows();
     const numArrows = numArrowsToRender(update);
     for (let [ply, row] of update.variations.entries()) {
@@ -94,5 +100,15 @@ export class BoardArea {
       }
     }
     this.board.render();
+  }
+
+  public updatePosition(position: WsPositionData): void {
+    if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
+      const vbar = new VerticalWdlBar(
+          position.scoreW!, position.scoreD!, position.scoreB!);
+      vbar.render(document.getElementById('board-score')!);
+    } else {
+      document.getElementById('board-score')!.innerText = '';
+    }
   }
 }
