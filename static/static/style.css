@@ -233,11 +233,11 @@ svg.vwdl-bar .vwdl-white {
 }
 
 svg.vwdl-bar .vwdl-draw {
-    fill: #808080;
+    fill: #ccc;
 }
 
 svg.vwdl-bar .vwdl-black {
-    fill: #202020;
+    fill: #555;
 }
 
 svg.vwdl-bar .vwdl-outer {
@@ -264,16 +264,16 @@ svg.vwdl-bar .vwdl-middle-text {
 }
 
 svg.vwdl-bar .vwdl-black-text {
-    fill: #aaa;
+    fill: #bbb;
 }
 
 svg.vwdl-bar .vwdl-black-text-shadow {
     stroke-width: 2px;
-    stroke: #000;
+    stroke: #555;
 }
 
 svg.vwdl-bar .vwdl-white-text {
-    fill: #888;
+    fill: #777;
 }
 
 svg.vwdl-bar .vwdl-white-text-shadow {
@@ -282,12 +282,12 @@ svg.vwdl-bar .vwdl-white-text-shadow {
 }
 
 svg.vwdl-bar .vwdl-draw-text {
-    fill: #ddd;
+    fill: #666;
 }
 
 svg.vwdl-bar .vwdl-draw-text-shadow {
     stroke-width: 2;
-    stroke: #808080;
+    stroke: #ccc;
 }
 
 /* Nodes bar */
