@@ -49,7 +49,6 @@ export class MultiPvView {
       const width =
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
 
-
       let tr = document.createElement('tr');
       function addCell(): HTMLElement {
         let td = document.createElement('td');
@@ -74,7 +73,8 @@ export class MultiPvView {
       if (isValidWdl(row.scoreW, row.scoreD, row.scoreB)) {
         let wdl = new WdlBar(addCell(), row.scoreW, row.scoreD, row.scoreB);
         wdl.render();
-      } else {
+      }
+      else {
         addCell();
       }
       const bar = new Bar(addCell(), row.nodes, update.nodes);

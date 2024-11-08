@@ -14,12 +14,18 @@ body {
     background-color: #eee;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#footer {
+    margin: auto 10px 2px 10px;
 }
 
 table {
     border-collapse: collapse;
 }
-
 
 /* Header */
 
@@ -151,7 +157,7 @@ svg.wdl-bar .wdl-outer {
 }
 
 svg.wdl-bar .wdl-white {
-    fill: #fff;
+    fill: #ddd;
 }
 
 svg.wdl-bar .wdl-draw {
@@ -180,7 +186,7 @@ svg.wdl-bar .text {
 
 svg.wdl-bar .wdl-white-text-shadow {
     stroke-width: 2;
-    stroke: #fff;
+    stroke: #ddd;
 }
 
 svg.wdl-bar .wdl-white-text {
@@ -210,8 +216,6 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 /* Vertical WDL bar */
-
-
 
 #board-score {
     margin-left: 2px;
@@ -293,7 +297,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 /* Nodes bar */
 
 svg.nodes-bar .nodes-outer {
-    stroke: black;
+    stroke: rgba(0, 0, 0, 0.6);
     fill: transparent;
 }
 
@@ -314,6 +318,8 @@ svg.nodes-bar .text-offbar {
     fill: #000;
     dominant-baseline: middle;
 }
+
+/* Board arrows */
 
 .arrow {
     fill-opacity: 0.6;
@@ -364,4 +370,18 @@ svg.nodes-bar .text-offbar {
 .legend {
     stroke-width: 1px;
     stroke: black;
+}
+
+/* Analysis pane */
+
+#analysis-pane {
+    margin-left: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    border-radius: 2px;
+    align-self: stretch;
+    min-height: 420px;
+    margin-right: 10px;
+    min-width: 1024px;
 }

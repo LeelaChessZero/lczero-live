@@ -22,15 +22,6 @@ export class Bar {
     svg.setAttribute('height', this.height.toString());
     svg.setAttribute('width', this.width.toString());
 
-    const width: number = this.value / this.total * this.width;
-    const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bar.setAttribute('x', '0');
-    bar.setAttribute('y', '0');
-    bar.setAttribute('width', width.toString());
-    bar.setAttribute('height', this.height.toString());
-    bar.setAttribute('class', 'nodes-inner');
-    svg.appendChild(bar);
-
     const outer =
         document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     outer.setAttribute('x', '0');
@@ -39,6 +30,15 @@ export class Bar {
     outer.setAttribute('height', this.height.toString());
     outer.setAttribute('class', 'nodes-outer');
     svg.appendChild(outer);
+
+    const width: number = this.value / this.total * this.width;
+    const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bar.setAttribute('x', '0');
+    bar.setAttribute('y', '0');
+    bar.setAttribute('width', width.toString());
+    bar.setAttribute('height', this.height.toString());
+    bar.setAttribute('class', 'nodes-inner');
+    svg.appendChild(bar);
 
     if (this.lText) {
       const left =
