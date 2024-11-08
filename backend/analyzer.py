@@ -10,6 +10,47 @@ from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
+import dataclasses
+
+
+@dataclasses.dataclass
+class Totals:
+    nodes: int
+    score_q: int
+    score_white: int
+    score_draw: int
+    score_black: int
+    moves_left: Optional[int] = None
+
+
+def get_totals(info_bundle: list[chess.engine.InfoDict]) -> Totals:
+    totals = Totals(
+        nodes=0,
+        score_q=0,
+        score_white=0,
+        score_draw=0,
+        score_black=0,
+        moves_left=info_bundle[0].get("movesleft"),
+    )
+    for info in info_bundle:
+        nodes = info.get("nodes", 0)
+        totals.nodes += nodes
+        score: chess.engine.Score = info.get(
+            "score", chess.engine.PovScore(chess.engine.Cp(0), chess.WHITE)
+        ).white()
+        wdl: chess.engine.Wdl = info.get(
+            "wdl", chess.engine.PovWdl(chess.engine.Wdl(0, 1000, 0), chess.WHITE)
+        ).white()
+        totals.score_q += nodes * score.score(mate_score=20000)
+        totals.score_white += nodes * wdl.wins
+        totals.score_draw += nodes * wdl.draws
+        totals.score_black += nodes * wdl.losses
+    totals.score_q = round(totals.score_q / totals.nodes)
+    totals.score_white = round(totals.score_white / totals.nodes)
+    totals.score_black = round(totals.score_black / totals.nodes)
+    totals.score_draw = 1000 - totals.score_white - totals.score_black
+    return totals
+
 
 def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
     board = pgn.board()
@@ -269,12 +310,12 @@ class Analyzer:
         board: chess.Board,
         pos: db.GamePosition,
     ):
-        total_n = sum(info.get("nodes", 0) for info in info_bundle)
-        logger.debug(f"Total nodes: {total_n}")
+        totals: Totals = get_totals(info_bundle)
+        logger.debug(f"Total nodes: {totals.nodes}")
         # logger.debug(info_bundle[0])
         evaluation: db.GamePositionEvaluation = await db.GamePositionEvaluation.create(
             position=pos,
-            nodes=total_n,
+            nodes=totals.nodes,
             time=int(info_bundle[0].get("time", 0) * 1000),
             depth=info_bundle[0].get("depth", 0),
             seldepth=info_bundle[0].get("seldepth", 0),
@@ -310,12 +351,12 @@ class Analyzer:
             for info in info_bundle[: self._config.get("show_pv", 2)]
         ]
         await db.GamePositionEvaluationMove.bulk_create(moves)
-        pos.nodes = total_n
-        pos.q_score = moves[0].q_score
-        pos.white_score = moves[0].white_score
-        pos.draw_score = moves[0].draw_score
-        pos.black_score = moves[0].black_score
-        pos.moves_left = moves[0].moves_left
+        pos.nodes = totals.nodes
+        pos.q_score = totals.score_q
+        pos.white_score = totals.score_white
+        pos.draw_score = totals.score_draw
+        pos.black_score = totals.score_black
+        pos.moves_left = totals.score_black
         await pos.save()
         game = self._game
         assert game is not None
