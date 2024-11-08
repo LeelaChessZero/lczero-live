@@ -1,16 +1,16 @@
-from typing import Awaitable, Callable, List, Optional
+import dataclasses
+from typing import Any, Awaitable, Callable, List, Optional, Tuple, cast
 
 import anyio
+import asyncssh
 import chess
 import chess.engine
 import chess.pgn
 import db
-import asyncssh
 from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
-import dataclasses
 
 
 @dataclasses.dataclass
@@ -179,9 +179,15 @@ class Analyzer:
                     self._config["ssh"]["host"],
                     username=self._config["ssh"]["username"],
                 )
-                _, self._engine = await self._connection.create_subprocess(
-                    protocol_factory=chess.engine.UciProtocol,
-                    command=" ".join(self._config["command"]),
+                _, self._engine = cast(
+                    Tuple[Any, chess.engine.Protocol],
+                    await self._connection.create_subprocess(
+                        protocol_factory=cast(
+                            asyncssh.subprocess.SubprocessFactory,
+                            chess.engine.UciProtocol,
+                        ),
+                        command=" ".join(self._config["command"]),
+                    ),
                 )
             else:
                 _, self._engine = await chess.engine.popen_uci(
@@ -242,7 +248,7 @@ class Analyzer:
                             )
                             if self._current_position == last_pos:
                                 logger.warning(
-                                    "New position is the same as the last one, skipping."
+                                    "New position is the same as the last one, skip."
                                 )
                             else:
                                 self._current_position = last_pos
