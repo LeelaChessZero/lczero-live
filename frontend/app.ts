@@ -77,9 +77,11 @@ export class App implements WebsocketObserver {
   }
 
   public onGameSelected(game: WsGameData): void {
+    if (this.curGameId != game.gameId) {
+      this.moveList.clearPositions();
+    }
     this.curGameId = game.gameId;
     this.boardArea.updatePlayers(game);
-    this.moveList.clearPositions();
     this.websocketFeed.setGameId(game.gameId);
     this.updatePgnFeedUrl(game.feedUrl);
   }
