@@ -41,17 +41,19 @@ export class GameSelection {
             !this.games[this.getSelectedGameId()].isBeingAnalyzed) {
       let newSel = this.games.find(g => g.isBeingAnalyzed);
       if (!newSel) newSel = this.games.find(g => !g.isFinished);
-      if (!newSel) newSel = this.games[0];
-      this.element.value = newSel.gameId.toString();
-      this.notifyObservers(newSel);
+      if (!newSel && wasEmpty) newSel = this.games[0];
+      if (newSel) {
+        this.element.value = newSel.gameId.toString();
+        this.notifyObservers(newSel);
+      }
     }
   }
 
   private onChange() {
     const gameId = parseInt(this.element.value);
     const game = this.games.find(g => g.gameId === gameId)!;
-    this.followLiveGames = this.games.every(x => !x.isBeingAnalyzed) ||
-        game.isBeingAnalyzed;
+    this.followLiveGames =
+        this.games.every(x => !x.isBeingAnalyzed) || game.isBeingAnalyzed;
     this.notifyObservers(game);
   }
 
