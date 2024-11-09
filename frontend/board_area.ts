@@ -104,8 +104,8 @@ export class BoardArea {
           renderAfterPieces: true,
         });
       }
-      this.board.render();
     }
+    this.board.render();
   }
 
   public updatePosition(position: WsPositionData): void {
