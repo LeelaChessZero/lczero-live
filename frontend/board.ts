@@ -17,6 +17,14 @@ export interface ArrowLocation {
   dashLength: number;
   dashSpace: number;
   renderAfterPieces: boolean;
+  offset: number;
+  totalOffsets: number;
+}
+
+export function moveToDirectionDeg(move: string): number {
+  const [file1, rank1] = squareToFileRank(move.slice(0, 2));
+  const [file2, rank2] = squareToFileRank(move.slice(2, 4));
+  return Math.round(Math.atan2(rank2 - rank1, file2 - file1) * 180 / Math.PI);
 }
 
 const SQUARE_SIZE = 45;
@@ -134,9 +142,7 @@ export class Board {
       ar.x1 = (this.flipped ? 7 - file1 : file1) * SQUARE_SIZE +
           SQUARE_SIZE / 2 + this.border;
       ar.y1 = (this.flipped ? rank1 : 7 - rank1) * SQUARE_SIZE +
-          SQUARE_SIZE / 2 +
-
-          this.border;
+          SQUARE_SIZE / 2 + this.border;
       ar.x2 = (this.flipped ? 7 - file2 : file2) * SQUARE_SIZE +
           SQUARE_SIZE / 2 + this.border;
       ar.y2 = (this.flipped ? rank2 : 7 - rank2) * SQUARE_SIZE +

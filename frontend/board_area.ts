@@ -1,5 +1,5 @@
-import {selectArrowsToRender} from './arrow_selector';
-import {ArrowLocation, Board} from './board';
+import {ArrowInfo, selectArrowsToRender} from './arrow_selector';
+import {Board, moveToDirectionDeg} from './board';
 import {VerticalWdlBar} from './vwdl';
 import {isValidWdl} from './wdl';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
@@ -16,7 +16,10 @@ function formatClock(seconds?: number): string {
 function renderPlayer(player: WsPlayerData, element: HTMLElement): void {
   element.innerText = `${player.name} (${player.rating})`;
 }
-
+type Counts = {
+  current: number,
+  total: number
+};
 export class BoardArea {
   private board: Board;
   private flipped: boolean = false;
@@ -54,9 +57,45 @@ export class BoardArea {
     this.updateBoardArrows(update);
   }
 
+  private buildArrowOffsets(update: WsEvaluationData, arrowInfos: ArrowInfo[]):
+      [Counts[], Counts[]] {
+    const dirToCount = new Map<string, Counts>();
+
+    const usVariations: Counts[] = [];
+    const themVariations: Counts[] = [];
+
+    for (let arrow of arrowInfos) {
+      if (arrow.ply >= 2) continue;
+      const variation = update.variations[arrow.variationIdx];
+      const move = variation.pvUci.split(' ')[arrow.ply];
+      const from = move.slice(0, 2);
+      const key = `${from}:${moveToDirectionDeg(move)}`;
+      if (!dirToCount.has(key)) dirToCount.set(key, {current: 0, total: 0});
+      dirToCount.get(key)!.total++;
+    }
+
+    for (let arrow of arrowInfos) {
+      if (arrow.ply >= 2) continue;
+      const variation = update.variations[arrow.variationIdx];
+      const move = variation.pvUci.split(' ')[arrow.ply];
+      const from = move.slice(0, 2);
+      const key = `${from}:${moveToDirectionDeg(move)}`;
+      const value = dirToCount.get(key)!;
+      const varIdx = arrow.variationIdx;
+      if (arrow.ply == 0) {
+        usVariations[varIdx] = {...value};
+      } else {
+        themVariations[varIdx] = {...value};
+      }
+      value.current++;
+    }
+    return [usVariations, themVariations];
+  }
+
   private updateBoardArrows(update: WsEvaluationData): void {
     this.board.clearArrows();
     const arrows = selectArrowsToRender(update);
+    const [usVars, themVars] = this.buildArrowOffsets(update, arrows);
     for (let arrow of arrows) {
       const variation = update.variations[arrow.variationIdx];
       const ply = arrow.ply;
@@ -78,6 +117,8 @@ export class BoardArea {
           dashLength: 1000,
           dashSpace: 0,
           renderAfterPieces: false,
+          offset: usVars[arrow.variationIdx].current,
+          totalOffsets: usVars[arrow.variationIdx].total,
         });
       } else if (ply == 1) {
         this.board.addArrow({
@@ -90,6 +131,8 @@ export class BoardArea {
           dashLength: 10,
           dashSpace: 10,
           renderAfterPieces: true,
+          offset: themVars[arrow.variationIdx].current,
+          totalOffsets: themVars[arrow.variationIdx].total,
         });
       } else {
         this.board.addArrow({
@@ -102,6 +145,8 @@ export class BoardArea {
           dashLength: 3,
           dashSpace: 3,
           renderAfterPieces: true,
+          offset: usVars[arrow.variationIdx].current,
+          totalOffsets: usVars[arrow.variationIdx].total,
         });
       }
     }
