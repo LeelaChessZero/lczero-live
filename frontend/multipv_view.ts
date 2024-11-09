@@ -69,7 +69,9 @@ export class MultiPvView {
         addCell();
       }
       const bar = new Bar(addCell(), row.nodes, update.nodes);
-      bar.lText = row.nodes.toString();
+      bar.lText =
+          Intl.NumberFormat('ru-RU', {style: 'decimal', useGrouping: true})
+              .format(row.nodes);
       bar.rText = `${(100 * row.nodes / update.nodes).toFixed(1)}%`;
       bar.render();
       addCell().textContent = row.pvSan;

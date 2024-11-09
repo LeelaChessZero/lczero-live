@@ -43,7 +43,7 @@ export class Bar {
     if (this.lText) {
       const left =
           document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const onBar = this.lText.length * 8 < width;
+      const onBar = this.lText.length * 7 < width;
       left.setAttribute('x', (onBar ? 2 : 2 + width).toString());
       left.setAttribute('y', (this.height / 2).toString());
       left.setAttribute('class', onBar ? 'text-onbar' : 'text-offbar');
