@@ -231,7 +231,7 @@ svg.wdl-bar .wdl-draw-text {
     padding: 0;
     border-radius: 4px;
     overflow: hidden;
-    width: 70px;
+    width: 55px;
     background-color: #eee;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
@@ -258,8 +258,8 @@ svg.vwdl-bar .vwdl-outer {
 }
 
 svg.vwdl-bar .text {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 20px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px;
     text-anchor: middle;
 }
 
@@ -276,7 +276,7 @@ svg.vwdl-bar .vwdl-middle-text {
 }
 
 svg.vwdl-bar .vwdl-black-text {
-    fill: #bbb;
+    fill: #ccc;
 }
 
 svg.vwdl-bar .vwdl-black-text-shadow {
@@ -285,7 +285,7 @@ svg.vwdl-bar .vwdl-black-text-shadow {
 }
 
 svg.vwdl-bar .vwdl-white-text {
-    fill: #777;
+    fill: #666;
 }
 
 svg.vwdl-bar .vwdl-white-text-shadow {
@@ -294,7 +294,7 @@ svg.vwdl-bar .vwdl-white-text-shadow {
 }
 
 svg.vwdl-bar .vwdl-draw-text {
-    fill: #666;
+    fill: #555;
 }
 
 svg.vwdl-bar .vwdl-draw-text-shadow {

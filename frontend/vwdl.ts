@@ -1,5 +1,5 @@
 export class VerticalWdlBar {
-  private width: number = 70;
+  private width: number = 55;
   private height: number = 45 * 8;
   public flipped: boolean = false;
 
