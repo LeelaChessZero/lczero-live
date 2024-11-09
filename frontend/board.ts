@@ -1,6 +1,5 @@
 import {Arrow} from './arrow';
 
-
 interface PieceLocation {
   pieceSymbol: string;  // Upper case for white, lower case for black.
   rank: number;         // 0-based
@@ -19,6 +18,7 @@ export interface ArrowLocation {
   renderAfterPieces: boolean;
   offset: number;
   totalOffsets: number;
+  offsetDirection: number;
 }
 
 export function moveToDirectionDeg(move: string): number {
@@ -28,6 +28,7 @@ export function moveToDirectionDeg(move: string): number {
 }
 
 const SQUARE_SIZE = 45;
+const BEAM_SPREAD = 55;
 
 function fileRanktoSquare(rank: number, file: number): string {
   return 'abcdefgh'[file] + (rank + 1).toString();
@@ -139,13 +140,18 @@ export class Board {
       const ar = new Arrow();
       const [file1, rank1] = squareToFileRank(arrow.move.slice(0, 2));
       const [file2, rank2] = squareToFileRank(arrow.move.slice(2, 4));
-      ar.x1 = (this.flipped ? 7 - file1 : file1) * SQUARE_SIZE +
+      const offset =
+          ((arrow.offset + 1) / (arrow.totalOffsets + 1) - 0.5) * BEAM_SPREAD;
+      const dx = Math.sin(arrow.offsetDirection * Math.PI / 180) * offset;
+      const dy = Math.cos(arrow.offsetDirection * Math.PI / 180) * offset;
+
+      ar.x1 = (this.flipped ? 7 - file1 : file1) * SQUARE_SIZE + dx +
           SQUARE_SIZE / 2 + this.border;
-      ar.y1 = (this.flipped ? rank1 : 7 - rank1) * SQUARE_SIZE +
+      ar.y1 = (this.flipped ? rank1 : 7 - rank1) * SQUARE_SIZE + dy +
           SQUARE_SIZE / 2 + this.border;
-      ar.x2 = (this.flipped ? 7 - file2 : file2) * SQUARE_SIZE +
+      ar.x2 = (this.flipped ? 7 - file2 : file2) * SQUARE_SIZE + dx +
           SQUARE_SIZE / 2 + this.border;
-      ar.y2 = (this.flipped ? rank2 : 7 - rank2) * SQUARE_SIZE +
+      ar.y2 = (this.flipped ? rank2 : 7 - rank2) * SQUARE_SIZE + dy +
           SQUARE_SIZE / 2 + this.border;
       ar.classes = arrow.classes;
       ar.width = arrow.width;
