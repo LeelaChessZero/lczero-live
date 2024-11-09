@@ -1,15 +1,7 @@
+import {numVariationsToRender} from './arrow_selector';
 import {Bar} from './bar';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsEvaluationData} from './ws_feed';
-
-export function numArrowsToRender(update: WsEvaluationData): number {
-  for (let [ply, row] of update.variations.entries()) {
-    if (ply == 0) continue;
-    if (row.nodes / update.variations[0].nodes < 1 / 50) return ply;
-    if (ply == 9) return 9;
-  }
-  return update.variations.length;
-}
 
 export class MultiPvView {
   private parent: HTMLElement;
@@ -44,7 +36,7 @@ export class MultiPvView {
 
   public updateMultiPv(update: WsEvaluationData): void {
     this.element.innerHTML = '';
-    const numArrows = numArrowsToRender(update);
+    const numArrows = numVariationsToRender(update);
     for (let [ply, row] of update.variations.entries()) {
       const width =
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
@@ -73,8 +65,7 @@ export class MultiPvView {
       if (isValidWdl(row.scoreW, row.scoreD, row.scoreB)) {
         let wdl = new WdlBar(addCell(), row.scoreW, row.scoreD, row.scoreB);
         wdl.render();
-      }
-      else {
+      } else {
         addCell();
       }
       const bar = new Bar(addCell(), row.nodes, update.nodes);

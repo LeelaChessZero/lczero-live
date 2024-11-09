@@ -34,10 +34,11 @@ export class Board {
   private highlightedSquares: Set<string> = new Set();
   private flipped: boolean = false;
   private arrows: ArrowLocation[] = [];
+  private whiteToMove: boolean = true;
 
   constructor(element: HTMLElement) {
     this.element = element;
-    this.fromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+    this.fromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w');
   }
 
   public clearHighlights(): void {
@@ -99,6 +100,12 @@ export class Board {
       pieceEl.setAttributeNS(
           'http://www.w3.org/1999/xlink', 'href',
           `/static/pieces.svg#piece-${piece.pieceSymbol}`);
+      const isWhitePiece =
+          piece.pieceSymbol === piece.pieceSymbol.toUpperCase();
+      if (this.whiteToMove == isWhitePiece) {
+        pieceEl.setAttribute('class', ' side-to-move');
+      }
+
       svg.appendChild(pieceEl);
     });
 
@@ -135,6 +142,7 @@ export class Board {
   public fromFen(fen: string): void {
     this.pieces.clear();
     this.clearArrows();
+    this.whiteToMove = fen.split(' ')[1] === 'w';
     const rows = fen.split(' ')[0].split('/');
     rows.forEach((row, rowIndex) => {
       let file = 0;

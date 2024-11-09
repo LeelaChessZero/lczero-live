@@ -1,5 +1,5 @@
+import {numVariationsToRender} from './arrow_selector';
 import {Board} from './board';
-import {numArrowsToRender} from './multipv_view';
 import {VerticalWdlBar} from './vwdl';
 import {isValidWdl} from './wdl';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
@@ -56,7 +56,7 @@ export class BoardArea {
 
   private updateBoardArrows(update: WsEvaluationData): void {
     this.board.clearArrows();
-    const numArrows = numArrowsToRender(update);
+    const numArrows = numVariationsToRender(update);
     for (let [ply, row] of update.variations.entries()) {
       if (ply >= numArrows) break;
       const pv = row.pvUci.split(' ');
