@@ -85,6 +85,7 @@ export class Board {
         svg.appendChild(square);
       });
     });
+    this.renderArrows(svg);
 
     this.pieces.forEach(piece => {
       const x =
@@ -101,7 +102,6 @@ export class Board {
       svg.appendChild(pieceEl);
     });
 
-    this.renderArrows(svg);
     this.element.appendChild(svg);
   }
 

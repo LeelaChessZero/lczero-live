@@ -65,7 +65,7 @@ table {
 /* Move list */
 
 #movelist {
-    width: 400px;
+    min-width: 450px;
     margin-left: 10px;
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -78,6 +78,7 @@ table {
 
 #movelist table {
     margin: 5px;
+    width: calc(100% - 20px);
 }
 
 .movelist-item {
@@ -90,10 +91,15 @@ table {
 }
 
 .movelist-selected {
-    background-color: rgb(208, 228, 245);
+    background-color: hsl(290, 30%, 65%);
+    ;
+    color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.justify-right {
+    text-align: right;
+}
 
 /* Chess board */
 
@@ -305,12 +311,12 @@ svg.nodes-bar {
 }
 
 svg.nodes-bar .nodes-outer {
-    stroke: hsla(258, 30%, 65%, 0.5);
+    stroke: hsla(290, 30%, 65%, 0.5);
     fill: transparent;
 }
 
 svg.nodes-bar .nodes-inner {
-    fill: hsl(258, 30%, 65%);
+    fill: hsl(290, 30%, 65%);
 }
 
 svg.nodes-bar .text-onbar {

@@ -363,6 +363,13 @@ class Analyzer:
         pos.draw_score = totals.score_draw
         pos.black_score = totals.score_black
         pos.moves_left = totals.score_black
+        fmove = info_bundle[0]
+        if "time" in fmove:
+            pos.time = int(fmove.get("time", 0) * 1000)
+        if "depth" in fmove:
+            pos.depth = fmove.get("depth", 0)
+        if "seldepth" in fmove:
+            pos.seldepth = fmove.get("seldepth", 0)
         await pos.save()
         game = self._game
         assert game is not None

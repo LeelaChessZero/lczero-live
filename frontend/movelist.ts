@@ -5,6 +5,24 @@ export interface MoveSelectionObserver {
   onMoveSelected(position: WsPositionData, pos_changed: boolean): void;
 }
 
+function formatTime(milliseconds: number): string {
+  const seconds = Math.floor(milliseconds / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  if (hours == 0) return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+  return `${hours}:${String(minutes % 60).padStart(2, '0')}:${
+      String(seconds % 60).padStart(2, '0')}`;
+}
+
+function formatNodes(nodes: number): string {
+  if (nodes == 0) return '';
+  if (nodes < 1e3) return nodes.toString();
+  if (nodes < 1e6) return `${(nodes / 1e3).toFixed(1)}k`;
+  if (nodes < 1e9) return `${(nodes / 1e6).toFixed(1)}m`;
+  return `${(nodes / 1e9).toFixed(1)}b`;
+}
+
 export class MoveList {
   private parent: HTMLElement;
   private element: HTMLTableElement;
@@ -99,20 +117,33 @@ export class MoveList {
     const newRow = document.createElement('tr');
     newRow.classList.add('movelist-item');
     newRow.setAttribute('ply-idx', position.ply.toString());
-    const moveText = document.createElement('td');
-    moveText.innerHTML =
-        `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
-            position.moveSan}`;
-    newRow.appendChild(moveText);
+
+    const td = function(className?: string): HTMLElement {
+      const td = document.createElement('td');
+      if (className) td.classList.add(className);
+      newRow.appendChild(td);
+      return td;
+    };
+
+    td().innerHTML = `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
+        position.moveSan}`;
+    const wdlEl = td();
     if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
-      const newSpan = document.createElement('td');
-      newRow.appendChild(newSpan);
       const wdlBar = new WdlBar(
-          newSpan, position.scoreW!, position.scoreD!, position.scoreB!);
+          wdlEl, position.scoreW!, position.scoreD!, position.scoreB!);
       wdlBar.render();
-    } else {
-      moveText.setAttribute('colspan', '2');
     }
+
+    const timeEl = td('justify-right');
+    if (position.time != null) timeEl.innerText = formatTime(position.time);
+
+    const nodesEl = td('justify-right');
+    if (position.nodes != null) nodesEl.innerText = formatNodes(position.nodes);
+
+    const depthEl = td('justify-right');
+    if (position.depth != null && position.seldepth != null)
+      depthEl.innerText =
+          `${position.depth.toString()}/${position.seldepth.toString()}`;
 
     const existingRow = this.element.querySelector(
                             `[ply-idx="${position.ply}"]`) as HTMLDivElement;
@@ -132,7 +163,13 @@ export class MoveList {
 
   public clearPositions(): void {
     this.positions = [];
-    this.element.innerHTML = '';
+    this.element.innerHTML = `<tr>
+      <th>Move</th>
+      <th>Eval</th>
+      <th>Time</th>
+      <th>Nodes</th>
+      <th>Depth</th>
+    </tr>`;
     this.positionIdx = -1;
   }
 };
