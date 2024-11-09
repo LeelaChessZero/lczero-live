@@ -18,7 +18,7 @@ async def ws(req: Request, ws: Websocket):
     analyzed_games = set(g.id for g in req.app.ctx.app.get_games_being_analyzed())
     games = await db.Game.filter(
         is_hidden=False, tournament__is_hidden=False
-    ).prefetch_related("tournament")
+    ).order_by("id").prefetch_related("tournament")
 
     resp = WebsocketResponse()
     ws_notifier: WebsocketNotifier = req.app.ctx.app.get_ws_notifier()
