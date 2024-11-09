@@ -124,11 +124,11 @@ table {
 }
 
 svg.board .square.dark {
-    fill: #d18b47;
+    fill: hsl(30, 10%, 55%);
 }
 
 svg.board .square.light {
-    fill: #ffce9e;
+    fill: hsl(30, 15%, 81%);
 }
 
 svg.board .square.dark.lastmove {
@@ -171,13 +171,13 @@ svg.wdl-bar .wdl-black {
 }
 
 svg.wdl-bar .wdl-midline {
-    stroke: #01751c;
+    stroke: #444;
     stroke-width: 1px;
 }
 
 svg.wdl-bar .wdl-middle {
-    stroke: hsl(290, 100%, 77%);
-    stroke-width: 3px;
+    stroke: hsl(290, 30%, 65%);
+    stroke-width: 2px;
 }
 
 svg.wdl-bar .text {
@@ -305,12 +305,12 @@ svg.nodes-bar {
 }
 
 svg.nodes-bar .nodes-outer {
-    stroke: rgba(132, 82, 250, 0.5);
+    stroke: hsla(258, 30%, 65%, 0.5);
     fill: transparent;
 }
 
 svg.nodes-bar .nodes-inner {
-    fill: rgb(133, 82, 250);
+    fill: hsl(258, 30%, 65%);
 }
 
 svg.nodes-bar .text-onbar {
