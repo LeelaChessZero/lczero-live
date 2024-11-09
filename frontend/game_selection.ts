@@ -66,7 +66,7 @@ export class GameSelection {
     const option = this.makeOption(game);
     if (existingGame === -1) {
       this.games.push(game);
-      this.element.appendChild(option);
+      this.element.insertBefore(option, this.element.firstChild);
     } else {
       this.games[existingGame] = game;
       this.element.replaceChild(option, this.element.childNodes[existingGame]);
