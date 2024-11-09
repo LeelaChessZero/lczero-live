@@ -10,8 +10,8 @@ const ARROW_BUDGET = 10;
 const MAX_VARIATION_IDX = 9;
 const MIN_WEIGHT = 1 / 50;
 const INITIAL_DECAY = 1.7;
-const SECOND_DECAY = 1.1;
-const FAR_DECAY = 1.1;
+const SECOND_DECAY = 1.0;
+const FAR_DECAY = 1.0;
 
 interface QueueItem {
   variationIdx: number;

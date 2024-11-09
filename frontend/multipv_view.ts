@@ -57,7 +57,7 @@ export class MultiPvView {
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('width', '8');
         rect.setAttribute('height', '8');
-        rect.setAttribute('class', `legend arrow-ply${ply}`);
+        rect.setAttribute('class', `legend arrow-variation${ply}`);
         svg.appendChild(rect);
         color.appendChild(svg);
       }

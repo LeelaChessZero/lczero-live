@@ -16,6 +16,7 @@ export interface ArrowLocation {
   headWidth: number;
   dashLength: number;
   dashSpace: number;
+  renderAfterPieces: boolean;
 }
 
 const SQUARE_SIZE = 45;
@@ -65,7 +66,16 @@ export class Board {
     const border = 0;
     svg.setAttribute('height', (SQUARE_SIZE * 8 + 2 * border).toString());
     svg.setAttribute('width', (SQUARE_SIZE * 8 + 2 * border).toString());
+    this.renderBoard(svg);
+    this.renderPieces(svg, false);
+    this.renderArrows(svg, false);
+    this.renderPieces(svg, true);
+    this.renderArrows(svg, true);
+    this.element.appendChild(svg);
+  }
 
+  private renderBoard(parent: SVGElement): void {
+    const border = 0;
     Array.from({length: 8}, (_, rank) => {
       Array.from({length: 8}, (_, file) => {
         const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + border;
@@ -83,12 +93,19 @@ export class Board {
           className += ' lastmove';
         }
         square.setAttribute('class', className);
-        svg.appendChild(square);
+        parent.appendChild(square);
       });
     });
-    this.renderArrows(svg);
+  }
 
+  private renderPieces(parent: SVGElement, sideToMove: boolean): void {
+    const border = 0;
+    const whiteToShow: boolean = this.whiteToMove == sideToMove;
     this.pieces.forEach(piece => {
+      const isWhitePiece =
+          piece.pieceSymbol === piece.pieceSymbol.toUpperCase();
+      if (isWhitePiece != whiteToShow) return;
+
       const x =
           (this.flipped ? 7 - piece.file : piece.file) * SQUARE_SIZE + border;
       const y =
@@ -100,21 +117,20 @@ export class Board {
       pieceEl.setAttributeNS(
           'http://www.w3.org/1999/xlink', 'href',
           `/static/pieces.svg#piece-${piece.pieceSymbol}`);
-      const isWhitePiece =
-          piece.pieceSymbol === piece.pieceSymbol.toUpperCase();
       if (this.whiteToMove == isWhitePiece) {
         pieceEl.setAttribute('class', ' side-to-move');
       }
 
-      svg.appendChild(pieceEl);
+      parent.appendChild(pieceEl);
     });
-
-    this.element.appendChild(svg);
   }
 
-  private renderArrows(parent: SVGElement): void {
+  private renderArrows(parent: SVGElement, renderAfterPieces: boolean): void {
     const border = 0;
     for (let arrow of this.arrows) {
+      if (arrow.renderAfterPieces != renderAfterPieces) {
+        continue;
+      }
       const ar = new Arrow();
       const [file1, rank1] = squareToFileRank(arrow.move.slice(0, 2));
       const [file2, rank2] = squareToFileRank(arrow.move.slice(2, 4));

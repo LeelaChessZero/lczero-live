@@ -1,5 +1,5 @@
-import {numVariationsToRender} from './arrow_selector';
-import {Board} from './board';
+import {selectArrowsToRender} from './arrow_selector';
+import {ArrowLocation, Board} from './board';
 import {VerticalWdlBar} from './vwdl';
 import {isValidWdl} from './wdl';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
@@ -56,50 +56,56 @@ export class BoardArea {
 
   private updateBoardArrows(update: WsEvaluationData): void {
     this.board.clearArrows();
-    const numArrows = numVariationsToRender(update);
-    for (let [ply, row] of update.variations.entries()) {
-      if (ply >= numArrows) break;
-      const pv = row.pvUci.split(' ');
+    const arrows = selectArrowsToRender(update);
+    for (let arrow of arrows) {
+      const variation = update.variations[arrow.variationIdx];
+      const ply = arrow.ply;
+      const move = variation.pvUci.split(' ')[ply];
       const width =
-          Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.7) * 12;
-      if (pv.length >= 1) {
+          Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 12;
+
+      const classes = `arrow arrow-variation${
+          arrow.variationIdx} arrow-variation${arrow.variationIdx}-ply${ply}`;
+
+      if (ply == 0) {
         this.board.addArrow({
-          move: pv[0],
-          classes: `arrow arrow-pv0 arrow-ply${ply} arrow-ply${ply}-pv0`,
+          move,
+          classes,
           width: width + 4,
           angle: 0,
           headLength: 20,
           headWidth: width + 14,
           dashLength: 1000,
-          dashSpace: 0
+          dashSpace: 0,
+          renderAfterPieces: false,
         });
-      }
-      if (pv.length >= 2) {
+      } else if (ply == 1) {
         this.board.addArrow({
-          move: pv[1],
-          classes: `arrow arrow-pv1 arrow-ply${ply} arrow-ply${ply}-pv1`,
+          move,
+          classes,
           width: width / 2 + 2,
           angle: Math.PI / 3,
           headLength: 10,
           headWidth: width / 2 + 8,
           dashLength: 10,
-          dashSpace: 10
+          dashSpace: 10,
+          renderAfterPieces: true,
         });
-      }
-      if (pv.length >= 3 && pv[0].slice(2, 4) == pv[2].slice(0, 2)) {
+      } else {
         this.board.addArrow({
-          move: pv[2],
-          classes: `arrow arrow-pv2 arrow-ply${ply} arrow-ply${ply}-pv2`,
+          move,
+          classes,
           width: 2,
-          angle: -Math.PI / 1.3,
+          angle: -Math.PI / 4,
           headLength: 5,
           headWidth: 10,
           dashLength: 3,
-          dashSpace: 3
+          dashSpace: 3,
+          renderAfterPieces: true,
         });
       }
+      this.board.render();
     }
-    this.board.render();
   }
 
   public updatePosition(position: WsPositionData): void {
