@@ -23,11 +23,6 @@ export class GameSelection {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-
-  public getGames(): WsGameData[] {
-    return [...this.games];
-  }
-
   public getSelectedGameId(): number {
     return parseInt(this.element.value);
   }
@@ -38,7 +33,7 @@ export class GameSelection {
     games.forEach(game => this.updateSingleGame(game));
     if (wasEmpty ||
         this.followLiveGames &&
-            !this.games[this.getSelectedGameId()].isBeingAnalyzed) {
+            !this.getGameById(this.getSelectedGameId()).isBeingAnalyzed) {
       let newSel = this.games.find(g => g.isBeingAnalyzed);
       if (!newSel) newSel = this.games.find(g => !g.isFinished);
       if (!newSel && wasEmpty) newSel = this.games[0];
@@ -47,6 +42,10 @@ export class GameSelection {
         this.notifyObservers(newSel);
       }
     }
+  }
+
+  private getGameById(gameId: number): WsGameData {
+    return this.games.find(g => g.gameId === gameId)!;
   }
 
   private onChange() {
@@ -62,14 +61,17 @@ export class GameSelection {
   }
 
   private updateSingleGame(game: WsGameData): void {
-    const existingGame = this.games.findIndex(g => g.gameId === game.gameId);
+    const existingGameIdx = this.games.findIndex(g => g.gameId === game.gameId);
     const option = this.makeOption(game);
-    if (existingGame === -1) {
+    if (existingGameIdx === -1) {
       this.games.push(game);
       this.element.insertBefore(option, this.element.firstChild);
     } else {
-      this.games[existingGame] = game;
-      this.element.replaceChild(option, this.element.childNodes[existingGame]);
+      this.games[existingGameIdx] = game;
+      this.element.replaceChild(
+          option,
+          this.element.querySelector(
+              `option[value='${game.gameId.toString()}']`)!);
     }
   }
 
