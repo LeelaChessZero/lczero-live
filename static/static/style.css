@@ -39,7 +39,6 @@ table {
     margin-bottom: 10px;
 }
 
-
 #logo {
     display: inline-block;
     width: 70px;
@@ -66,7 +65,8 @@ table {
 
 #movelist {
     min-width: 450px;
-    margin-left: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     background-color: white;
@@ -111,6 +111,7 @@ table {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     background-color: white;
     border-radius: 2px;
+    margin-left: 5px;
 }
 
 .player {
@@ -401,4 +402,23 @@ svg.nodes-bar .text-offbar {
     min-height: 420px;
     margin-right: 10px;
     min-width: 1024px;
+}
+
+/* Mobile layout */
+
+@media (max-width: 800px) {
+    #header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .main-pane {
+        flex-direction: column;
+    }
+
+    #movelist {
+        border-top: 10px;
+        height: 100px;
+        width: calc(100% - 20px);
+    }
 }
