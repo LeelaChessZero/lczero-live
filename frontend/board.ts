@@ -36,6 +36,7 @@ export class Board {
   private flipped: boolean = false;
   private arrows: ArrowLocation[] = [];
   private whiteToMove: boolean = true;
+  private border: number = 0;
 
   constructor(element: HTMLElement) {
     this.element = element;
@@ -63,9 +64,8 @@ export class Board {
 
     let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'board');
-    const border = 0;
-    svg.setAttribute('height', (SQUARE_SIZE * 8 + 2 * border).toString());
-    svg.setAttribute('width', (SQUARE_SIZE * 8 + 2 * border).toString());
+    svg.setAttribute('height', (SQUARE_SIZE * 8 + 2 * this.border).toString());
+    svg.setAttribute('width', (SQUARE_SIZE * 8 + 2 * this.border).toString());
     this.renderBoard(svg);
     this.renderPieces(svg, false);
     this.renderArrows(svg, false);
@@ -75,11 +75,10 @@ export class Board {
   }
 
   private renderBoard(parent: SVGElement): void {
-    const border = 0;
     Array.from({length: 8}, (_, rank) => {
       Array.from({length: 8}, (_, file) => {
-        const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + border;
-        const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + border;
+        const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + this.border;
+        const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + this.border;
         const is_light = (rank + file) % 2 === 1;
         const square =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -99,17 +98,16 @@ export class Board {
   }
 
   private renderPieces(parent: SVGElement, sideToMove: boolean): void {
-    const border = 0;
     const whiteToShow: boolean = this.whiteToMove == sideToMove;
     this.pieces.forEach(piece => {
       const isWhitePiece =
           piece.pieceSymbol === piece.pieceSymbol.toUpperCase();
       if (isWhitePiece != whiteToShow) return;
 
-      const x =
-          (this.flipped ? 7 - piece.file : piece.file) * SQUARE_SIZE + border;
-      const y =
-          (this.flipped ? 7 - piece.rank : piece.rank) * SQUARE_SIZE + border;
+      const x = (this.flipped ? 7 - piece.file : piece.file) * SQUARE_SIZE +
+          this.border;
+      const y = (this.flipped ? 7 - piece.rank : piece.rank) * SQUARE_SIZE +
+          this.border;
       const pieceEl =
           document.createElementNS('http://www.w3.org/2000/svg', 'use');
       pieceEl.setAttribute('x', x.toString());
@@ -126,7 +124,6 @@ export class Board {
   }
 
   private renderArrows(parent: SVGElement, renderAfterPieces: boolean): void {
-    const border = 0;
     for (let arrow of this.arrows) {
       if (arrow.renderAfterPieces != renderAfterPieces) {
         continue;
@@ -135,15 +132,15 @@ export class Board {
       const [file1, rank1] = squareToFileRank(arrow.move.slice(0, 2));
       const [file2, rank2] = squareToFileRank(arrow.move.slice(2, 4));
       ar.x1 = (this.flipped ? 7 - file1 : file1) * SQUARE_SIZE +
-          SQUARE_SIZE / 2 + border;
+          SQUARE_SIZE / 2 + this.border;
       ar.y1 = (this.flipped ? rank1 : 7 - rank1) * SQUARE_SIZE +
           SQUARE_SIZE / 2 +
 
-          border;
+          this.border;
       ar.x2 = (this.flipped ? 7 - file2 : file2) * SQUARE_SIZE +
-          SQUARE_SIZE / 2 + border;
+          SQUARE_SIZE / 2 + this.border;
       ar.y2 = (this.flipped ? rank2 : 7 - rank2) * SQUARE_SIZE +
-          SQUARE_SIZE / 2 + border;
+          SQUARE_SIZE / 2 + this.border;
       ar.classes = arrow.classes;
       ar.width = arrow.width;
       ar.angle = arrow.angle;
