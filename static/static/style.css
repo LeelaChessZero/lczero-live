@@ -353,33 +353,36 @@ svg.nodes-bar .text-offbar {
     fill: rgb(0, 38, 255);
 }
 
-.arrow-variation3 {
-    fill: rgb(102, 248, 65);
-}
 
-.arrow-variation4 {
+.arrow-variation3 {
     fill: rgb(255, 255, 255);
 }
 
-.arrow-variation5 {
+.arrow-variation4 {
     fill: rgb(236, 224, 48);
 }
 
-.arrow-variation6 {
+.arrow-variation5 {
     fill: rgb(0, 0, 0);
 }
 
-.arrow-variation7 {
-    fill: rgb(255, 79, 217);
-}
-
-.arrow-variation8 {
+.arrow-variation6 {
     fill: rgb(138, 138, 136);
 }
 
-.arrow-variation9 {
-    fill: rgb(31, 149, 196);
+.arrow-variation7 {
+    fill: rgb(102, 69, 248);
 }
+
+.arrow-variation8 {
+    fill: rgb(255, 79, 217);
+}
+
+.arrow-variation9 {
+    fill: rgb(102, 248, 65);
+}
+
+
 
 .legend {
     stroke-width: 1px;
