@@ -7,6 +7,7 @@ from sanic import Websocket
 from sanic.helpers import json_dumps
 from sanic.log import logger
 from websockets.exceptions import ConnectionClosed
+from sanic.exceptions import WebsocketClosed
 
 # Global data
 
@@ -264,6 +265,9 @@ class WebsocketNotifier:
             await ws.send(response)
         except ConnectionClosed as e:
             logger.info(f"Connection closed, {e}")
+            pass
+        except WebsocketClosed as e:
+            logger.info(f"Websocket closed, {e}")
             pass
 
     async def send_response(self, ws: Websocket, response: WebsocketResponse):
