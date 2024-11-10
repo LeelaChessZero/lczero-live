@@ -28,6 +28,7 @@ UCI_ANALYZERS = [
             "--nps-limit=5000",
             "--preload",
             "--score-type=Q",
+            "--show-hidden",
         ],
         "max_multipv": 230,
         "show_pv": 20,

@@ -240,6 +240,7 @@ class Analyzer:
                                 self._uci_worker_think,
                                 get_leaf_board(pgn),
                                 self._current_position,
+                                game,
                             )
                         while True:
                             pgn = await pgn_recv_stream.receive()
@@ -267,19 +268,27 @@ class Analyzer:
                 )
                 self._game = None
 
-    async def _uci_worker_think(self, board: chess.Board, pos: db.GamePosition):
+    async def _uci_worker_think(
+        self, board: chess.Board, pos: db.GamePosition, game: db.Game
+    ):
         try:
             async with self._uci_lock:
                 logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
                 await self._uci_cancelation_lock.acquire()
+                options: dict[str, str] = {}
+                if game.player1_rating is not None and game.player2_rating is not None:
+                    options["ClearTree"] = "true"
+                    options["WDLCalibrationElo"] = str(game.player1_rating)
+                    options["Contempt"] = str(game.player1_rating - game.player2_rating)
                 with await self._engine.analysis(
-                    board=board, multipv=self._config["max_multipv"]
+                    board=board,
+                    multipv=self._config["max_multipv"],
+                    options=options,
                 ) as analysis:
                     self._uci_cancelation_lock.release()
                     logger.info(
                         f"Started thinking: {board.fen()}, ply {pos.ply_number}"
                     )
-                    game = self._game
                     assert game is not None
                     await self._ws_notifier.send_game_update(game.id, positions=[pos])
                     multipv = min(
