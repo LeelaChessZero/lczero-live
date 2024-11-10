@@ -408,6 +408,15 @@ svg.nodes-bar .text-offbar {
     min-width: 1024px;
 }
 
+#description {
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    border-radius: 2px;
+    padding: 10px;
+    max-width: 890px;
+}
+
 /* Mobile layout */
 
 @media (max-width: 800px) {
