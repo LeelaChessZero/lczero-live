@@ -27,7 +27,7 @@ function formatClock(seconds?: number, thinkingTime?: number): string {
 }
 
 function renderPlayer(player: WsPlayerData, element: HTMLElement): void {
-  element.innerText = `${player.name} (${player.rating})`;
+  element.innerText = `${player.name}`;
 }
 type Counts = {
   current: number,
