@@ -27,6 +27,7 @@ export class App implements WebsocketObserver {
   private curPly?: number;
   private boardArea: BoardArea;
   private jsHash?: string;
+  private gameIsLive: boolean = false;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -81,6 +82,7 @@ export class App implements WebsocketObserver {
       this.moveList.clearPositions();
     }
     this.curGameId = game.gameId;
+    this.gameIsLive = game.isBeingAnalyzed;
     this.boardArea.updatePlayers(game);
     this.websocketFeed.setGameId(game.gameId);
     this.updatePgnFeedUrl(game.feedUrl);
@@ -93,12 +95,12 @@ export class App implements WebsocketObserver {
   }
 
   public onMoveSelected(
-      position: WsPositionData,
-      pos_changed: boolean,
-      ): void {
+      position: WsPositionData, pos_changed: boolean,
+      isOngoling: boolean): void {
+    this.curPly = position.ply;
+    this.boardArea.changePosition(
+        position, pos_changed, isOngoling && this.gameIsLive);
     if (pos_changed) {
-      this.curPly = position.ply;
-      this.boardArea.changePosition(position);
       this.multiPvView.clear();
       this.websocketFeed.setPosition(position.ply);
     }

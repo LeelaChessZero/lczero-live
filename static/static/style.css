@@ -383,6 +383,12 @@ svg.nodes-bar .text-offbar {
     fill: rgb(102, 248, 65);
 }
 
+.arrow-ply2 {
+    fill-opacity: 1.0;
+    stroke-width: 0.3px;
+    stroke-opacity: 1.0;
+}
+
 .legend {
     stroke-width: 1px;
     stroke: black;

@@ -4,13 +4,26 @@ import {VerticalWdlBar} from './vwdl';
 import {isValidWdl} from './wdl';
 import {WsEvaluationData, WsGameData, WsPlayerData, WsPositionData} from './ws_feed';
 
-function formatClock(seconds?: number): string {
+function formatTime(seconds?: number, alwaysShowHours: boolean = true): string {
   if (seconds == null) return '';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+  const secs = Math.floor(seconds % 60);
+  if (hours == 0 && !alwaysShowHours) {
+    return `${minutes.toString().padStart(2, '0')}:${
+        secs.toString().padStart(2, '0')}`;
+  }
   return `${hours.toString().padStart(2, '0')}:${
       minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatClock(seconds?: number, thinkingTime?: number): string {
+  if (seconds == null) return '';
+  if (thinkingTime) {
+    seconds -= thinkingTime / 1000;
+    return `(${formatTime(thinkingTime / 1000, false)}) ${formatTime(seconds)}`;
+  }
+  return formatTime(seconds);
 }
 
 function renderPlayer(player: WsPlayerData, element: HTMLElement): void {
@@ -23,10 +36,16 @@ type Counts = {
 export class BoardArea {
   private board: Board;
   private flipped: boolean = false;
+  private currentPosition: WsPositionData;
+  private positionIsOngoing: boolean = false;
+  private lastUpdateTimestamp: number = 0;
 
   constructor() {
     this.board = new Board(document.getElementById('board') as HTMLElement);
     this.board.render();
+    setInterval(() => {
+      this.updateClocks();
+    }, 400);
   }
 
   public updatePlayers(game: WsGameData): void {
@@ -36,21 +55,40 @@ export class BoardArea {
     renderPlayer(game.player2, document.getElementById(`player-${black}`)!);
   }
 
-  public changePosition(position: WsPositionData): void {
-    this.board.fromFen(position.fen);
-    this.board.clearHighlights();
-    if (position.moveUci) {
-      this.board.addHighlight(position.moveUci.slice(0, 2));
-      this.board.addHighlight(position.moveUci.slice(2, 4));
+  public changePosition(
+      position: WsPositionData, isChanged: boolean, isOngoing: boolean): void {
+    this.currentPosition = position;
+    this.positionIsOngoing = isOngoing;
+    this.lastUpdateTimestamp = Date.now();
+    if (isChanged) {
+      this.board.fromFen(position.fen);
+      this.board.clearHighlights();
+      if (position.moveUci) {
+        this.board.addHighlight(position.moveUci.slice(0, 2));
+        this.board.addHighlight(position.moveUci.slice(2, 4));
+      }
+      const white = this.flipped ? 'top' : 'bottom';
+      const black = this.flipped ? 'bottom' : 'top';
+      this.board.render();
     }
+    this.updateClocks();
+  }
+
+  private updateClocks(): void {
+    if (!this.currentPosition) return;
+    const whiteToMove: boolean = this.currentPosition.fen.split(' ')[1] === 'w';
     const white = this.flipped ? 'top' : 'bottom';
     const black = this.flipped ? 'bottom' : 'top';
-
-    document.getElementById(`player-${white}-clock`)!.innerText =
-        formatClock(position.whiteClock);
-    document.getElementById(`player-${black}-clock`)!.innerText =
-        formatClock(position.blackClock);
-    this.board.render();
+    let thinkingTimeMs = this.currentPosition.time;
+    if (thinkingTimeMs && this.positionIsOngoing) {
+      thinkingTimeMs += Date.now() - this.lastUpdateTimestamp;
+    }
+    document.getElementById(`player-${white}-clock`)!.innerText = formatClock(
+        this.currentPosition.whiteClock,
+        whiteToMove ? thinkingTimeMs : undefined);
+    document.getElementById(`player-${black}-clock`)!.innerText = formatClock(
+        this.currentPosition.blackClock,
+        whiteToMove ? undefined : thinkingTimeMs);
   }
 
   public updateEvaluation(update: WsEvaluationData): void {
@@ -103,8 +141,8 @@ export class BoardArea {
       const width =
           Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 15;
 
-      const classes = `arrow arrow-variation${
-          arrow.variationIdx} arrow-variation${arrow.variationIdx}-ply${ply}`;
+      const classes = `arrow arrow-variation${arrow.variationIdx} arrow-ply${
+          ply <= 2 ? ply : 2}`;
 
       if (ply == 0) {
         this.board.addArrow({
@@ -140,7 +178,7 @@ export class BoardArea {
         this.board.addArrow({
           move,
           classes,
-          width: 2,
+          width: 3,
           angle: -Math.PI / 4,
           headLength: 5,
           headWidth: 10,

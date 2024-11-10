@@ -2,7 +2,9 @@ import {isValidWdl, WdlBar} from './wdl';
 import {WsPositionData} from './ws_feed';
 
 export interface MoveSelectionObserver {
-  onMoveSelected(position: WsPositionData, pos_changed: boolean): void;
+  onMoveSelected(
+      position: WsPositionData, pos_changed: boolean,
+      isOngoling: boolean): void;
 }
 
 function formatTime(milliseconds: number): string {
@@ -72,16 +74,17 @@ export class MoveList {
     this.observers = this.observers.filter(o => o !== observer);
   }
 
-  private notifyMoveSelected(move_changed: boolean): void {
+  private notifyMoveSelected(move_changed: boolean, isOngoling: boolean): void {
     this.observers.forEach(
         observer => observer.onMoveSelected(
-            this.positions[this.positionIdx], move_changed));
+            this.positions[this.positionIdx], move_changed, isOngoling));
   }
 
   private selectPly(positionIdx: number): void {
     if (positionIdx < 0 || positionIdx >= this.positions.length) return;
+    const isOngoling = positionIdx === this.positions.length - 1;
     if (this.positionIdx === positionIdx) {
-      this.notifyMoveSelected(false);
+      this.notifyMoveSelected(false, isOngoling);
     } else {
       Array.from(this.element.children)
           .forEach(row => row.classList.remove('movelist-selected'));
@@ -95,7 +98,7 @@ export class MoveList {
         targetRow?.scrollIntoView({block: 'nearest'});
       }
       this.positionIdx = positionIdx;
-      this.notifyMoveSelected(true);
+      this.notifyMoveSelected(true, isOngoling);
     }
   }
 

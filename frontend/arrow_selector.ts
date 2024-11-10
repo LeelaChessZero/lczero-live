@@ -66,6 +66,8 @@ export function selectArrowsToRender(update: WsEvaluationData): ArrowInfo[] {
     }
     candidates.push(candidate);
   }
+
+  arrows.sort((a, b) => a.ply - b.ply);
   return arrows;
 }
 
