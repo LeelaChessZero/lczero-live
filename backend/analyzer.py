@@ -276,10 +276,10 @@ class Analyzer:
                 logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
                 await self._uci_cancelation_lock.acquire()
                 options: dict[str, str] = {}
-                if game.player1_rating is not None and game.player2_rating is not None:
-                    options["ClearTree"] = "true"
-                    options["WDLCalibrationElo"] = str(game.player1_rating)
-                    options["Contempt"] = str(game.player1_rating - game.player2_rating)
+                # if game.player1_rating is not None and game.player2_rating is not None:
+                #     options["ClearTree"] = "true"
+                #     options["WDLCalibrationElo"] = str(game.player1_rating)
+                #     options["Contempt"] = str(game.player1_rating - game.player2_rating)
                 with await self._engine.analysis(
                     board=board,
                     multipv=self._config["max_multipv"],
