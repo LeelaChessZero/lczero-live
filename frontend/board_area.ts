@@ -101,7 +101,7 @@ export class BoardArea {
       const ply = arrow.ply;
       const move = variation.pvUci.split(' ')[ply];
       const width =
-          Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 12;
+          Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 15;
 
       const classes = `arrow arrow-variation${
           arrow.variationIdx} arrow-variation${arrow.variationIdx}-ply${ply}`;
@@ -110,7 +110,7 @@ export class BoardArea {
         this.board.addArrow({
           move,
           classes,
-          width: width + 4,
+          width: width + 1,
           angle: 0,
           headLength: 20,
           headWidth: width + 14,
@@ -125,7 +125,7 @@ export class BoardArea {
         this.board.addArrow({
           move,
           classes,
-          width: width / 2 + 2,
+          width: width / 2.2 + 1,
           angle: Math.PI / 3,
           headLength: 10,
           headWidth: width / 2 + 8,
