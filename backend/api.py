@@ -1,13 +1,11 @@
+import json
+
 import db
 from sanic import Blueprint, Request, Websocket
 from sanic.helpers import json_dumps
-from ws_notifier import (
-    WebsocketNotifier,
-    WebsocketRequest,
-    WebsocketResponse,
-    make_games_data,
-)
-import json
+from sanic.log import logger
+from ws_notifier import (WebsocketNotifier, WebsocketRequest,
+                         WebsocketResponse, make_games_data)
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -31,10 +29,15 @@ async def ws(req: Request, ws: Websocket):
             data = await ws.recv()
             if not data:
                 continue
-            request: WebsocketRequest = json.loads(data)
+            try:
+                request: WebsocketRequest = json.loads(data)
+            except json.decoder.JSONDecodeError:
+                logger.error(f"Invalid JSON, closing connection: {data}")
+                break
             if "gameId" in request:
                 await req.app.ctx.app.set_game_and_ply(
                     ws, request["gameId"], request.get("ply")
                 )
     finally:
+        await ws.close()
         ws_notifier.unregister(ws)
