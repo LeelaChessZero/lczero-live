@@ -9,6 +9,7 @@ class Tournament(Model):
     lichess_id = fields.CharField(max_length=16, unique=True)
     is_finished = fields.BooleanField(default=False, index=True)
     is_hidden = fields.BooleanField(default=False)
+    time_control = fields.CharField(max_length=255, null=True)
 
 
 class Game(Model):

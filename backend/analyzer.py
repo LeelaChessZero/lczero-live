@@ -11,6 +11,7 @@ from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
 from ws_notifier import WebsocketNotifier
+from movetime_estimator import MovetimeEstimator
 
 
 @dataclasses.dataclass
@@ -93,6 +94,7 @@ class Analyzer:
     _uci_lock: anyio.Lock
     _uci_cancelation_lock: anyio.Lock
     _connection: asyncssh.SSHClientConnection
+    _movetime_estimator: MovetimeEstimator
 
     def __init__(
         self,
@@ -107,6 +109,7 @@ class Analyzer:
         self._ws_notifier = ws_notifier
         self._uci_lock = anyio.Lock()
         self._uci_cancelation_lock = anyio.Lock()
+        self._movetime_estimator = MovetimeEstimator("300+10")
 
     # returns the last ply number.
     async def _update_game_db(
@@ -200,6 +203,9 @@ class Analyzer:
 
     async def _run_single_game(self, game: db.Game):
         await game.fetch_related("tournament")
+        self._movetime_estimator = MovetimeEstimator(
+            game.tournament.time_control or "300+10"
+        )
         await self._ws_notifier.send_game_entry_update(game, is_being_analyzed=True)
         pgn_send_queue, pgn_recv_queue = anyio.create_memory_object_stream[
             chess.pgn.Game
@@ -236,6 +242,8 @@ class Analyzer:
                             logger.info(
                                 f"Processing position {self._current_position.fen}"
                             )
+                            if tc := pgn.headers.get("TimeControl"):
+                                self._movetime_estimator = MovetimeEstimator(tc)
                             tg.start_soon(
                                 self._uci_worker_think,
                                 get_leaf_board(pgn),
@@ -268,6 +276,29 @@ class Analyzer:
                 )
                 self._game = None
 
+    def uci_options(self, game: db.Game, pos: db.GamePosition) -> dict[str, str]:
+        options: dict[str, str] = {}
+        if game.player1_rating is not None and game.player2_rating is not None:
+            wmove = (pos.ply_number + 1) // 2 + 1
+            bmove = pos.ply_number // 2 + 1
+            welo: int = game.player1_rating + round(
+                self._movetime_estimator.estimate_elo_adustment(
+                    curr_move=wmove, cur_clock=pos.white_clock
+                )
+            )
+            belo: int = game.player2_rating + round(
+                self._movetime_estimator.estimate_elo_adustment(
+                    curr_move=bmove, cur_clock=pos.black_clock
+                )
+            )
+            options["ClearTree"] = "true"
+            options["WDLCalibrationElo"] = str(welo)
+            options["Contempt"] = str(welo - belo)
+            options["ContemptMode"] = "white_side_analysis"
+            options["WDLDrawRateReference"] = "0.64"
+            options["WDLEvalObjectivity"] = "0.0"
+        return options
+
     async def _uci_worker_think(
         self, board: chess.Board, pos: db.GamePosition, game: db.Game
     ):
@@ -275,16 +306,7 @@ class Analyzer:
             async with self._uci_lock:
                 logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
                 await self._uci_cancelation_lock.acquire()
-                options: dict[str, str] = self._config.get(
-                    "uci_options", lambda *_: {}
-                )(game, pos)
-                if game.player1_rating is not None and game.player2_rating is not None:
-                    options["ClearTree"] = "true"
-                    options["WDLCalibrationElo"] = str(game.player1_rating)
-                    options["Contempt"] = str(game.player1_rating - game.player2_rating)
-                    options["ContemptMode"] = "white_side_analysis"
-                    options["WDLDrawRateReference"] = "0.64"
-                    options["WDLEvalObjectivity"] = "0.0"
+                options: dict[str, str] = self.uci_options(game, pos)
                 logger.debug(f"Options: {options}")
                 with await self._engine.analysis(
                     board=board,

@@ -106,7 +106,8 @@ def list_boards(round_id):
 
 @cli.command()
 @click.option("--tour-id", type=str, required=True)
-def add_tournament(tour_id):
+@click.option("--time-control", type=str, required=False)
+def add_tournament(tour_id, time_control):
     async def run():
         await db.init()
         tournament = await lichess.get_tournament(tour_id)
@@ -114,6 +115,7 @@ def add_tournament(tour_id):
             name=tournament["tour"]["name"],
             lichess_id=tournament["tour"]["id"],
             is_finished=False,
+            time_control=time_control,
         )
 
     run_async(run())
