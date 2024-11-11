@@ -394,6 +394,21 @@ svg.nodes-bar .text-offbar {
     stroke: black;
 }
 
+#banner {
+    background-color: hsl(290, 86%, 92%);
+    border: 1px solid hsl(290, 30%, 65%);
+    border-radius: 4px;
+    margin: auto;
+    padding: 10px;
+    font-size: 14px;
+    width: 800px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#banner:empty {
+    display: none;
+}
+
 /* Analysis pane */
 
 #analysis-pane {
