@@ -1,10 +1,10 @@
 import asyncio
 import dataclasses
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import chess.pgn
+import db
 import lichess
-from db import Game, GameFilter, Tournament
 from sanic.log import logger
 
 
@@ -17,8 +17,11 @@ class GameInfo:
 
 
 async def get_game_candidates() -> list[GameInfo]:
+    existing_game_ids: set[str] = set(
+        cast(list[str], await db.Game.all().values_list("lichess_id", flat=True))
+    )
     # Gather ongoing games from unfinished tournaments.
-    ongoing_tournaments = await Tournament.filter(is_finished=False)
+    ongoing_tournaments = await db.Tournament.filter(is_finished=False)
     tournaments = []
     for i, t in enumerate(ongoing_tournaments):
         if i != 0:
@@ -46,6 +49,9 @@ async def get_game_candidates() -> list[GameInfo]:
     candidates: list[GameInfo] = []
     for r, tid in zip(candidate_rounds, candidate_round_tour_ids):
         for g in r["games"]:
+            if g["id"] in existing_game_ids:
+                logger.info(f"Game {g['id']} already exists, skipping")
+                continue
             if g.get("status") != "*":
                 continue
             candidates.append(GameInfo(g, r["round"], r["tour"], tid))
@@ -65,7 +71,7 @@ def get_best_game(game_infos: list[GameInfo]) -> GameInfo:
     return game_infos[0]
 
 
-async def make_game(info: GameInfo) -> Game:
+async def make_game(info: GameInfo) -> db.Game:
     pgns = await lichess.fetch_round_pgns(info.round["id"])
 
     def matches_gameinfo(pgn: chess.pgn.Game) -> bool:
@@ -95,7 +101,7 @@ async def make_game(info: GameInfo) -> Game:
         logger.error(f"Found {len(pgn)} pgns for game {info.game['id']}")
         raise ValueError(f"{len(pgn)} pgns found for game {info.game['id']}")
 
-    game = await Game.create(
+    game = await db.Game.create(
         tournament_id=info.tour_id,
         game_name=info.game["name"],
         lichess_round_id=info.round["id"],
@@ -112,9 +118,9 @@ async def make_game(info: GameInfo) -> Game:
         status=info.game["status"],
         is_finished=False,
     )
-    await GameFilter.bulk_create(
+    await db.GameFilter.bulk_create(
         [
-            GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
+            db.GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
             for attr in [
                 "Event",
                 "Date",
