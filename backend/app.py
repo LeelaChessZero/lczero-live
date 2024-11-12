@@ -29,6 +29,7 @@ class App:
     _analysises: list[Analyzer]
     _game_assignment_lock: anyio.Lock
     _ws_notifier: WebsocketNotifier
+    _js_hash: str
 
     def __init__(self, app: Sanic):
         self.app = app
@@ -43,6 +44,7 @@ class App:
             for cfg in self.config.UCI_ANALYZERS
         ]
         self._game_assignment_lock = anyio.Lock()
+        self._js_hash = _get_js_hash()
 
     def get_ws_notifier(self) -> WebsocketNotifier:
         return self._ws_notifier
@@ -100,12 +102,13 @@ class App:
     def get_status(self) -> WsGlobalData:
         return WsGlobalData(
             numViewers=self._ws_notifier.num_subscribers(),
-            jsHash=_get_js_hash(),
+            jsHash=self._js_hash,
         )
 
     async def send_status_periodically(self):
         while True:
             await anyio.sleep(delay=33)
+            self._js_hash = _get_js_hash()
             await self._ws_notifier.notify_observers(
                 WebsocketResponse(status=self.get_status())
             )
