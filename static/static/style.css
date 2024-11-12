@@ -418,14 +418,25 @@ svg.nodes-bar .text-offbar {
 
 #analysis-pane {
     margin-left: 10px;
+    margin-right: auto;
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     background-color: white;
     border-radius: 2px;
     align-self: stretch;
     min-height: 420px;
-    margin-right: 10px;
     min-width: 1024px;
+}
+
+#multipv-view td {
+    vertical-align: top;
+}
+
+.pv-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 800px;
 }
 
 #description {

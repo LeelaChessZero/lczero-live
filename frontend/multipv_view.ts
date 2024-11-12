@@ -3,7 +3,8 @@ import {Bar} from './bar';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsEvaluationData} from './ws_feed';
 
-function makePv(parent: HTMLElement, pvSan: string, ply: number): void {
+function makePv(element: HTMLElement, pvSan: string, ply: number): void {
+  element.classList.add('pv-cell');
   const is_white = p => p % 2 == 0;
   let res = '';
   if (!is_white(ply)) res = `${Math.floor(ply / 2) + 1}…`;
@@ -12,7 +13,7 @@ function makePv(parent: HTMLElement, pvSan: string, ply: number): void {
     res += ' ' + san;
     ply++;
   }
-  parent.innerText = res;
+  element.innerText = res;
 }
 
 export class MultiPvView {
