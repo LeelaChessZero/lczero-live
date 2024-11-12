@@ -87,7 +87,8 @@ table {
 }
 
 .movelist-item td {
-    padding: 0;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .movelist-selected {
@@ -99,6 +100,10 @@ table {
 
 .justify-right {
     text-align: right;
+}
+
+.spacing-right {
+    padding-right: 0.5em;
 }
 
 /* Chess board */

@@ -121,15 +121,16 @@ export class MoveList {
     newRow.classList.add('movelist-item');
     newRow.setAttribute('ply-idx', position.ply.toString());
 
-    const td = function(className?: string): HTMLElement {
+    const td = function(classNames?: string): HTMLElement {
       const td = document.createElement('td');
-      if (className) td.classList.add(className);
+      if (classNames) td.className = classNames;
       newRow.appendChild(td);
       return td;
     };
 
-    td().innerHTML = `${is_black ? '&nbsp;&nbsp;&nbsp;…' : `${move_idx}. `} ${
-        position.moveSan}`;
+    td('spacing-right justify-right').innerHTML =
+        `${is_black ? '' : `${move_idx}.`}`;
+    td().innerText = position.moveSan!;
     const wdlEl = td();
     if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
       const wdlBar = new WdlBar(
@@ -167,6 +168,7 @@ export class MoveList {
   public clearPositions(): void {
     this.positions = [];
     this.element.innerHTML = `<tr>
+      <th></th>
       <th>Move</th>
       <th>Eval</th>
       <th>Time</th>
