@@ -5,11 +5,11 @@ from tortoise.models import Model
 
 class Tournament(Model):
     id = fields.IntField(primary_key=True)
-    name = fields.CharField(max_length=255)
+    name = fields.TextField()
     lichess_id = fields.CharField(max_length=16, unique=True)
     is_finished = fields.BooleanField(default=False, index=True)
     is_hidden = fields.BooleanField(default=False)
-    time_control = fields.CharField(max_length=255, null=True)
+    time_control = fields.TextField(null=True)
 
 
 class Game(Model):
@@ -17,15 +17,15 @@ class Game(Model):
     tournament = fields.ForeignKeyField(
         model_name="lc0live.Tournament", related_name="games", index=True
     )
-    game_name = fields.CharField(max_length=255)
+    game_name = fields.TextField()
     lichess_round_id = fields.CharField(max_length=16)
-    lichess_id = fields.CharField(max_length=16)
-    round_name = fields.CharField(max_length=255)
-    player1_name = fields.CharField(max_length=255)
+    lichess_id = fields.CharField(max_length=16, unique=True)
+    round_name = fields.TextField()
+    player1_name = fields.TextField()
     player1_fide_id = fields.IntField(null=True)
     player1_rating = fields.IntField(null=True)
     player1_fed = fields.CharField(max_length=3, null=True)
-    player2_name = fields.CharField(max_length=255)
+    player2_name = fields.TextField()
     player2_fide_id = fields.IntField(null=True)
     player2_rating = fields.IntField(null=True)
     player2_fed = fields.CharField(max_length=3, null=True)
@@ -36,8 +36,8 @@ class Game(Model):
 
 class GameFilter(Model):
     game = fields.ForeignKeyField(model_name="lc0live.Game", related_name="filters")
-    key = fields.CharField(max_length=255)
-    value = fields.CharField(max_length=255)
+    key = fields.TextField()
+    value = fields.TextField()
 
 
 # pyright: reportIncompatibleVariableOverride=false
@@ -48,7 +48,7 @@ class GamePosition(Model):
     )
     # Zero for startpos, 2×move-1 after white move, 2×move after black move.
     ply_number = fields.IntField(index=True)
-    fen = fields.CharField(max_length=128)
+    fen = fields.TextField()
     move_uci = fields.CharField(max_length=5, null=True)
     move_san = fields.CharField(max_length=10, null=True)
     # Zero-based ply number
