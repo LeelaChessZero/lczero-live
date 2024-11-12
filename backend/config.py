@@ -1,9 +1,14 @@
 import datetime
+import socket
 from types import ModuleType
 from typing import Iterable
 
-DB_PATH = "sqlite://../.db/lczero_live.db"
-# DB_PATH = "sqlite://:memory:"
+if socket.gethostname() == "lczero.org":
+    DB_PATH = "asyncpg:///live"
+else:
+    DB_PATH = "sqlite://../.db/lczero_live.db"
+
+
 DB_MODULES: dict[str, Iterable[str | ModuleType]] = {"lc0live": ["db"]}
 UCI_ANALYZERS = [
     {
