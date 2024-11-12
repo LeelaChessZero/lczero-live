@@ -64,9 +64,7 @@ class WsPositionData(TypedDict):
 
 
 class WsVariationData(TypedDict, total=False):
-    moveUci: str
     nodes: int
-    moveSan: str
     pvSan: str
     pvUci: str
     scoreQ: int
@@ -149,9 +147,7 @@ def make_evaluations_update(
             variations=[
                 (
                     WsVariationData(
-                        moveUci=move.move_uci,
                         nodes=move.nodes,
-                        moveSan=move.move_san,
                         pvSan=move.pv_san,
                         pvUci=move.pv_uci,
                         scoreQ=move.q_score,
@@ -162,9 +158,7 @@ def make_evaluations_update(
                     )
                     if i == len(evaluations) - 1
                     else WsVariationData(
-                        moveUci=move.move_uci,
                         nodes=move.nodes,
-                        moveSan=move.move_san,
                     )
                 )
                 for move in moves

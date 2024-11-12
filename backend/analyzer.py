@@ -62,17 +62,11 @@ def get_leaf_board(pgn: chess.pgn.Game) -> chess.Board:
 
 def make_pv_san_string(board: chess.Board, pv: List[chess.Move]) -> str:
     board = board.copy()
-    res: str = ""
-    if board.turn == chess.BLACK:
-        res = f"{board.fullmove_number}…"
+    sans: list[str] = []
     for move in pv:
-        if board.turn == chess.WHITE:
-            if res:
-                res += " "
-            res += f"{board.fullmove_number}."
-        res += " " + board.san(move)
+        sans.append(board.san(move))
         board.push(move)
-    return res
+    return " ".join(sans)
 
 
 def make_pv_uci_string(board: chess.Board, pv: List[chess.Move]) -> str:

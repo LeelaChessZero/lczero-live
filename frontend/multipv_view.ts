@@ -3,6 +3,18 @@ import {Bar} from './bar';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsEvaluationData} from './ws_feed';
 
+function makePv(parent: HTMLElement, pvSan: string, ply: number): void {
+  const is_white = p => p % 2 == 0;
+  let res = '';
+  if (!is_white(ply)) res = `${Math.floor(ply / 2) + 1}…`;
+  for (let san of pvSan.split(' ')) {
+    if (is_white(ply)) res += ` ${Math.floor(ply / 2) + 1}.`;
+    res += ' ' + san;
+    ply++;
+  }
+  parent.innerText = res;
+}
+
 export class MultiPvView {
   private parent: HTMLElement;
   private element: HTMLElement;
@@ -37,7 +49,7 @@ export class MultiPvView {
   public updateMultiPv(update: WsEvaluationData): void {
     this.element.innerHTML = '';
     const numArrows = numVariationsToRender(update);
-    for (let [ply, row] of update.variations.entries()) {
+    for (let [variation, row] of update.variations.entries()) {
       const width =
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
 
@@ -48,7 +60,7 @@ export class MultiPvView {
         return td;
       }
       const color = addCell();
-      if (ply < numArrows) {
+      if (variation < numArrows) {
         const svg =
             document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('width', '8');
@@ -57,11 +69,11 @@ export class MultiPvView {
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('width', '8');
         rect.setAttribute('height', '8');
-        rect.setAttribute('class', `legend arrow-variation${ply}`);
+        rect.setAttribute('class', `legend arrow-variation${variation}`);
         svg.appendChild(rect);
         color.appendChild(svg);
       }
-      addCell().textContent = row.moveSan;
+      addCell().textContent = row.pvSan.split(' ')[0];
       if (isValidWdl(row.scoreW, row.scoreD, row.scoreB)) {
         let wdl = new WdlBar(addCell(), row.scoreW, row.scoreD, row.scoreB);
         wdl.render();
@@ -74,7 +86,7 @@ export class MultiPvView {
               .format(row.nodes);
       bar.rText = `${(100 * row.nodes / update.nodes).toFixed(1)}%`;
       bar.render();
-      addCell().textContent = row.pvSan;
+      makePv(addCell(), row.pvSan, update.ply);
 
       this.element.appendChild(tr);
     }

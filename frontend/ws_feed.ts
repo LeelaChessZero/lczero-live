@@ -49,9 +49,7 @@ export interface WsPositionData {
 // Per evaluation data
 
 export interface WsVariationData {
-  moveUci: string;
   nodes: number;
-  moveSan: string;
   pvSan: string;
   pvUci: string;
   scoreQ: number;

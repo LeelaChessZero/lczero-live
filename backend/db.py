@@ -88,8 +88,6 @@ class GamePositionEvaluationMove(Model):
     )
     evaluation_id: int
     nodes = fields.IntField()
-    move_uci = fields.CharField(max_length=5)
-    move_san = fields.CharField(max_length=10)
     q_score = fields.IntField()
     pv_san = fields.TextField()
     pv_uci = fields.TextField()
