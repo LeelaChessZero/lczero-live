@@ -73,7 +73,7 @@ export class App implements WebsocketObserver {
     let evals = evaluation.filter(
         e => e.gameId == this.curGameId && e.ply == this.curPly);
     if (evals.length == 0) return;
-    this.multiPvView.updateMultiPv(evals.at(-1));
+    this.multiPvView.updateMultiPv(evals.at(-1)!);
     this.boardArea.updateEvaluation(evals.at(-1)!);
   }
 
