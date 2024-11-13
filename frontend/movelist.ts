@@ -128,7 +128,7 @@ export class MoveList {
       return td;
     };
 
-    td('spacing-right justify-right').innerHTML =
+    td('spacing-right justify-right move-number').innerHTML =
         `${is_black ? '' : `${move_idx}.`}`;
     td().innerText = position.moveSan!;
     const wdlEl = td();

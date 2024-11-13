@@ -6,14 +6,22 @@ import {WsEvaluationData} from './ws_feed';
 function makePv(element: HTMLElement, pvSan: string, ply: number): void {
   element.classList.add('pv-cell');
   const is_white = p => p % 2 == 0;
-  let res = '';
-  if (!is_white(ply)) res = `${Math.floor(ply / 2) + 1}…`;
+
+  const addSpan =
+      (text: string, className: string) => {
+        const span = document.createElement('span');
+        span.textContent = text;
+        span.classList.add(className);
+        element.appendChild(span);
+      }
+
+  if (!is_white(ply)) addSpan(`${Math.floor(ply / 2) + 1}…`, 'move-number');
   for (let san of pvSan.split(' ')) {
-    if (is_white(ply)) res += ` ${Math.floor(ply / 2) + 1}.`;
-    res += ' ' + san;
+    if (is_white(ply))
+      addSpan(`${Math.floor(ply / 2) + 1}.`, 'move-number');
+    addSpan(san, 'pv-move');
     ply++;
   }
-  element.innerText = res;
 }
 
 export class MultiPvView {

@@ -420,9 +420,7 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 #multipv-view td {
-    vertical-align: top;
     overflow: hidden;
-    ;
 }
 
 .pv-cell {
@@ -431,6 +429,14 @@ svg.wdl-bar .wdl-draw-text {
     white-space: nowrap;
 }
 
+.move-number {
+    font-size: 8px;
+    color: #666;
+}
+
+.pv-move {
+    margin: 0.2em;
+}
 
 /* Nodes bar */
 
