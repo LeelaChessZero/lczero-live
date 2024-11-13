@@ -28,16 +28,17 @@ export class MultiPvView {
     table.appendChild(hdr);
     const tr = document.createElement('tr');
     hdr.appendChild(tr);
-    function addTr(text: string): void {
+    function addTr(text: string, className: string): void {
       let th = document.createElement('th');
+      th.classList.add(className);
       th.textContent = text;
       tr.appendChild(th);
     }
-    addTr('');
-    addTr('Move');
-    addTr('White / Draw / Black probability');
-    addTr('Nodes / Probability of being best');
-    addTr('PV');
+    addTr('', 'mpv-col-legend');
+    addTr('Move', 'mpv-col-move');
+    addTr('White / Draw / Black probability', 'mpv-col-wdl');
+    addTr('Nodes / Probability of being best', 'mpv-col-node');
+    addTr('PV', 'mpv-col-pv');
 
     this.element = document.createElement('tbody');
     table.appendChild(this.element);

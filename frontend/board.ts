@@ -73,8 +73,8 @@ export class Board {
 
     let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'board');
-    svg.setAttribute('height', (SQUARE_SIZE * 8 + 2 * this.border).toString());
-    svg.setAttribute('width', (SQUARE_SIZE * 8 + 2 * this.border).toString());
+    const side = SQUARE_SIZE * 8 + 2 * this.border;
+    svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
     this.renderBoard(svg);
     this.renderPieces(svg, false);
     this.renderArrows(svg, false);

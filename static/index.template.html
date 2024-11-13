@@ -17,16 +17,16 @@
 </head>
 
 <body>
-    <div id="header">
+    <div id="header" class="panel">
         <a href="https://lczero.org" target="_blank" id="logo">
             <img src="/static/logo.svg" alt="LCZero logo" />
         </a>
         <select id="game-selection"></select>
         <div id="connection-status"></div>
     </div>
-    <div id="banner"></div>
+    <div id="banner" class="panel"></div>
     <div class="main-pane">
-        <div id="board-area">
+        <div id="board-area" class="panel">
             <div class="player">
                 <div id="player-top" class="player-name"></div>
                 <div id="player-top-clock" class="clock"></div>
@@ -40,16 +40,14 @@
                 <div id="player-bottom-clock" class="clock"></div>
             </div>
         </div>
-        <div id="movelist"></div>
-    </div>
-    <div id="analysis-pane">
-        <div id="multipv-view"></div>
-    </div>
-    <div id="description">
-        <ul>
-            <li>Games are analyzed with the BT4-1024x15x32h-swa-6147500 model, on 4×RTX4090 GPUs.</li>
-            <li>Probabilities are adjusted by the player Elo ratings and the clock.</li>
-        </ul>
+        <div id="movelist" class="panel"></div>
+        <div id="multipv-view" class="panel"></div>
+        <div class="panel">
+            <ul>
+                <li>Games are analyzed with the BT4-1024x15x32h-swa-6147500 model, on 4×RTX4090 GPUs.</li>
+                <li>Probabilities are adjusted by the player Elo ratings and the clock.</li>
+            </ul>
+        </div>
     </div>
     <div id="footer">Moves from <a id="pgn-feed" target="_blank"></a>.
         Piece images by

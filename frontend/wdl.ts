@@ -5,8 +5,8 @@ export function isValidWdl(w?: number, d?: number, l?: number): boolean {
 }
 
 export class WdlBar {
-  private width: number = 200;
-  private height: number = 16;
+  private width: number = 280;
+  private height: number = 18;
 
   constructor(
       private element: HTMLElement,

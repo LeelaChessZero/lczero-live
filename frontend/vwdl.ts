@@ -14,8 +14,8 @@ export class VerticalWdlBar {
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'vwdl-bar');
-    svg.setAttribute('height', this.height.toString());
-    svg.setAttribute('width', this.width.toString());
+    svg.setAttribute(
+        'viewBox', `0 0 ${this.width.toString()} ${this.height.toString()}`);
 
     const mkEl = (tag: string, attrs: {[key: string]: string}): SVGElement => {
       const el = document.createElementNS('http://www.w3.org/2000/svg', tag);

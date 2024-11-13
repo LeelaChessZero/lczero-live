@@ -4,8 +4,8 @@ export class Bar {
   private element: HTMLElement;
   private value: number;
   private total: number;
-  private width: number = 200;
-  private height: number = 14;
+  private width: number = 280;
+  private height: number = 18;
   public lText?: string;
   public rText?: string;
 
