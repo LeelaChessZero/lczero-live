@@ -164,7 +164,7 @@ export class BoardArea {
           move,
           classes,
           width: width / 2.2 + 1,
-          angle: Math.PI / 3,
+          angle: 0,
           headLength: 10,
           headWidth: width / 2 + 8,
           dashLength: 10,
