@@ -63,7 +63,7 @@ export class BoardArea {
     this.lastUpdateTimestamp = Date.now();
     if (isChanged) {
       this.board.fromFen(position.fen);
-      if (nextMoveUci) this.renderMovePlayedArrow(nextMoveUci);
+      if (nextMoveUci) this.renderMovePlayedOutline(nextMoveUci);
       this.board.clearHighlights();
       if (position.moveUci) {
         this.board.addHighlight(position.moveUci.slice(0, 2));
@@ -196,27 +196,30 @@ export class BoardArea {
     }
   }
 
-  private renderMovePlayedArrow(move: string): void {
-    this.board.addArrow({
-      move,
-      classes: 'arrow-move-played',
-      width: 30,
-      angle: 0,
-      headLength: 20,
-      headWidth: 40,
-      dashLength: 1000,
-      dashSpace: 0,
-      renderAfterPieces: false,
-      offset: 0,
-      totalOffsets: 1,
-      offsetDirection: 0,
-    });
+  private renderMovePlayedOutline(move: string): void {
+    this.board.clearOutlines();
+    this.board.addOutline(move.slice(0, 2));
+    this.board.addOutline(move.slice(2, 4));
+    // this.board.addArrow({
+    //   move,
+    //   classes: 'arrow-move-played',
+    //   width: 30,
+    //   angle: 0,
+    //   headLength: 20,
+    //   headWidth: 40,
+    //   dashLength: 1000,
+    //   dashSpace: 0,
+    //   renderAfterPieces: false,
+    //   offset: 0,
+    //   totalOffsets: 1,
+    //   offsetDirection: 0,
+    // });
   }
 
   private updateBoardArrows(update?: WsEvaluationData, nextMoveUci?: string):
       void {
     this.board.clearArrows();
-    if (nextMoveUci) this.renderMovePlayedArrow(nextMoveUci);
+    if (nextMoveUci) this.renderMovePlayedOutline(nextMoveUci);
     if (update) this.renderThinkingarrows(update);
     this.board.render();
   }

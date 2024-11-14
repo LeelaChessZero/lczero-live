@@ -465,6 +465,13 @@ svg.wdl-bar .wdl-draw-text {
     background-color: #e91d8d;
 }
 
+.square-outline {
+    stroke:  #e91d8d;
+    stroke-width: 7px;
+    stroke-linejoin: round;
+    fill: transparent;
+}
+
 .pv-cell {
     overflow: hidden;
     text-overflow: ellipsis;

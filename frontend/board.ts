@@ -29,6 +29,7 @@ export function moveToDirectionDeg(move: string): number {
 
 const SQUARE_SIZE = 45;
 const BEAM_SPREAD = 55;
+const OUTLINE_WIDTH = 3;
 
 function fileRanktoSquare(rank: number, file: number): string {
   return 'abcdefgh'[file] + (rank + 1).toString();
@@ -42,6 +43,7 @@ export class Board {
   private element: HTMLElement;
   private pieces: Set<PieceLocation> = new Set();
   private highlightedSquares: Set<string> = new Set();
+  private outlinedSquares: Set<string> = new Set();
   private flipped: boolean = false;
   private arrows: ArrowLocation[] = [];
   private whiteToMove: boolean = true;
@@ -60,8 +62,16 @@ export class Board {
     this.arrows = [];
   }
 
+  public clearOutlines(): void {
+    this.outlinedSquares.clear();
+  }
+
   public addHighlight(square: string): void {
     this.highlightedSquares.add(square);
+  }
+
+  public addOutline(square: string): void {
+    this.outlinedSquares.add(square);
   }
 
   public addArrow(arrow: ArrowLocation): void {
@@ -76,6 +86,7 @@ export class Board {
     const side = SQUARE_SIZE * 8 + 2 * this.border;
     svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
     this.renderBoard(svg);
+    this.renderOutlines(svg);
     this.renderPieces(svg, false);
     this.renderArrows(svg, false);
     this.renderPieces(svg, true);
@@ -105,6 +116,26 @@ export class Board {
       });
     });
   }
+
+
+  private renderOutlines(parent: SVGElement): void {
+    this.outlinedSquares.forEach(square => {
+      const [file, rank] = squareToFileRank(square);
+      const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + this.border;
+      const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + this.border;
+      const outline =
+          document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const hWidth = OUTLINE_WIDTH / 2;
+      outline.setAttribute('x', (x + hWidth).toString());
+      outline.setAttribute('y', (y + hWidth).toString());
+      outline.setAttribute('width', (SQUARE_SIZE - 2 * hWidth).toString());
+      outline.setAttribute('height', (SQUARE_SIZE - 2 * hWidth).toString());
+      outline.setAttribute('class', 'square-outline');
+      parent.appendChild(outline);
+    });
+  }
+
+
 
   private renderPieces(parent: SVGElement, sideToMove: boolean): void {
     const whiteToShow: boolean = this.whiteToMove == sideToMove;
@@ -167,6 +198,7 @@ export class Board {
   public fromFen(fen: string): void {
     this.pieces.clear();
     this.clearArrows();
+    this.clearOutlines();
     this.whiteToMove = fen.split(' ')[1] === 'w';
     const rows = fen.split(' ')[0].split('/');
     rows.forEach((row, rowIndex) => {
