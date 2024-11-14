@@ -103,6 +103,7 @@ table {
 
 .player-name {
     font-weight: bold;
+    flex-grow: 1;
 }
 
 .clock {
@@ -110,7 +111,7 @@ table {
 }
 
 #board {
-    width: calc(87% - 5px);
+    width: calc(87.5% - 5px);
 }
 
 svg.board {
@@ -198,6 +199,7 @@ svg.board .square.light.lastmove {
 
 
 #board-score {
+    flex-grow: 1;
     height: 100%;
     border-radius: 4px;
     overflow: hidden;
@@ -500,7 +502,7 @@ svg.nodes-bar .text-offbar {
 
 /* Mobile */
 
-@media (min-width: 1175px) {
+@media (min-width: 1205px) {
     #header {
         flex-direction: row;
         align-items: center;
