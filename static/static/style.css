@@ -111,7 +111,7 @@ table {
 }
 
 #board {
-    width: calc(87.5% - 5px);
+    width: calc(86.74698795180723% - 2px);
 }
 
 svg.board {
@@ -215,7 +215,7 @@ svg.board .square.light.lastmove {
 
 svg.vwdl-bar {
     vertical-align: middle;
-    height: 100%;
+    width: auto;
 }
 
 svg.vwdl-bar .vwdl-white {
