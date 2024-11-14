@@ -152,7 +152,7 @@ svg.board .square.light.lastmove {
 
 .arrow-move-played {
     fill: transparent;
-    stroke: #f0f;
+    stroke: #e91d8d;
     stroke-width: 10px;
 }
 
@@ -462,7 +462,7 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .row-move-played {
-    background-color: #f0f;
+    background-color: #e91d8d;
 }
 
 .pv-cell {
