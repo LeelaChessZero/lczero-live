@@ -56,12 +56,14 @@ export class BoardArea {
   }
 
   public changePosition(
-      position: WsPositionData, isChanged: boolean, isOngoing: boolean): void {
+      position: WsPositionData, isChanged: boolean, isOngoing: boolean,
+      nextMoveUci?: string): void {
     this.currentPosition = position;
     this.positionIsOngoing = isOngoing;
     this.lastUpdateTimestamp = Date.now();
     if (isChanged) {
       this.board.fromFen(position.fen);
+      if (nextMoveUci) this.renderMovePlayedArrow(nextMoveUci);
       this.board.clearHighlights();
       if (position.moveUci) {
         this.board.addHighlight(position.moveUci.slice(0, 2));
@@ -131,28 +133,10 @@ export class BoardArea {
     return [usVariations, themVariations];
   }
 
-  private updateBoardArrows(update: WsEvaluationData, nextMoveUci?: string):
-      void {
-    this.board.clearArrows();
+  private renderThinkingarrows(update: WsEvaluationData): void {
     const arrows = selectArrowsToRender(update);
     const [usVars, themVars] = this.buildArrowOffsets(update, arrows);
 
-    if (nextMoveUci) {
-      this.board.addArrow({
-        move: nextMoveUci,
-        classes: 'arrow-move-played',
-        width: 30,
-        angle: 0,
-        headLength: 20,
-        headWidth: 40,
-        dashLength: 1000,
-        dashSpace: 0,
-        renderAfterPieces: false,
-        offset: 0,
-        totalOffsets: 1,
-        offsetDirection: 0,
-      });
-    }
     for (let arrow of arrows) {
       const variation = update.variations[arrow.variationIdx];
       const ply = arrow.ply;
@@ -210,6 +194,30 @@ export class BoardArea {
         });
       }
     }
+  }
+
+  private renderMovePlayedArrow(move: string): void {
+    this.board.addArrow({
+      move,
+      classes: 'arrow-move-played',
+      width: 30,
+      angle: 0,
+      headLength: 20,
+      headWidth: 40,
+      dashLength: 1000,
+      dashSpace: 0,
+      renderAfterPieces: false,
+      offset: 0,
+      totalOffsets: 1,
+      offsetDirection: 0,
+    });
+  }
+
+  private updateBoardArrows(update?: WsEvaluationData, nextMoveUci?: string):
+      void {
+    this.board.clearArrows();
+    if (nextMoveUci) this.renderMovePlayedArrow(nextMoveUci);
+    if (update) this.renderThinkingarrows(update);
     this.board.render();
   }
 

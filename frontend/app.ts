@@ -100,8 +100,9 @@ export class App implements WebsocketObserver {
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void {
     this.curPly = position.ply;
+    const nextMove = this.moveList.getMoveAtPly(position.ply + 1)?.moveUci;
     this.boardArea.changePosition(
-        position, pos_changed, isOngoling && this.gameIsLive);
+        position, pos_changed, isOngoling && this.gameIsLive, nextMove);
     if (pos_changed) {
       this.multiPvView.clear();
       this.websocketFeed.setPosition(position.ply);
