@@ -143,7 +143,6 @@ export class WebSocketFeed {
 
   private onOpen(): void {
     this.websocket.onmessage = this.onMessage.bind(this);
-    this.websocket.onclose = this.onClose.bind(this);
     if (this.gameId != null || this.ply != null) {
       this.sendRequest({gameId: this.gameId, ply: this.ply});
     }
@@ -152,19 +151,18 @@ export class WebSocketFeed {
 
   private connect(): void {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    if (this.websocket) this.websocket.close();
     this.websocket =
         new WebSocket(`${protocol}//${window.location.host}/api/ws`);
     this.websocket.onopen = this.onOpen.bind(this);
-    this.websocket.onerror = () => {
-      setTimeout(() => {
-        this.connect();
-      }, 5000);
-    };
+    this.websocket.onclose = this.onClose.bind(this);
   }
 
   private onClose(): void {
     this.notifyObservers(observer => observer.onDisconnect());
-    this.connect();
+    setTimeout(() => {
+      this.connect();
+    }, 3581);  // 3581 is a prime number.
   }
 
   private notifyObservers(callback: (WebsocketObserver) => void): void {
