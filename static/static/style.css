@@ -150,12 +150,6 @@ svg.board .square.light.lastmove {
     stroke: #333;
 }
 
-.arrow-move-played {
-    fill: transparent;
-    stroke: #e91d8d;
-    stroke-width: 10px;
-}
-
 .arrow-variation0 {
     fill: rgba(65, 248, 233);
 }
@@ -462,12 +456,12 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .row-move-played {
-    background-color: #e91d8d;
+    background-color: hsl(290, 30%, 65%);
 }
 
 .square-outline {
-    stroke:  #e91d8d;
-    stroke-width: 7px;
+    stroke: #e91d8d;
+    stroke-width: 3px;
     stroke-linejoin: round;
     fill: transparent;
 }
