@@ -42,6 +42,10 @@ export class MoveList {
     this.parent.appendChild(this.element);
   }
 
+  public getMoveAtPly(ply: number): WsPositionData|undefined {
+    return this.positions[ply];
+  }
+
   private onWheel(event: WheelEvent): void {
     event.preventDefault();
     if (event.deltaY < 0) {

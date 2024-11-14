@@ -91,8 +91,9 @@ export class BoardArea {
         whiteToMove ? undefined : thinkingTimeMs);
   }
 
-  public updateEvaluation(update: WsEvaluationData): void {
-    this.updateBoardArrows(update);
+  public updateEvaluation(update: WsEvaluationData, nextMoveUci?: string):
+      void {
+    this.updateBoardArrows(update, nextMoveUci);
   }
 
   private buildArrowOffsets(update: WsEvaluationData, arrowInfos: ArrowInfo[]):
@@ -130,10 +131,28 @@ export class BoardArea {
     return [usVariations, themVariations];
   }
 
-  private updateBoardArrows(update: WsEvaluationData): void {
+  private updateBoardArrows(update: WsEvaluationData, nextMoveUci?: string):
+      void {
     this.board.clearArrows();
     const arrows = selectArrowsToRender(update);
     const [usVars, themVars] = this.buildArrowOffsets(update, arrows);
+
+    if (nextMoveUci) {
+      this.board.addArrow({
+        move: nextMoveUci,
+        classes: 'arrow-move-played',
+        width: 30,
+        angle: 0,
+        headLength: 20,
+        headWidth: 40,
+        dashLength: 1000,
+        dashSpace: 0,
+        renderAfterPieces: false,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    }
     for (let arrow of arrows) {
       const variation = update.variations[arrow.variationIdx];
       const ply = arrow.ply;
@@ -164,7 +183,7 @@ export class BoardArea {
           move,
           classes,
           width: width / 2.2 + 1,
-          angle: 0,
+          angle: Math.PI / 6,
           headLength: 10,
           headWidth: width / 2 + 8,
           dashLength: 10,

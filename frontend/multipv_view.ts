@@ -17,8 +17,7 @@ function makePv(element: HTMLElement, pvSan: string, ply: number): void {
 
   if (!is_white(ply)) addSpan(`${Math.floor(ply / 2) + 1}…`, 'move-number');
   for (let san of pvSan.split(' ')) {
-    if (is_white(ply))
-      addSpan(`${Math.floor(ply / 2) + 1}.`, 'move-number');
+    if (is_white(ply)) addSpan(`${Math.floor(ply / 2) + 1}.`, 'move-number');
     addSpan(san, 'pv-move');
     ply++;
   }
@@ -56,7 +55,7 @@ export class MultiPvView {
     this.element.innerHTML = '';
   }
 
-  public updateMultiPv(update: WsEvaluationData): void {
+  public updateMultiPv(update: WsEvaluationData, nextMoveUci?: string): void {
     this.element.innerHTML = '';
     const numArrows = numVariationsToRender(update);
     for (let [variation, row] of update.variations.entries()) {
@@ -64,6 +63,9 @@ export class MultiPvView {
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
 
       let tr = document.createElement('tr');
+      if (nextMoveUci && row.pvUci.split(' ')[0] == nextMoveUci) {
+        tr.classList.add('row-move-played');
+      }
       function addCell(): HTMLElement {
         let td = document.createElement('td');
         tr.appendChild(td);

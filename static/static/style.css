@@ -150,6 +150,12 @@ svg.board .square.light.lastmove {
     stroke: #333;
 }
 
+.arrow-move-played {
+    fill: transparent;
+    stroke: #f0f;
+    stroke-width: 10px;
+}
+
 .arrow-variation0 {
     fill: rgba(65, 248, 233);
 }
@@ -454,6 +460,10 @@ svg.wdl-bar .wdl-draw-text {
 
 #multipv-view td {
     overflow: hidden;
+}
+
+.row-move-played {
+    background-color: #f0f;
 }
 
 .pv-cell {

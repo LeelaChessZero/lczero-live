@@ -73,8 +73,10 @@ export class App implements WebsocketObserver {
     let evals = evaluation.filter(
         e => e.gameId == this.curGameId && e.ply == this.curPly);
     if (evals.length == 0) return;
-    this.multiPvView.updateMultiPv(evals.at(-1)!);
-    this.boardArea.updateEvaluation(evals.at(-1)!);
+    const eval_ = evals.at(-1)!;
+    const nextMove = this.moveList.getMoveAtPly(eval_.ply + 1)?.moveUci;
+    this.multiPvView.updateMultiPv(eval_, nextMove);
+    this.boardArea.updateEvaluation(eval_, nextMove);
   }
 
   public onGameSelected(game: WsGameData): void {
