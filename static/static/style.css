@@ -457,6 +457,7 @@ svg.wdl-bar .wdl-draw-text {
 
 .row-move-played {
     background-color: hsl(290, 30%, 65%);
+    color: #fff;
 }
 
 .square-outline {
