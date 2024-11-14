@@ -282,8 +282,8 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 }
 
 #movelist table {
+    table-layout: fixed;
     margin: 5px;
-    width: calc(100% - 20px);
 }
 
 .movelist-item {
@@ -310,6 +310,37 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
     padding-right: 0.5em;
 }
 
+.movelist-col-pnum {
+    width: 10px;
+}
+
+.movelist-col-pmove {
+    width: 30px;
+}
+
+.movelist-col-eval {
+    width: 240px;
+}
+
+.movelist-col-time {
+    width: 40px;
+}
+
+.movelist-col-nodes {
+    width: 60px;
+}
+
+.movelist-col-depth {
+    width: 50px;
+}
+
+.movelist-col-nnum {
+    width: 30px;
+}
+
+.movelist-col-nmove {
+    width: 30px;
+}
 
 /* WDL bar */
 
@@ -392,11 +423,11 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .mpv-col-wdl {
-    width: 300px;
+    width: 260px;
 }
 
 .mpv-col-node {
-    width: 300px;
+    width: 260px;
 }
 
 .mpv-col-pv {

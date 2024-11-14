@@ -112,7 +112,6 @@ export class MoveList {
       this.positions.push(emptyPosition);
     }
     this.positions[position.ply] = position;
-    if (position.ply === 0) return;
 
     const move_idx = Math.floor((position.ply + 1) / 2);
     const is_black = (position.ply % 2) === 0;
@@ -149,6 +148,17 @@ export class MoveList {
       depthEl.innerText =
           `${position.depth.toString()}/${position.seldepth.toString()}`;
 
+    const nextMove = this.positions[position.ply + 1]?.moveSan;
+    if (nextMove) {
+      td('spacing-right justify-right move-number').innerHTML =
+          `${is_black ? `${move_idx + 1}.` : ''}`;
+      td().innerText = nextMove;
+    } else {
+      td();
+      td();
+    }
+
+
     const existingRow = this.element.querySelector(
                             `[ply-idx="${position.ply}"]`) as HTMLDivElement;
     if (existingRow) {
@@ -161,19 +171,27 @@ export class MoveList {
   public updatePositions(positions: WsPositionData[]): void {
     const wasAtEnd = (this.positionIdx === this.positions.length - 1) ||
         this.positions.length <= 1;
-    positions.forEach(position => this.updateSinglePosition(position));
+    positions.forEach(position => {
+      this.updateSinglePosition(position);
+      if (position.ply > 0) {
+        const prevPos = this.positions[position.ply - 1];
+        if (prevPos) this.updateSinglePosition(prevPos);
+      }
+    });
     if (wasAtEnd) this.selectPly(this.positions.length - 1);
   }
 
   public clearPositions(): void {
     this.positions = [];
     this.element.innerHTML = `<tr>
-      <th></th>
-      <th>Move</th>
-      <th>Eval</th>
-      <th>Time</th>
-      <th>Nodes</th>
-      <th>Depth</th>
+      <th class="movelist-col-pnum"></th>
+      <th class="movelist-col-pmove">Move</th>
+      <th class="movelist-col-eval">Eval</th>
+      <th class="movelist-col-time">Time</th>
+      <th class="movelist-col-nodes">Nodes</th>
+      <th class="movelist-col-depth">Depth</th>
+      <th class="movelist-col-nnum"></th>
+      <th class="movelist-col-nmove">Move</th>
     </tr>`;
     this.positionIdx = -1;
   }
