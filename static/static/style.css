@@ -219,7 +219,7 @@ svg.vwdl-bar {
 }
 
 svg.vwdl-bar .vwdl-white {
-    fill: #fff;
+    fill: #eee;
 }
 
 svg.vwdl-bar .vwdl-draw {
@@ -268,7 +268,7 @@ svg.vwdl-bar .vwdl-white-text {
 
 svg.vwdl-bar .vwdl-white-text-shadow {
     stroke-width: 2px;
-    stroke: #fff;
+    stroke: #eee;
 }
 
 svg.vwdl-bar .vwdl-draw-text {
