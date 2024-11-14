@@ -131,9 +131,15 @@ export class MoveList {
       return td;
     };
 
-    td('spacing-right justify-right move-number').innerHTML =
-        `${is_black ? '' : `${move_idx}.`}`;
-    td().innerText = position.moveSan!;
+    const nextMove = this.positions[position.ply + 1]?.moveSan;
+    if (nextMove) {
+      td('spacing-right justify-right move-number').innerHTML =
+          `${is_black ? `${move_idx + 1}.` : ''}`;
+      td().innerText = nextMove;
+    } else {
+      td();
+      td();
+    }
     const wdlEl = td();
     if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
       const wdlBar = new WdlBar(
@@ -151,16 +157,6 @@ export class MoveList {
     if (position.depth != null && position.seldepth != null)
       depthEl.innerText =
           `${position.depth.toString()}/${position.seldepth.toString()}`;
-
-    const nextMove = this.positions[position.ply + 1]?.moveSan;
-    if (nextMove) {
-      td('spacing-right justify-right move-number').innerHTML =
-          `${is_black ? `${move_idx + 1}.` : ''}`;
-      td().innerText = nextMove;
-    } else {
-      td();
-      td();
-    }
 
 
     const existingRow = this.element.querySelector(
@@ -194,8 +190,6 @@ export class MoveList {
       <th class="movelist-col-time">Time</th>
       <th class="movelist-col-nodes">Nodes</th>
       <th class="movelist-col-depth">Depth</th>
-      <th class="movelist-col-nnum"></th>
-      <th class="movelist-col-nmove">Move</th>
     </tr>`;
     this.positionIdx = -1;
   }

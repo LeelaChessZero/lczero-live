@@ -284,7 +284,6 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 
 #movelist {
     height: 100px;
-    min-width: 530px;
     align-self: stretch;
     overflow-y: auto;
 }
@@ -512,7 +511,7 @@ svg.nodes-bar .text-offbar {
 
 /* Mobile */
 
-@media (min-width: 1205px) {
+@media (min-width: 1148px) {
     #header {
         flex-direction: row;
         align-items: center;
