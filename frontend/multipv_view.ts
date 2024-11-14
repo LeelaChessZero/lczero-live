@@ -63,9 +63,6 @@ export class MultiPvView {
           Math.pow(row.nodes / update.variations[0].nodes, 1 / 1.2) * 12;
 
       let tr = document.createElement('tr');
-      if (nextMoveUci && row.pvUci.split(' ')[0] == nextMoveUci) {
-        tr.classList.add('row-move-played');
-      }
       function addCell(): HTMLElement {
         let td = document.createElement('td');
         tr.appendChild(td);
@@ -85,7 +82,12 @@ export class MultiPvView {
         svg.appendChild(rect);
         color.appendChild(svg);
       }
-      addCell().textContent = row.pvSan.split(' ')[0];
+      const move = addCell();
+      move.textContent = row.pvSan.split(' ')[0];
+      if (nextMoveUci && row.pvUci.split(' ')[0] == nextMoveUci) {
+        color.classList.add('row-move-played');
+        move.classList.add('row-move-played');
+      }
       if (isValidWdl(row.scoreW, row.scoreD, row.scoreB)) {
         let wdl = new WdlBar(addCell(), row.scoreW, row.scoreD, row.scoreB);
         wdl.render();
