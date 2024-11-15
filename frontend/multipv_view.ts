@@ -17,7 +17,6 @@ export class MultiPvView {
   private selectedIdx?: number = undefined;
   private selectedEl?: Element = undefined;
   private observers: MultiPvViewObserver[] = [];
-  private lastMove?: string;
   private fen?: string;
   private lastUpdates: Map<string, WsVariationData> = new Map();
 
@@ -109,7 +108,6 @@ export class MultiPvView {
 
   public setPosition(pos: WsPositionData): void {
     this.fen = pos.fen;
-    this.lastMove = pos.moveUci;
     this.element.innerHTML = '';
     this.selectedMove = undefined;
     this.selectedIdx = undefined;
@@ -118,11 +116,11 @@ export class MultiPvView {
   }
 
   private notifyPlySelected(pvUci: string, idx: number): void {
-    let lastMove = this.lastMove;
+    let lastMove = ''
     let fen = this.fen!;
     const uci = pvUci.split(' ');
-    const preUci = uci.slice(0, idx);
-    const postUci = uci.slice(idx);
+    const preUci = uci.slice(0, idx + 1);
+    const postUci = uci.slice(idx + 1);
     for (const move of preUci) {
       lastMove = move;
       fen = applyMoveToFen(fen, move);

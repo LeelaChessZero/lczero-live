@@ -220,7 +220,7 @@ svg.pv-board .square.light.lastmove {
 .arrow-variation-ply1,
 .arrow-variation-ply2,
 .arrow-variation-ply3 {
-    fill: rgb(102, 248, 65);
+    fill: rgb(46, 202, 26);
 }
 
 #board-score {
