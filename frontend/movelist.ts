@@ -138,7 +138,7 @@ export class MoveList {
       td().innerText = nextMove;
     } else {
       td();
-      td();
+      td().innerHTML = '&nbsp;';
     }
     const wdlEl = td();
     if (isValidWdl(position.scoreW, position.scoreD, position.scoreB)) {
