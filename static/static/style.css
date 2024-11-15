@@ -114,7 +114,8 @@ table {
     width: calc(86.74698795180723% - 2px);
 }
 
-svg.board {
+svg.board,
+svg.pv-board {
     width: 100%;
 }
 
@@ -143,6 +144,23 @@ svg.board .square.dark.lastmove {
 svg.board .square.light.lastmove {
     fill: #cdd16a;
 }
+
+svg.pv-board .square.dark {
+    fill: #d18b47
+}
+
+svg.pv-board .square.light {
+    fill: #ffce9e;
+}
+
+svg.pv-board .square.dark.lastmove {
+    fill: #aaa23b;
+}
+
+svg.pv-board .square.light.lastmove {
+    fill: #cdd16a;
+}
+
 
 .arrow {
     fill-opacity: 0.6;
@@ -197,6 +215,13 @@ svg.board .square.light.lastmove {
     stroke-opacity: 1.0;
 }
 
+
+.arrow-variation-ply0,
+.arrow-variation-ply1,
+.arrow-variation-ply2,
+.arrow-variation-ply3 {
+    fill: rgb(102, 248, 65);
+}
 
 #board-score {
     flex-grow: 1;
@@ -456,7 +481,7 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .row-move-played {
-    background-color: hsl(290, 30%, 65%);
+    background-color: hsla(290, 30%, 65%);
     color: #fff;
 }
 
@@ -480,6 +505,16 @@ svg.wdl-bar .wdl-draw-text {
 
 .pv-move {
     margin: 0.2em;
+    cursor: pointer;
+}
+
+.pv-move:hover {
+    background-color: hsla(290, 30%, 65%, 0.5);
+}
+
+.pv-move-selected {
+    background-color: hsla(290, 30%, 65%);
+    color: #fff;
 }
 
 /* Nodes bar */

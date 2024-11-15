@@ -33,19 +33,125 @@ type Counts = {
   current: number,
   total: number
 };
+
+type PvVisualization = {
+  lastMove: string|null,
+  fen: string,
+  moves: string[],
+};
+
 export class BoardArea {
   private board: Board;
+  private pvBoard: Board;
   private flipped: boolean = false;
   private currentPosition: WsPositionData;
   private positionIsOngoing: boolean = false;
   private lastUpdateTimestamp: number = 0;
+  private pvVisualization?: PvVisualization;
 
   constructor() {
     this.board = new Board(document.getElementById('board') as HTMLElement);
-    this.board.render();
+    this.pvBoard = new Board(document.getElementById('board') as HTMLElement);
+    this.pvBoard.boardClass = 'pv-board';
+    this.renderCorrectBoard();
     setInterval(() => {
       this.updateClocks();
     }, 400);
+  }
+
+  public setPvVisualization(
+      lastMove: string|null, baseFen: string, moves: string[]): void {
+    this.pvVisualization = {lastMove, fen: baseFen, moves};
+    console.log(baseFen, lastMove, moves);
+    this.pvBoard.fromFen(baseFen);
+    if (lastMove) {
+      this.pvBoard.addHighlight(lastMove.slice(0, 2));
+      this.pvBoard.addHighlight(lastMove.slice(2, 4));
+    }
+
+    if (moves.length > 0) {
+      this.pvBoard.addArrow({
+        move: moves[0],
+        classes: 'arrow arrow-variation-ply0',
+        width: 20,
+        angle: 0,
+        headLength: 20,
+        headWidth: 44,
+        dashLength: 1000,
+        dashSpace: 0,
+        renderAfterPieces: false,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    }
+
+    if (moves.length > 1) {
+      this.pvBoard.addArrow({
+        move: moves[1],
+        classes: 'arrow arrow-variation-ply1',
+        width: 10,
+        angle: Math.PI / 6,
+        headLength: 10,
+        headWidth: 25,
+        dashLength: 10,
+        dashSpace: 10,
+        renderAfterPieces: true,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    }
+
+    if (moves.length > 2) {
+      this.pvBoard.addArrow({
+        move: moves[2],
+        classes: 'arrow arrow-variation-ply2',
+        width: 5,
+        angle: -Math.PI / 4,
+        headLength: 7,
+        headWidth: 15,
+        dashLength: 5,
+        dashSpace: 5,
+        renderAfterPieces: true,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    }
+
+    if (moves.length > 3) {
+      this.pvBoard.addArrow({
+        move: moves[3],
+        classes: 'arrow arrow-variation-ply3',
+        width: 2,
+        angle: Math.PI / 2,
+        headLength: 5,
+        headWidth: 10,
+        dashLength: 2,
+        dashSpace: 2,
+        renderAfterPieces: true,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    }
+
+
+    this.renderCorrectBoard();
+  }
+
+  public resetPvVisualization(): void {
+    this.pvVisualization = undefined;
+    this.renderCorrectBoard();
+  }
+
+  private renderCorrectBoard(): void {
+    if (this.pvVisualization) {
+      this.pvBoard.render();
+    } else {
+      this.board.render();
+    }
   }
 
   public updatePlayers(game: WsGameData): void {
@@ -71,7 +177,7 @@ export class BoardArea {
       }
       const white = this.flipped ? 'top' : 'bottom';
       const black = this.flipped ? 'bottom' : 'top';
-      this.board.render();
+      this.renderCorrectBoard();
     }
     this.updateClocks();
   }
@@ -221,7 +327,7 @@ export class BoardArea {
     this.board.clearArrows();
     if (nextMoveUci) this.renderMovePlayedOutline(nextMoveUci);
     if (update) this.renderThinkingarrows(update);
-    this.board.render();
+    this.renderCorrectBoard();
   }
 
   public updatePosition(position: WsPositionData): void {

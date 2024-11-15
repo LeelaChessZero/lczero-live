@@ -39,6 +39,7 @@ export class App implements WebsocketObserver {
     this.boardArea = new BoardArea();
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
+    this.multiPvView.addObserver(this);
     this.websocketFeed = new WebSocketFeed();
     this.websocketFeed.addObserver(this);
   }
@@ -104,9 +105,18 @@ export class App implements WebsocketObserver {
     this.boardArea.changePosition(
         position, pos_changed, isOngoling && this.gameIsLive, nextMove);
     if (pos_changed) {
-      this.multiPvView.clear();
+      this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
+      this.boardArea.resetPvVisualization();
     }
     this.boardArea.updatePosition(position);
+  }
+
+  public onPvPlySelected(
+      lastMove: string|null, baseFen: string, moves: string[]): void {
+    this.boardArea.setPvVisualization(lastMove, baseFen, moves);
+  }
+  public onPvPlyUnselected(): void {
+    this.boardArea.resetPvVisualization();
   }
 };

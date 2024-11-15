@@ -40,6 +40,7 @@ function squareToFileRank(square: string): [number, number] {
 }
 
 export class Board {
+  public boardClass: string = 'board';
   private element: HTMLElement;
   private pieces: Set<PieceLocation> = new Set();
   private highlightedSquares: Set<string> = new Set();
@@ -82,7 +83,7 @@ export class Board {
     this.element.innerHTML = '';
 
     let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'board');
+    svg.setAttribute('class', this.boardClass);
     const side = SQUARE_SIZE * 8 + 2 * this.border;
     svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
     this.renderBoard(svg);
@@ -197,6 +198,7 @@ export class Board {
 
   public fromFen(fen: string): void {
     this.pieces.clear();
+    this.clearHighlights();
     this.clearArrows();
     this.clearOutlines();
     this.whiteToMove = fen.split(' ')[1] === 'w';
