@@ -75,7 +75,8 @@ class App:
         moveses: list[list[db.GamePositionEvaluationMove]] = [[] for _ in evaluations]
         eval_id_to_idx = {e.id: idx for idx, e in enumerate(evaluations)}
         for move in moveses_flat:
-            moveses[eval_id_to_idx[move.evaluation_id]].append(move)
+            if move.evaluation_id in eval_id_to_idx:
+                moveses[eval_id_to_idx[move.evaluation_id]].append(move)
 
         response = WebsocketResponse(
             evaluations=make_evaluations_update(
