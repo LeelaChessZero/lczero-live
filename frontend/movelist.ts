@@ -1,3 +1,4 @@
+import {applyMoveToFen} from './chess';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsPositionData} from './ws_feed';
 
@@ -5,6 +6,9 @@ export interface MoveSelectionObserver {
   onMoveSelected(
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void;
+  onPvPlyUnselected(): void;
+  onPvPlySelected(lastMove: string|null, baseFen: string, moves: string[]):
+      void;
 }
 
 function formatTime(milliseconds: number): string {
@@ -25,12 +29,21 @@ function formatNodes(nodes: number): string {
   return `${(nodes / 1e9).toFixed(1)}b`;
 }
 
+type VariationView = {
+  baseFen: string,
+  startPly: number,
+  selectedPly: number,
+  pvUci: string,
+  pvSan: string,
+};
+
 export class MoveList {
   private parent: HTMLElement;
   private element: HTMLTableElement;
   private positions: WsPositionData[] = [];
   private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
+  private variationView?: VariationView;
 
   constructor(parent: HTMLElement) {
     this.parent = parent;
@@ -39,8 +52,70 @@ export class MoveList {
     this.element.addEventListener('click', this.onClick.bind(this));
     this.element.addEventListener('keydown', this.onKeydown.bind(this));
     this.element.addEventListener('wheel', this.onWheel.bind(this));
+    document.getElementById('pv-view-close')!.addEventListener(
+        'click', () => this.unselectVariation());
     this.parent.appendChild(this.element);
   }
+
+  public selectVariation(
+      baseFen: string, startPly: number, selectedPly: number, pvUci: string,
+      pvSan: string): void {
+    this.variationView = {baseFen, startPly, selectedPly, pvUci, pvSan};
+    document.getElementById('pv-view')!.classList.add('pv-view-active');
+    this.scrollToView();
+    this.updateVariationView();
+  }
+
+  public unselectVariation(): void {
+    if (this.variationView) {
+      this.variationView = undefined;
+      this.observers.forEach(observer => observer.onPvPlyUnselected());
+      document.getElementById('pv-view')!.classList.remove('pv-view-active');
+    }
+  }
+
+  private updateVariationView(): void {
+    const variationEl = document.getElementById('pv-view-content')!;
+    variationEl.innerHTML = '';
+    if (!this.variationView) return;
+
+    const is_white = (p: number) => p % 2 == 0;
+
+    const addSpan = (parent: Element, className: string, text?: string) => {
+      const span = document.createElement('span');
+      if (text) span.textContent = text;
+      span.classList.add(className);
+      parent.appendChild(span);
+      return span;
+    };
+    let startPly = this.variationView.startPly;
+    if (!is_white(startPly)) {
+      addSpan(variationEl, 'move-number', `${Math.floor(startPly / 2) + 1}…`);
+    }
+    for (let [ply, san] of this.variationView.pvSan.split(' ').entries()) {
+      const selectable = addSpan(variationEl, 'pv-selectable-move');
+      selectable.setAttribute('data-ply', ply.toString());
+      if (is_white(startPly)) {
+        addSpan(selectable, 'move-number', `${Math.floor(startPly / 2) + 1}.`);
+      }
+      const move = addSpan(selectable, 'pv-move', `${san}\u200B`);
+      if (ply === this.variationView.selectedPly) {
+        move.classList.add('pv-move-selected');
+      }
+      startPly++;
+    }
+
+    let fen = this.variationView.baseFen;
+    let moves = this.variationView.pvUci.split(' ');
+    for (let i = 0; i <= this.variationView.selectedPly; i++) {
+      fen = applyMoveToFen(fen, moves[i]);
+    }
+    this.observers.forEach(
+        observer => observer.onPvPlySelected(
+            moves[this.variationView!.selectedPly], fen,
+            moves.slice(this.variationView!.selectedPly + 1)));
+  }
+
 
   public getMoveAtPly(ply: number): WsPositionData|undefined {
     return this.positions[ply];
@@ -58,7 +133,10 @@ export class MoveList {
   private onClick(event: Event): void {
     const target = event.target as HTMLElement;
     const plyIdx = target.closest('[ply-idx]')?.getAttribute('ply-idx');
-    if (plyIdx != null) this.selectPly(parseInt(plyIdx, 10));
+    if (plyIdx) {
+      this.selectPly(parseInt(plyIdx, 10));
+      this.unselectVariation();
+    }
   }
 
   private onKeydown(event: KeyboardEvent): void {
@@ -84,11 +162,23 @@ export class MoveList {
             this.positions[this.positionIdx], move_changed, isOngoling));
   }
 
+  private scrollToView(): void {
+    const targetRow = Array.from(this.element.children)
+                          .find(
+                              row => row.getAttribute('ply-idx') ===
+                                  this.positionIdx.toString());
+    if (this.positionIdx == this.positions.length - 1) {
+      this.parent.scrollTo({top: this.element.scrollHeight});
+    } else {
+      targetRow?.scrollIntoView({block: 'nearest'});
+    }
+  }
+
   private selectPly(positionIdx: number): void {
     if (positionIdx < 0 || positionIdx >= this.positions.length) return;
-    const isOngoling = positionIdx === this.positions.length - 1;
+    const isOngoing = positionIdx === this.positions.length - 1;
     if (this.positionIdx === positionIdx) {
-      this.notifyMoveSelected(false, isOngoling);
+      this.notifyMoveSelected(false, isOngoing);
     } else {
       Array.from(this.element.children)
           .forEach(row => row.classList.remove('movelist-selected'));
@@ -96,13 +186,9 @@ export class MoveList {
           Array.from(this.element.children)
               .find(row => row.getAttribute('ply-idx') === String(positionIdx));
       targetRow?.classList.add('movelist-selected');
-      if (positionIdx == this.positions.length - 1) {
-        this.parent.scrollTo({top: this.element.scrollHeight});
-      } else {
-        targetRow?.scrollIntoView({block: 'nearest'});
-      }
       this.positionIdx = positionIdx;
-      this.notifyMoveSelected(true, isOngoling);
+      this.scrollToView();
+      this.notifyMoveSelected(true, isOngoing);
     }
   }
 
@@ -171,6 +257,9 @@ export class MoveList {
   public updatePositions(positions: WsPositionData[]): void {
     const wasAtEnd = (this.positionIdx === this.positions.length - 1) ||
         this.positions.length <= 1;
+    const wasScrolledToBottom =
+        this.parent.scrollHeight - this.parent.scrollTop ===
+        this.parent.clientHeight;
     positions.forEach(position => {
       this.updateSinglePosition(position);
       if (position.ply > 0) {
@@ -178,7 +267,12 @@ export class MoveList {
         if (prevPos) this.updateSinglePosition(prevPos);
       }
     });
-    if (wasAtEnd) this.selectPly(this.positions.length - 1);
+    if (wasAtEnd && !this.variationView) {
+      this.selectPly(this.positions.length - 1);
+    } else if (wasScrolledToBottom) {
+      this.parent.scrollTo({top: this.element.scrollHeight});
+      this.scrollToView();
+    }
   }
 
   public clearPositions(): void {

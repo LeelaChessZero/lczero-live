@@ -42,6 +42,9 @@ export class App implements WebsocketObserver {
     this.multiPvView.addObserver(this);
     this.websocketFeed = new WebSocketFeed();
     this.websocketFeed.addObserver(this);
+    window.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'Escape') this.moveList.unselectVariation();
+    });
   }
 
   public onConnect(): void {
@@ -110,6 +113,15 @@ export class App implements WebsocketObserver {
       this.boardArea.resetPvVisualization();
     }
     this.boardArea.updatePosition(position);
+  }
+
+  public onVariationSelected(
+      baseFen: string, startPly: number, selectedPly: number, pvUci: string,
+      pvSan: string): void {
+    this.moveList.selectVariation(baseFen, startPly, selectedPly, pvUci, pvSan);
+  }
+  public onVariationUnselected(): void {
+    this.moveList.unselectVariation();
   }
 
   public onPvPlySelected(

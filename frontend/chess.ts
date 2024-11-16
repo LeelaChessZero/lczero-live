@@ -15,16 +15,19 @@ export function applyMoveToFen(fen: string, move: string): string {
   let promotion = move[4];
   if (promotion && !isBlack) promotion = promotion.toUpperCase();
   board[sRank] = replaceAt(board[sRank], sFile, '1');
-
   const dstPiece = board[eRank][eFile];
   const dstIsBlack = dstPiece.toLowerCase() === dstPiece;
   if (piece.toLowerCase() === 'k' &&
       (Math.abs(sFile - eFile) > 2 ||
        (board[eRank][eFile] !== '1' && isBlack === dstIsBlack))) {
     // Castling!
-    board[eRank] = replaceAt(board[eRank], eFile, '1');
     const dstKingFile = eFile > sFile ? 6 : 2;
     const dstRookFile = eFile > sFile ? 5 : 3;
+    const srcRookFile = eFile > sFile ? 7 : 0;
+    if (board[eRank][eFile] == '1') {
+      board[eRank] = replaceAt(board[eRank], srcRookFile, '1');
+    }
+    board[eRank] = replaceAt(board[eRank], eFile, '1');
     board[eRank] = replaceAt(board[eRank], dstKingFile, piece);
     board[eRank] = replaceAt(board[eRank], dstRookFile, isBlack ? 'r' : 'R');
   } else {
