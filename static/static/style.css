@@ -426,6 +426,10 @@ svg.wdl-bar .wdl-text-right {
     text-anchor: end;
 }
 
+svg.wdl-bar .wdl-text-center {
+    text-anchor: middle;
+}
+
 svg.wdl-bar .wdl-black-text-shadow {
     stroke-width: 2;
     stroke: #202020;

@@ -69,8 +69,15 @@ export class WdlBar {
     };
 
     let drawTextAnchor = w + 0.5 * d;
-    if (drawTextAnchor < 40) drawTextAnchor = 40;
-    if (drawTextAnchor > this.width - 40) drawTextAnchor = this.width - 40;
+    let drawClass = 'wdl-text-center';
+    if (drawTextAnchor < 60) {
+      drawClass = 'wdl-text-left';
+      drawTextAnchor = 40;
+    }
+    if (drawTextAnchor > this.width - 60) {
+      drawClass = 'wdl-text-right';
+      drawTextAnchor = this.width - 40;
+    }
     const textsAndStyles: {x: number, text: string, cls: string}[] = [
       {x: 2, text: `${(this.w / 10).toFixed(1)}%`, cls: 'text wdl-white-text'},
       {
@@ -81,23 +88,21 @@ export class WdlBar {
       {
         x: drawTextAnchor,
         text: `${(this.d / 10).toFixed(1)}%`,
-        cls: `text ${(this.w < this.l) ? '' : 'wdl-text-right '}wdl-draw-text`
+        cls: `text ${drawClass} wdl-draw-text`
       }
     ];
 
     for (const {x, text, cls} of textsAndStyles) {
       writeText(text, x, cls + '-shadow');
-    }
-    mkEl('line', {
-      x1: (w + d / 2).toString(),
-      y1: '0',
-      x2: (w + d / 2).toString(),
-      y2: this.height.toString(),
-      class: 'wdl-middle'
-    });
-    for (const {x, text, cls} of textsAndStyles) {
       writeText(text, x, cls);
     }
+    // mkEl('line', {
+    //   x1: (w + d / 2).toString(),
+    //   y1: '0',
+    //   x2: (w + d / 2).toString(),
+    //   y2: this.height.toString(),
+    //   class: 'wdl-middle'
+    // });
 
     mkEl('rect', {
       x: '0',
