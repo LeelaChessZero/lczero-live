@@ -343,19 +343,19 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 }
 
 .movelist-col-pnum {
-    width: 10px;
+    width: 20px;
 }
 
 .movelist-col-pmove {
-    width: 30px;
+    width: 45px;
 }
 
 .movelist-col-eval {
-    width: 240px;
+    width: 255px;
 }
 
 .movelist-col-time {
-    width: 40px;
+    width: 50px;
 }
 
 .movelist-col-nodes {
@@ -554,7 +554,7 @@ svg.nodes-bar .text-offbar {
 
 /* Mobile */
 
-@media (min-width: 1148px) {
+@media (min-width: 1180px) {
     #header {
         flex-direction: row;
         align-items: center;
