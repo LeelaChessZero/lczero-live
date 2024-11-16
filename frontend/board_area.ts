@@ -247,8 +247,7 @@ export class BoardArea {
       const variation = update.variations[arrow.variationIdx];
       const ply = arrow.ply;
       const move = variation.pvUci.split(' ')[ply];
-      const width =
-          Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 15;
+      const width = Math.pow(variation.nodes / update.nodes, 1 / 1.7) * 15;
 
       const classes = `arrow arrow-variation${arrow.variationIdx} arrow-ply${
           ply <= 2 ? ply : (ply % 2 + 2)}`;

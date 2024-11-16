@@ -23,11 +23,9 @@ interface QueueItem {
 export function selectArrowsToRender(update: WsEvaluationData): ArrowInfo[] {
   let candidates: QueueItem[] = [];
 
-
-
   for (let [idx, variation] of update.variations.entries()) {
     if (idx >= MAX_VARIATION_IDX) break;
-    const weight = variation.nodes / update.variations[0].nodes;
+    const weight = variation.nodes / update.nodes;
     if (weight < MIN_WEIGHT) break;
     const pv = variation.pvUci.split(' ');
     candidates.push({
