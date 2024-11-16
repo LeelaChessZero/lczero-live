@@ -311,7 +311,7 @@ export class BoardArea {
           renderAfterPieces: true,
           offset: themVars[arrow.variationIdx].current,
           totalOffsets: themVars[arrow.variationIdx].total,
-          offsetDirection: moveToDirectionDeg(move),
+          offsetDirection: moveToDirectionDeg(variation.pvUci.split(' ')[1]),
         });
       }
     }
