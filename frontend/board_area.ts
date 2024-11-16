@@ -62,7 +62,6 @@ export class BoardArea {
   public setPvVisualization(
       lastMove: string|null, baseFen: string, moves: string[]): void {
     this.pvVisualization = {lastMove, fen: baseFen, moves};
-    console.log(baseFen, lastMove, moves);
     this.pvBoard.fromFen(baseFen);
     if (lastMove) {
       this.pvBoard.addHighlight(lastMove.slice(0, 2));
@@ -116,7 +115,7 @@ export class BoardArea {
       while (ply < moves.length) {
         const move = moves[ply];
         if (ply >= 4) {
-          if (move.slice(0,2) !== prevMove.slice(2, 4)) break;
+          if (move.slice(0, 2) !== prevMove.slice(2, 4)) break;
           if (visitedSquares.has(move.slice(2, 4))) break;
         }
         prevMove = move;

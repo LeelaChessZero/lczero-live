@@ -54,6 +54,14 @@ export class MoveList {
     this.element.addEventListener('wheel', this.onWheel.bind(this));
     document.getElementById('pv-view-close')!.addEventListener(
         'click', () => this.unselectVariation());
+    document.getElementById('pv-view-content')!.addEventListener(
+        'click', this.onClickPv.bind(this));
+    document.getElementById('pv-view')!.addEventListener(
+        'wheel', this.onWheelPv.bind(this));
+    document.getElementById('pv-view')!.setAttribute('tabindex', '0');
+    document.getElementById('pv-view')!.addEventListener(
+        'keydown', this.onKeydownPv.bind(this));
+
     this.parent.appendChild(this.element);
   }
 
@@ -61,9 +69,10 @@ export class MoveList {
       baseFen: string, startPly: number, selectedPly: number, pvUci: string,
       pvSan: string): void {
     this.variationView = {baseFen, startPly, selectedPly, pvUci, pvSan};
-    document.getElementById('pv-view')!.classList.add('pv-view-active');
     this.scrollToView();
     this.updateVariationView();
+    document.getElementById('pv-view')!.classList.add('pv-view-active');
+    document.getElementById('pv-view')!.focus();
   }
 
   public unselectVariation(): void {
@@ -136,6 +145,43 @@ export class MoveList {
     if (plyIdx) {
       this.selectPly(parseInt(plyIdx, 10));
       this.unselectVariation();
+    }
+  }
+
+  private onWheelPv(event: WheelEvent): void {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+      this.variationView!.selectedPly =
+          Math.max(0, this.variationView!.selectedPly - 1);
+    } else {
+      this.variationView!.selectedPly = Math.min(
+          this.variationView!.pvSan.split(' ').length - 1,
+          this.variationView!.selectedPly + 1);
+    }
+    this.updateVariationView();
+  }
+
+  private onKeydownPv(event: KeyboardEvent): void {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.variationView!.selectedPly =
+          Math.max(0, this.variationView!.selectedPly - 1);
+      this.updateVariationView();
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.variationView!.selectedPly = Math.min(
+          this.variationView!.pvSan.split(' ').length - 1,
+          this.variationView!.selectedPly + 1);
+      this.updateVariationView();
+    }
+  }
+
+  private onClickPv(event: Event): void {
+    const target = event.target as HTMLElement;
+    const plyIdx = target.closest('[data-ply]')?.getAttribute('data-ply');
+    if (plyIdx) {
+      this.variationView!.selectedPly = parseInt(plyIdx, 10);
+      this.updateVariationView();
     }
   }
 
