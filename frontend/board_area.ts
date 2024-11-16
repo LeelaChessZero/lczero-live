@@ -112,12 +112,14 @@ export class BoardArea {
       if (ply >= moves.length) return;
       const visitedSquares = new Set<string>();
       visitedSquares.add(moves[ply - 2].slice(2, 4));
+      let prevMove = '';
       while (ply < moves.length) {
         const move = moves[ply];
         if (ply >= 4) {
-          if (!visitedSquares.has(move.slice(0, 2))) break;
+          if (move.slice(0,2) !== prevMove.slice(2, 4)) break;
           if (visitedSquares.has(move.slice(2, 4))) break;
         }
+        prevMove = move;
         visitedSquares.add(move.slice(2, 4));
         drawMove(move);
         ply += 2;
