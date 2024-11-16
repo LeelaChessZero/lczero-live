@@ -275,22 +275,28 @@ class Analyzer:
         if game.player1_rating is not None and game.player2_rating is not None:
             wmove = (pos.ply_number + 1) // 2 + 1
             bmove = pos.ply_number // 2 + 1
-            welo: int = game.player1_rating + round(
+            wmtime = round(
                 self._movetime_estimator.estimate_elo_adustment(
                     curr_move=wmove, cur_clock=pos.white_clock
                 )
             )
-            belo: int = game.player2_rating + round(
+            bmtime = round(
                 self._movetime_estimator.estimate_elo_adustment(
                     curr_move=bmove, cur_clock=pos.black_clock
                 )
             )
+            welo: int = game.player1_rating + wmtime
+            belo: int = game.player2_rating + bmtime
             options["ClearTree"] = "true"
             options["WDLCalibrationElo"] = str(welo)
             options["Contempt"] = str(welo - belo)
             options["ContemptMode"] = "white_side_analysis"
             options["WDLDrawRateReference"] = "0.64"
             options["WDLEvalObjectivity"] = "0.0"
+            logger.info(
+                f"WtimeElo: {wmtime}, BtimeElo: {bmtime}, Welo: {game.player1_rating}"
+                f", Belo: {game.player2_rating}, options={options}"
+            )
         return options
 
     async def _uci_worker_think(
@@ -301,7 +307,6 @@ class Analyzer:
                 logger.info(f"Starting thinking: {board.fen()}, ply {pos.ply_number}")
                 await self._uci_cancelation_lock.acquire()
                 options: dict[str, str] = self.uci_options(game, pos)
-                logger.debug(f"Options: {options}")
                 with await self._engine.analysis(
                     board=board,
                     multipv=self._config["max_multipv"],
