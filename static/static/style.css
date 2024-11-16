@@ -345,9 +345,17 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
     display: block;
 }
 
+#pv-view:focus {
+    outline: none;
+}
+
 #movelist table {
     table-layout: fixed;
     margin: 5px;
+}
+
+#movelist table:focus {
+    outline: none;
 }
 
 .movelist-item {
@@ -540,8 +548,16 @@ svg.wdl-bar .wdl-draw-text {
     overflow: hidden;
 }
 
+.pv-row {
+    cursor: pointer;
+}
+
+.pv-row:hover {
+    background-color: hsla(290, 30%, 65%, 0.2);
+}
+
 .row-move-played {
-    background-color: hsla(290, 30%, 65%);
+    background-color: hsl(290, 30%, 65%);
     color: #fff;
 }
 
@@ -574,7 +590,7 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .pv-selectable-move:hover {
-    background-color: hsla(290, 30%, 65%, 0.5);
+    background-color: hsl(290, 30%, 65%);
 }
 
 /* Nodes bar */

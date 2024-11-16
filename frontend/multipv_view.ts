@@ -58,9 +58,19 @@ export class MultiPvView {
               this.fen!, this.currentPly!, ply,
               this.variations[variationIdx].pvUci,
               this.variations[variationIdx].pvSan));
-    } else {
-      this.observers.forEach(observer => observer.onVariationUnselected());
+      return;
     }
+    const row = target.closest('tr.pv-row');
+    if (row) {
+      const variationIdx = parseInt(row.getAttribute('data-idx')!);
+      this.observers.forEach(
+          observer => observer.onVariationSelected(
+              this.fen!, this.currentPly!, 0,
+              this.variations[variationIdx].pvUci,
+              this.variations[variationIdx].pvSan));
+      return;
+    }
+    this.observers.forEach(observer => observer.onVariationUnselected());
   }
 
   public setPosition(pos: WsPositionData): void {
@@ -75,6 +85,8 @@ export class MultiPvView {
     const numArrows = numVariationsToRender(update);
     for (let [variation, row] of update.variations.entries()) {
       let tr = document.createElement('tr');
+      tr.classList.add('pv-row');
+      tr.setAttribute('data-idx', variation.toString());
       function addCell(): HTMLElement {
         let td = document.createElement('td');
         tr.appendChild(td);
