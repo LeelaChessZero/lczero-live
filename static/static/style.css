@@ -260,7 +260,7 @@ svg.vwdl-bar .vwdl-white {
 }
 
 svg.vwdl-bar .vwdl-draw {
-    fill: #ccc;
+    fill: #bbb;
 }
 
 svg.vwdl-bar .vwdl-black {
@@ -314,7 +314,7 @@ svg.vwdl-bar .vwdl-draw-text {
 
 svg.vwdl-bar .vwdl-draw-text-shadow {
     stroke-width: 2;
-    stroke: #ccc;
+    stroke: #bbb;
 }
 
 /* Movelist */
@@ -391,6 +391,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 svg.wdl-bar {
     vertical-align: middle;
     margin-left: 10px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
 }
 
 svg.wdl-bar .wdl-outer {
@@ -399,20 +400,20 @@ svg.wdl-bar .wdl-outer {
 }
 
 svg.wdl-bar .wdl-white {
-    fill: #ddd;
+    fill: #eee;
 }
 
 svg.wdl-bar .wdl-draw {
-    fill: #808080;
+    fill: #bbb;
 }
 
 svg.wdl-bar .wdl-black {
-    fill: #202020;
+    fill: #555;
 }
 
 svg.wdl-bar .wdl-midline {
-    stroke: #444;
-    stroke-width: 1px;
+    stroke: #888;
+    stroke-width: 0.5px;
 }
 
 svg.wdl-bar .wdl-middle {
@@ -427,7 +428,7 @@ svg.wdl-bar .text {
 
 svg.wdl-bar .wdl-white-text-shadow {
     stroke-width: 2;
-    stroke: #ddd;
+    stroke: #eee;
 }
 
 svg.wdl-bar .wdl-white-text {
@@ -444,7 +445,7 @@ svg.wdl-bar .wdl-text-center {
 
 svg.wdl-bar .wdl-black-text-shadow {
     stroke-width: 2;
-    stroke: #202020;
+    stroke: #555;
 }
 
 svg.wdl-bar .wdl-black-text {
@@ -453,11 +454,11 @@ svg.wdl-bar .wdl-black-text {
 
 svg.wdl-bar .wdl-draw-text-shadow {
     stroke-width: 2;
-    stroke: #808080;
+    stroke: #bbb;
 }
 
 svg.wdl-bar .wdl-draw-text {
-    fill: #fff;
+    fill: #000;
 }
 
 /* Analysis pane */
