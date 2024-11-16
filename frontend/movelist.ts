@@ -69,10 +69,10 @@ export class MoveList {
       baseFen: string, startPly: number, selectedPly: number, pvUci: string,
       pvSan: string): void {
     this.variationView = {baseFen, startPly, selectedPly, pvUci, pvSan};
-    this.scrollToView();
     this.updateVariationView();
     document.getElementById('pv-view')!.classList.add('pv-view-active');
     document.getElementById('pv-view')!.focus();
+    this.scrollToView();
   }
 
   public unselectVariation(): void {
