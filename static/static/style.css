@@ -247,7 +247,7 @@ svg.pv-board .square.light.lastmove {
     border-radius: 4px;
     overflow: hidden;
     background-color: #eee;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
 }
 
 svg.vwdl-bar {
@@ -309,7 +309,7 @@ svg.vwdl-bar .vwdl-white-text-shadow {
 }
 
 svg.vwdl-bar .vwdl-draw-text {
-    fill: #555;
+    fill: #333;
 }
 
 svg.vwdl-bar .vwdl-draw-text-shadow {
