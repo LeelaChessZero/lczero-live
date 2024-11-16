@@ -54,7 +54,7 @@ export class MoveList {
     this.element.addEventListener('wheel', this.onWheel.bind(this));
     document.getElementById('pv-view-close')!.addEventListener(
         'click', () => this.unselectVariation());
-    document.getElementById('pv-view-content')!.addEventListener(
+    document.getElementById('pv-view')!.addEventListener(
         'click', this.onClickPv.bind(this));
     document.getElementById('pv-view')!.addEventListener(
         'wheel', this.onWheelPv.bind(this));
@@ -145,6 +145,7 @@ export class MoveList {
     if (plyIdx) {
       this.selectPly(parseInt(plyIdx, 10));
       this.unselectVariation();
+      event.stopPropagation();
     }
   }
 
@@ -183,6 +184,7 @@ export class MoveList {
       this.variationView!.selectedPly = parseInt(plyIdx, 10);
       this.updateVariationView();
     }
+    event.stopPropagation();
   }
 
   private onKeydown(event: KeyboardEvent): void {

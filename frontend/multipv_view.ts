@@ -58,6 +58,7 @@ export class MultiPvView {
               this.fen!, this.currentPly!, ply,
               this.variations[variationIdx].pvUci,
               this.variations[variationIdx].pvSan));
+      event.stopPropagation();
       return;
     }
     const row = target.closest('tr.pv-row');
@@ -68,9 +69,9 @@ export class MultiPvView {
               this.fen!, this.currentPly!, 0,
               this.variations[variationIdx].pvUci,
               this.variations[variationIdx].pvSan));
+      event.stopPropagation();
       return;
     }
-    this.observers.forEach(observer => observer.onVariationUnselected());
   }
 
   public setPosition(pos: WsPositionData): void {

@@ -45,6 +45,9 @@ export class App implements WebsocketObserver {
     window.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Escape') this.moveList.unselectVariation();
     });
+    document.addEventListener('click', event => {
+      if (!event.defaultPrevented) this.moveList.unselectVariation();
+    });
   }
 
   public onConnect(): void {
