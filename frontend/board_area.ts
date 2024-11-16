@@ -69,14 +69,19 @@ export class BoardArea {
       this.pvBoard.addHighlight(lastMove.slice(2, 4));
     }
 
+    const ply0 =
+        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'white' : 'black'}`;
+    const ply1 =
+        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'black' : 'white'}`;
+
     if (moves.length > 0) {
       this.pvBoard.addArrow({
         move: moves[0],
-        classes: 'arrow arrow-variation-ply0',
-        width: 20,
+        classes: `${ply0} arrow arrow-variation-ply0`,
+        width: 15,
         angle: 0,
         headLength: 20,
-        headWidth: 44,
+        headWidth: 30,
         dashLength: 1000,
         dashSpace: 0,
         renderAfterPieces: false,
@@ -89,11 +94,11 @@ export class BoardArea {
     if (moves.length > 1) {
       this.pvBoard.addArrow({
         move: moves[1],
-        classes: 'arrow arrow-variation-ply1',
-        width: 10,
+        classes: `${ply1} arrow arrow-variation-ply1`,
+        width: 7,
         angle: Math.PI / 6,
         headLength: 10,
-        headWidth: 25,
+        headWidth: 15,
         dashLength: 10,
         dashSpace: 10,
         renderAfterPieces: true,
@@ -103,41 +108,52 @@ export class BoardArea {
       });
     }
 
-    if (moves.length > 2) {
+    const pushManeuver = (ply: number, drawMove: (move: string) => void) => {
+      if (ply >= moves.length) return;
+      const visitedSquares = new Set<string>();
+      visitedSquares.add(moves[ply - 2].slice(2, 4));
+      while (ply < moves.length) {
+        const move = moves[ply];
+        if (!visitedSquares.has(move.slice(0, 2))) break;
+        if (visitedSquares.has(move.slice(2, 4))) break;
+        visitedSquares.add(move.slice(2, 4));
+        drawMove(move);
+        ply += 2;
+      }
+    };
+    pushManeuver(2, move => {
       this.pvBoard.addArrow({
-        move: moves[2],
-        classes: 'arrow arrow-variation-ply2',
-        width: 5,
+        move,
+        classes: `${ply0} arrow arrow-variation-ply2`,
+        width: 3,
         angle: -Math.PI / 4,
-        headLength: 7,
+        headLength: 5,
+        headWidth: 10,
+        dashLength: 3,
+        dashSpace: 3,
+        renderAfterPieces: true,
+        offset: 0,
+        totalOffsets: 1,
+        offsetDirection: 0,
+      });
+    });
+
+    pushManeuver(3, move => {
+      this.pvBoard.addArrow({
+        move,
+        classes: `${ply1} arrow arrow-variation-ply3`,
+        width: 2,
+        angle: -Math.PI / 3,
+        headLength: 10,
         headWidth: 15,
-        dashLength: 5,
+        dashLength: 10,
         dashSpace: 5,
         renderAfterPieces: true,
         offset: 0,
         totalOffsets: 1,
         offsetDirection: 0,
       });
-    }
-
-    if (moves.length > 3) {
-      this.pvBoard.addArrow({
-        move: moves[3],
-        classes: 'arrow arrow-variation-ply3',
-        width: 2,
-        angle: Math.PI / 2,
-        headLength: 5,
-        headWidth: 10,
-        dashLength: 2,
-        dashSpace: 2,
-        renderAfterPieces: true,
-        offset: 0,
-        totalOffsets: 1,
-        offsetDirection: 0,
-      });
-    }
-
-
+    });
     this.renderCorrectBoard();
   }
 
