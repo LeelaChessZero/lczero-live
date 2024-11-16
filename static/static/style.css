@@ -146,19 +146,19 @@ svg.board .square.light.lastmove {
 }
 
 svg.pv-board .square.dark {
-    fill: #d18b47
+    fill: hsl(290, 30%, 65%);
 }
 
 svg.pv-board .square.light {
-    fill: #ffce9e;
+    fill: hsl(290, 30%, 85%);
 }
 
 svg.pv-board .square.dark.lastmove {
-    fill: #aaa23b;
+    fill: hsl(200, 70%, 65%);
 }
 
 svg.pv-board .square.light.lastmove {
-    fill: #cdd16a;
+    fill: hsl(200, 70%, 85%);
 }
 
 
@@ -226,7 +226,7 @@ svg.pv-board .square.light.lastmove {
 .arrow-variation-ply1,
 .arrow-variation-ply2,
 .arrow-variation-ply3 {
-    fill: rgb(46, 202, 26);
+    fill: hsl(110, 100%, 50%);
 }
 
 #board-score {
