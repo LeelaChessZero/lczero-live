@@ -251,7 +251,7 @@ export class BoardArea {
           Math.pow(variation.nodes / update.variations[0].nodes, 1 / 1.7) * 15;
 
       const classes = `arrow arrow-variation${arrow.variationIdx} arrow-ply${
-          ply <= 2 ? ply : 2}`;
+          ply <= 2 ? ply : (ply % 2 + 2)}`;
 
       if (ply == 0) {
         this.board.addArrow({
@@ -283,7 +283,7 @@ export class BoardArea {
           totalOffsets: themVars[arrow.variationIdx].total,
           offsetDirection: moveToDirectionDeg(move),
         });
-      } else {
+      } else if (ply % 2 == 0) {
         this.board.addArrow({
           move,
           classes,
@@ -297,6 +297,21 @@ export class BoardArea {
           offset: usVars[arrow.variationIdx].current,
           totalOffsets: usVars[arrow.variationIdx].total,
           offsetDirection: moveToDirectionDeg(variation.pvUci.split(' ')[0]),
+        });
+      } else {  //  ply % 2 == 1
+        this.board.addArrow({
+          move,
+          classes,
+          width: 2,
+          angle: -Math.PI / 3,
+          headLength: 10,
+          headWidth: 15,
+          dashLength: 10,
+          dashSpace: 5,
+          renderAfterPieces: true,
+          offset: themVars[arrow.variationIdx].current,
+          totalOffsets: themVars[arrow.variationIdx].total,
+          offsetDirection: moveToDirectionDeg(move),
         });
       }
     }

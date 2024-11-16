@@ -215,6 +215,12 @@ svg.pv-board .square.light.lastmove {
     stroke-opacity: 1.0;
 }
 
+.arrow-ply3 {
+    fill-opacity: 1.0;
+    stroke-width: 0.1px;
+    stroke-opacity: 1.0;
+}
+
 
 .arrow-variation-ply0,
 .arrow-variation-ply1,
