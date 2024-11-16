@@ -114,8 +114,10 @@ export class BoardArea {
       visitedSquares.add(moves[ply - 2].slice(2, 4));
       while (ply < moves.length) {
         const move = moves[ply];
-        if (!visitedSquares.has(move.slice(0, 2))) break;
-        if (visitedSquares.has(move.slice(2, 4))) break;
+        if (ply >= 4) {
+          if (!visitedSquares.has(move.slice(0, 2))) break;
+          if (visitedSquares.has(move.slice(2, 4))) break;
+        }
         visitedSquares.add(move.slice(2, 4));
         drawMove(move);
         ply += 2;
@@ -125,12 +127,12 @@ export class BoardArea {
       this.pvBoard.addArrow({
         move,
         classes: `${ply0} arrow arrow-variation-ply2`,
-        width: 3,
+        width: 5,
         angle: -Math.PI / 4,
-        headLength: 5,
-        headWidth: 10,
-        dashLength: 3,
-        dashSpace: 3,
+        headLength: 10,
+        headWidth: 15,
+        dashLength: 8,
+        dashSpace: 4,
         renderAfterPieces: true,
         offset: 0,
         totalOffsets: 1,
@@ -144,10 +146,10 @@ export class BoardArea {
         classes: `${ply1} arrow arrow-variation-ply3`,
         width: 2,
         angle: -Math.PI / 3,
-        headLength: 10,
-        headWidth: 15,
-        dashLength: 10,
-        dashSpace: 5,
+        headLength: 5,
+        headWidth: 10,
+        dashLength: 3,
+        dashSpace: 3,
         renderAfterPieces: true,
         offset: 0,
         totalOffsets: 1,
@@ -304,10 +306,10 @@ export class BoardArea {
           classes,
           width: 3,
           angle: -Math.PI / 4,
-          headLength: 5,
-          headWidth: 10,
-          dashLength: 3,
-          dashSpace: 3,
+          headLength: 10,
+          headWidth: 15,
+          dashLength: 8,
+          dashSpace: 4,
           renderAfterPieces: true,
           offset: usVars[arrow.variationIdx].current,
           totalOffsets: usVars[arrow.variationIdx].total,
@@ -319,10 +321,10 @@ export class BoardArea {
           classes,
           width: 2,
           angle: -Math.PI / 3,
-          headLength: 10,
-          headWidth: 15,
-          dashLength: 10,
-          dashSpace: 5,
+          headLength: 5,
+          headWidth: 10,
+          dashLength: 3,
+          dashSpace: 3,
           renderAfterPieces: true,
           offset: themVars[arrow.variationIdx].current,
           totalOffsets: themVars[arrow.variationIdx].total,
