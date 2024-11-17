@@ -114,10 +114,8 @@ export class BoardArea {
       let prevMove = '';
       while (ply < moves.length) {
         const move = moves[ply];
-        if (ply >= 4) {
-          if (move.slice(0, 2) !== prevMove.slice(2, 4)) break;
-          if (visitedSquares.has(move.slice(2, 4))) break;
-        }
+        if (!visitedSquares.has(move.slice(0, 2))) break;
+        if (visitedSquares.has(move.slice(2, 4))) break;
         prevMove = move;
         visitedSquares.add(move.slice(2, 4));
         drawMove(move);
