@@ -35,7 +35,7 @@ export class MultiPvView {
     addTr('', 'mpv-col-legend');
     addTr('Move', 'mpv-col-move');
     addTr('White / Draw / Black probability', 'mpv-col-wdl');
-    addTr('Nodes / Probability of being best', 'mpv-col-node');
+    addTr('Nodes / Probability of being the best', 'mpv-col-node');
     addTr('PV', 'mpv-col-pv');
 
     this.element = document.createElement('tbody');
