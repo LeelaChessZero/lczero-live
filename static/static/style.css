@@ -150,15 +150,15 @@ svg.pv-board .square.dark {
 }
 
 svg.pv-board .square.light {
-    fill: hsl(290, 30%, 85%);
+    fill: hsl(290, 30%, 100%);
 }
 
 svg.pv-board .square.dark.lastmove {
-    fill: hsl(200, 70%, 65%);
+    fill: hsl(240, 30%, 65%);
 }
 
 svg.pv-board .square.light.lastmove {
-    fill: hsl(200, 70%, 85%);
+    fill: hsl(200, 80%, 90%);
 }
 
 .arrow {
