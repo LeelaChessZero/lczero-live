@@ -18,7 +18,7 @@ export function applyMoveToFen(fen: string, move: string): string {
   const dstPiece = board[eRank][eFile];
   const dstIsBlack = dstPiece.toLowerCase() === dstPiece;
   if (piece.toLowerCase() === 'k' &&
-      (Math.abs(sFile - eFile) > 2 ||
+      (Math.abs(sFile - eFile) >= 2 ||
        (board[eRank][eFile] !== '1' && isBlack === dstIsBlack))) {
     // Castling!
     const dstKingFile = eFile > sFile ? 6 : 2;
