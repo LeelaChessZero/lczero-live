@@ -56,6 +56,7 @@ export class Arrow {
   public headWidth: number = 20;
   public dashLength: number = 40;
   public dashSpace: number = 20;
+  public onlyOuterStroke: boolean = false;
 
   constructor() {}
 
@@ -93,16 +94,26 @@ export class Arrow {
     const dy = dyNorm * this.width / 2;
     let d = `M ${p1.x + dx} ${p1.y + dy} L ${p0.x + dx} ${p0.y + dy} L ${
         p0.x - dx} ${p0.y - dy} L ${p1.x - dx} ${p1.y - dy}`;
+    const dashArray: number[] = [];
+    if (startDistance > 0) {
+      dashArray.push(distance(p0.x, p0.y, p1.x, p1.y));
+      dashArray.push(this.width);
+    }
     if (renderArrow) {
       const dxHead = dxNorm * this.headWidth / 2;
       const dyHead = dyNorm * this.headWidth / 2;
       d += ` L ${p1.x - dxHead} ${p1.y - dyHead} L ${p2.x} ${p2.y} L ${
           p1.x + dxHead} ${p1.y + dyHead}`;
+      dashArray.push(
+          distance(p0.x, p0.y, p1.x, p1.y) + this.dashLength +
+          (this.headWidth - this.width) +
+          Math.sqrt(dxHead * dxHead + dyHead * dyHead));
     }
     const path = mkSvgElement('path', {
       d: `${d} Z`,
       'class': this.classes,
     });
+    if (this.onlyOuterStroke) path.style.strokeDasharray = dashArray.join(' ');
     parent.appendChild(path);
   }
 

@@ -168,14 +168,14 @@ svg.pv-board .square.light.lastmove {
 }
 
 .arrow-variation-ply2 {
-    fill-opacity: 1.0;
+    fill-opacity: 0.85;
     stroke-width: 0.3px;
     stroke-opacity: 1.0;
 }
 
 .arrow-variation-ply3 {
-    fill-opacity: 1.0;
-    stroke-width: 0.1px;
+    fill-opacity: 0.85;
+    stroke-width: 0.3px;
     stroke-opacity: 1.0;
 }
 
@@ -221,14 +221,14 @@ svg.pv-board .square.light.lastmove {
 }
 
 .arrow-ply2 {
-    fill-opacity: 0.6;
+    fill-opacity: 0.85;
     stroke-width: 0.3px;
-    /* stroke-opacity: 1.0; */
+    stroke-opacity: 1.0;
 }
 
 .arrow-ply3 {
-    fill-opacity: 1.0;
-    stroke-width: 0.1px;
+    fill-opacity: 0.85;
+    stroke-width: 0.3px;
     stroke-opacity: 1.0;
 }
 

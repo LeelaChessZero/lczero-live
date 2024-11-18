@@ -19,6 +19,7 @@ export interface ArrowLocation {
   offset: number;
   totalOffsets: number;
   offsetDirection: number;
+  onlyOuterStroke?: boolean;
 }
 
 export function moveToDirectionDeg(move: string): number {
@@ -192,6 +193,7 @@ export class Board {
       ar.headWidth = arrow.headWidth;
       ar.dashLength = arrow.dashLength;
       ar.dashSpace = arrow.dashSpace;
+      ar.onlyOuterStroke = !!arrow.onlyOuterStroke;
       ar.render(parent);
     }
   }
