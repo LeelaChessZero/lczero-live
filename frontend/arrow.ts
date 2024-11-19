@@ -78,6 +78,7 @@ export class Arrow {
     }
   }
 
+
   private renderDash(
       parent: SVGElement, startDistance: number, endDistance: number,
       renderArrow: boolean): void {
@@ -95,25 +96,34 @@ export class Arrow {
     let d = `M ${p1.x + dx} ${p1.y + dy} L ${p0.x + dx} ${p0.y + dy} L ${
         p0.x - dx} ${p0.y - dy} L ${p1.x - dx} ${p1.y - dy}`;
     const dashArray: number[] = [];
-    if (startDistance > 0) {
-      dashArray.push(distance(p0.x, p0.y, p1.x, p1.y));
-      dashArray.push(this.width);
-    }
     if (renderArrow) {
       const dxHead = dxNorm * this.headWidth / 2;
       const dyHead = dyNorm * this.headWidth / 2;
       d += ` L ${p1.x - dxHead} ${p1.y - dyHead} L ${p2.x} ${p2.y} L ${
           p1.x + dxHead} ${p1.y + dyHead}`;
-      dashArray.push(
-          distance(p0.x, p0.y, p1.x, p1.y) + this.dashLength +
-          (this.headWidth - this.width) +
-          Math.sqrt(dxHead * dxHead + dyHead * dyHead));
+      if (startDistance > 0) {
+        dashArray.push(distance(p0.x, p0.y, p1.x, p1.y));
+        dashArray.push(this.width);
+        dashArray.push(
+            distance(p0.x, p0.y, p1.x, p1.y) +
+            2 *
+                ((this.headWidth - this.width) +
+                 Math.sqrt(dxHead * dxHead + dyHead * dyHead)));
+      }
+    } else if (startDistance == 0) {
+      dashArray.push(distance(p0.x, p0.y, p1.x, p1.y) * 2 + this.width);
+      dashArray.push(this.width);
+    } else {
+      dashArray.push(distance(p0.x, p0.y, p1.x, p1.y));
+      dashArray.push(this.width);
     }
     const path = mkSvgElement('path', {
       d: `${d} Z`,
       'class': this.classes,
     });
-    if (this.onlyOuterStroke) path.style.strokeDasharray = dashArray.join(' ');
+    if (this.onlyOuterStroke && dashArray) {
+      path.style.strokeDasharray = dashArray.join(' ');
+    }
     parent.appendChild(path);
   }
 
