@@ -7,12 +7,12 @@ export interface ArrowInfo {
 }
 
 const ARROW_BUDGET = 10;
-const MANEUVER_BUDGET_USE = 0.4;
+const MANEUVER_BUDGET_USE = 0.5;
 const MAX_VARIATION_IDX = 9;
-const MIN_WEIGHT = 1 / 50;
-const RESPONSE_WEIGHT_MULTIPLIER = 1 / 4;
-const MANEUVER_WEIGHT_MULTIPLIER = 1 / 8;
-const RESPONSE_MANEUVER_WEIGHT_MULTIPLIER = 1 / 12;
+const MIN_WEIGHT = 1 / 25;
+const RESPONSE_WEIGHT_MULTIPLIER = 1 / 2;
+const MANEUVER_WEIGHT_MULTIPLIER = 1 / 4;
+const RESPONSE_MANEUVER_WEIGHT_MULTIPLIER = 1 / 6;
 
 interface QueueItem {
   variationIdx: number;

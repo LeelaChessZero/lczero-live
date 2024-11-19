@@ -570,7 +570,7 @@ svg.wdl-bar .wdl-draw-text {
 
 .square-outline-dst {
     stroke: #e91d8d;
-    stroke-width: 8px;
+    stroke-width: 5px;
     stroke-linejoin: round;
     fill: transparent;
 }
