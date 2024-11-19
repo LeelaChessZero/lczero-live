@@ -22,6 +22,12 @@ export interface ArrowLocation {
   onlyOuterStroke?: boolean;
 }
 
+export interface Outline {
+  square: string;
+  className: string;
+  inset: number;
+}
+
 export function moveToDirectionDeg(move: string): number {
   const [file1, rank1] = squareToFileRank(move.slice(0, 2));
   const [file2, rank2] = squareToFileRank(move.slice(2, 4));
@@ -30,7 +36,6 @@ export function moveToDirectionDeg(move: string): number {
 
 const SQUARE_SIZE = 45;
 const BEAM_SPREAD = 55;
-const OUTLINE_WIDTH = 3;
 
 function fileRanktoSquare(rank: number, file: number): string {
   return 'abcdefgh'[file] + (rank + 1).toString();
@@ -45,7 +50,7 @@ export class Board {
   private element: HTMLElement;
   private pieces: Set<PieceLocation> = new Set();
   private highlightedSquares: Set<string> = new Set();
-  private outlinedSquares: Set<string> = new Set();
+  private outlinedSquares: Set<Outline> = new Set();
   private flipped: boolean = false;
   private arrows: ArrowLocation[] = [];
   private whiteToMove: boolean = true;
@@ -72,8 +77,8 @@ export class Board {
     this.highlightedSquares.add(square);
   }
 
-  public addOutline(square: string): void {
-    this.outlinedSquares.add(square);
+  public addOutline(outline: Outline): void {
+    this.outlinedSquares.add(outline);
   }
 
   public addArrow(arrow: ArrowLocation): void {
@@ -121,19 +126,18 @@ export class Board {
 
 
   private renderOutlines(parent: SVGElement): void {
-    this.outlinedSquares.forEach(square => {
-      const [file, rank] = squareToFileRank(square);
+    this.outlinedSquares.forEach(outline => {
+      const [file, rank] = squareToFileRank(outline.square);
       const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + this.border;
       const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + this.border;
-      const outline =
-          document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      const hWidth = OUTLINE_WIDTH / 2;
-      outline.setAttribute('x', (x + hWidth).toString());
-      outline.setAttribute('y', (y + hWidth).toString());
-      outline.setAttribute('width', (SQUARE_SIZE - 2 * hWidth).toString());
-      outline.setAttribute('height', (SQUARE_SIZE - 2 * hWidth).toString());
-      outline.setAttribute('class', 'square-outline');
-      parent.appendChild(outline);
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const hWidth = outline.inset / 2;
+      el.setAttribute('x', (x + hWidth).toString());
+      el.setAttribute('y', (y + hWidth).toString());
+      el.setAttribute('width', (SQUARE_SIZE - 2 * hWidth).toString());
+      el.setAttribute('height', (SQUARE_SIZE - 2 * hWidth).toString());
+      el.setAttribute('class', outline.className);
+      parent.appendChild(el);
     });
   }
 

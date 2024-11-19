@@ -337,8 +337,10 @@ export class BoardArea {
 
   private renderMovePlayedOutline(move: string): void {
     this.board.clearOutlines();
-    this.board.addOutline(move.slice(0, 2));
-    this.board.addOutline(move.slice(2, 4));
+    this.board.addOutline(
+        {square: move.slice(0, 2), className: 'square-outline', inset: 2});
+    this.board.addOutline(
+        {square: move.slice(2, 4), className: 'square-outline-dst', inset: 4});
     // this.board.addArrow({
     //   move,
     //   classes: 'arrow-move-played',
