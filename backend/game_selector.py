@@ -122,8 +122,8 @@ async def make_game(info: GameInfo) -> db.Game:
         [
             db.GameFilter(game=game, key=attr, value=pgn[0].headers[attr])
             for attr in [
-                "Event",
-                "Date",
+                # "Event",
+                # "Date",
                 "Round",
                 "White",
                 "Black",
