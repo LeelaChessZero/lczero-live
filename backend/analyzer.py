@@ -240,6 +240,8 @@ class Analyzer:
                             if tc := pgn.headers.get("TimeControl"):
                                 if re.match(r"^[\d+:/+]+$", tc):
                                     self._movetime_estimator = MovetimeEstimator(tc)
+                                else:
+                                    logger.error(f"Invalid TimeControl: [{tc}]")
                             tg.start_soon(
                                 self._uci_worker_think,
                                 get_leaf_board(pgn),
