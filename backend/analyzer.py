@@ -4,6 +4,7 @@ from typing import Any, Awaitable, Callable, List, Optional, Tuple, cast
 import anyio
 import asyncssh
 import chess
+import re
 import chess.engine
 import chess.pgn
 import db
@@ -237,7 +238,8 @@ class Analyzer:
                                 f"Processing position {self._current_position.fen}"
                             )
                             if tc := pgn.headers.get("TimeControl"):
-                                self._movetime_estimator = MovetimeEstimator(tc)
+                                if re.match(r"^[\d+:/+]+$", tc):
+                                    self._movetime_estimator = MovetimeEstimator(tc)
                             tg.start_soon(
                                 self._uci_worker_think,
                                 get_leaf_board(pgn),
