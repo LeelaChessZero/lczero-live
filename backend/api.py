@@ -6,6 +6,7 @@ from sanic.helpers import json_dumps
 from sanic.log import logger
 from ws_notifier import (WebsocketNotifier, WebsocketRequest,
                          WebsocketResponse, make_games_data)
+from tortoise.expressions import Q
 
 api = Blueprint("api", url_prefix="/api")
 
@@ -15,7 +16,8 @@ async def ws(req: Request, ws: Websocket):
     games = await db.Game.all()
     analyzed_games = set(g.id for g in req.app.ctx.app.get_games_being_analyzed())
     games = await db.Game.filter(
-        is_hidden=False, tournament__is_hidden=False
+        Q(tournament__is_hidden=False) | Q(is_finished=False),
+        is_hidden=False,
     ).order_by("id").prefetch_related("tournament")
 
     resp = WebsocketResponse()
