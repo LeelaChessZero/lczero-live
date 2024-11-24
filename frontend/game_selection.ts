@@ -36,7 +36,7 @@ export class GameSelection {
             !this.getGameById(this.getSelectedGameId()).isBeingAnalyzed) {
       let newSel = this.games.find(g => g.isBeingAnalyzed);
       if (!newSel) newSel = this.games.find(g => !g.isFinished);
-      if (!newSel && wasEmpty) newSel = this.games[0];
+      if (!newSel && wasEmpty) newSel = this.games[this.games.length - 1];
       if (newSel) {
         this.element.value = newSel.gameId.toString();
         this.notifyObservers(newSel);
