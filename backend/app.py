@@ -65,12 +65,17 @@ class App:
         if pos is None:
             return
         evaluations: list[db.GamePositionEvaluation] = (
-            await db.GamePositionEvaluation.filter(position=pos).order_by("id")
+            await db.GamePositionEvaluation.filter(position=pos).order_by("-id")[:1]
         )
+        evaluation = evaluations[0] if evaluations else None
         moveses_flat: list[db.GamePositionEvaluationMove] = (
-            await db.GamePositionEvaluationMove.filter(
-                evaluation__position=pos
-            ).order_by("-nodes")
+            (
+                await db.GamePositionEvaluationMove.filter(
+                    evaluation=evaluation
+                ).order_by("-nodes")
+            )
+            if evaluation
+            else []
         )
         moveses: list[list[db.GamePositionEvaluationMove]] = [[] for _ in evaluations]
         eval_id_to_idx = {e.id: idx for idx, e in enumerate(evaluations)}
