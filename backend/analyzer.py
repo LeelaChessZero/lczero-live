@@ -139,6 +139,28 @@ class Analyzer:
             )
             if created:
                 added_game_positions.append(res)
+            else:
+                if res.move_uci != move_uci or res.fen != board.fen():
+                    logger.error(
+                        f"Move UCI mismatch: {res.move_uci} != {move_uci}, "
+                        f"{res.fen}!={board.fen()} ply={ply}"
+                    )
+                    await res.delete()
+                    res = await db.GamePosition.create(
+                        game=game,
+                        ply_number=ply,
+                        fen=board.fen(),
+                        move_uci=move_uci,
+                        move_san=move_san,
+                        white_clock=white_clock,
+                        black_clock=black_clock,
+                        nodes=0,
+                        q_score=0,
+                        white_score=0,
+                        draw_score=0,
+                        black_score=0,
+                    )
+                    added_game_positions.append(res)
 
             return res
 
