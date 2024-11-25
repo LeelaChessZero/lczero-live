@@ -1,3 +1,4 @@
+import { AudioPlayer } from './audio';
 import {BoardArea} from './board_area';
 import {GameSelection} from './game_selection';
 import {MoveList} from './movelist';
@@ -28,6 +29,7 @@ export class App implements WebsocketObserver {
   private boardArea: BoardArea;
   private jsHash?: string;
   private gameIsLive: boolean = false;
+  private audioPlayer: AudioPlayer;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -42,6 +44,7 @@ export class App implements WebsocketObserver {
     this.multiPvView.addObserver(this);
     this.websocketFeed = new WebSocketFeed();
     this.websocketFeed.addObserver(this);
+    this.audioPlayer = new AudioPlayer();
     window.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Escape') this.moveList.unselectVariation();
     });
@@ -73,8 +76,11 @@ export class App implements WebsocketObserver {
     this.gameSelection.updateGames(games);
   }
   public onPositionReceived(position: WsPositionData[]): void {
-    this.moveList.updatePositions(
-        position.filter(p => p.gameId == this.curGameId));
+    const filteredPositions = position.filter(p => p.gameId == this.curGameId);
+    this.moveList.updatePositions(filteredPositions);
+    if (filteredPositions.length > 0) {
+      this.audioPlayer.playMoveAudio();
+    }   
   }
   public onEvaluationReceived(evaluation: WsEvaluationData[]): void {
     let evals = evaluation.filter(
@@ -114,6 +120,7 @@ export class App implements WebsocketObserver {
       this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
       this.boardArea.resetPvVisualization();
+      this.audioPlayer.playMoveAudio();
     }
     this.boardArea.updatePosition(position);
   }
