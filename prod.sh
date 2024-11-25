@@ -10,4 +10,5 @@ sed -e "s|dist/main.js|dist/main.js?$JSHASH|g" | \
 sed -e "s|static/style.css|static/style.css?$CSSHASH|g" > static/index.html
 
 cd backend
+ulimit -n 65536
 sanic main -p 8914
