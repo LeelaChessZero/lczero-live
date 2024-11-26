@@ -80,6 +80,7 @@ export class BoardArea {
     const board = this.sideBoardVisualization ? this.pvBoard : this.board;
     const square = board.getSquareAtClientPoint(event.clientX, event.clientY);
     if (square) {
+      event.stopPropagation();
       this.observers.forEach(o => o.onSquareClicked(square));
     }
   }
@@ -184,6 +185,11 @@ export class BoardArea {
         offsetDirection: 0,
       });
     });
+
+    for (const outline of sideBoardVisualization.outlines) {
+      this.pvBoard.addOutline(
+          {square: outline, className: 'square-outline-dst', inset: 3});
+    }
     this.renderCorrectBoard();
   }
 

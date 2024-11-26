@@ -29,6 +29,11 @@ function formatNodes(nodes: number): string {
   return `${(nodes / 1e9).toFixed(1)}b`;
 }
 
+function applyMovesToFen(fen: string, moves: string[]): string {
+  for (const move of moves) fen = applyMoveToFen(fen, move);
+  return fen;
+}
+
 type VariationView = {
   baseFen: string,
   startPly: number,
@@ -73,25 +78,58 @@ export class MoveList {
     this.parent.appendChild(this.element);
   }
 
+  private deselectManualView(): void {
+    this.manualView = undefined;
+    if (this.variationView) {
+      this.updateVariationView();
+    } else {
+      this.observers.forEach(observer => observer.resetToMainBoard());
+    }
+    document.getElementById('manual-view')!.classList.remove(
+        'manual-view-active');
+  }
+
   public onSquareClicked(square: string): void {
     if (!this.manualView) {
-      let newView: ManualView;
       if (this.variationView) {
-        newView = {
+        let fen = this.variationView.baseFen;
+        let moves = this.variationView.pvUci.split(' ').slice(
+            0, this.variationView.selectedPly + 1);
+        fen = applyMovesToFen(fen, moves);
+        this.manualView = {
           lastMove: this.variationView.pvSan.split(' ').slice(-1)[0],
-          baseFen: this.variationView.baseFen,
-          moves: this.variationView.pvUci.split(' '),
+          baseFen: fen,
+          moves: [],
           halfMove: square,
         };
       } else {
-        newView = {
+        this.manualView = {
           lastMove: this.positions[this.positionIdx].moveSan || null,
           baseFen: this.positions[this.positionIdx].fen,
           moves: [],
           halfMove: square,
         };
       }
+      document.getElementById('manual-view')!.classList.add(
+          'manual-view-active');
+      this.scrollToView();
+      this.updateManualView()
+      return;
     }
+
+    if (this.manualView.halfMove === square) {
+      this.manualView.halfMove = '';
+      if (this.manualView.moves.length == 0) {
+        this.deselectManualView();
+        return;
+      }
+    } else if (this.manualView.halfMove) {
+      this.manualView.moves.push(`${this.manualView.halfMove}${square}`);
+      this.manualView.halfMove = '';
+    } else {
+      this.manualView.halfMove = square;
+    }
+    this.updateManualView();
   }
 
   public selectVariation(
@@ -105,12 +143,33 @@ export class MoveList {
   }
 
   public unselectVariation(): void {
-    if (this.variationView || this.manualView) {
+    if (this.manualView) {
+      this.deselectManualView();
+      return;
+    }
+    if (this.variationView) {
       this.variationView = undefined;
       this.manualView = undefined;
       this.observers.forEach(observer => observer.resetToMainBoard());
       document.getElementById('pv-view')!.classList.remove('pv-view-active');
     }
+  }
+
+  private updateManualView(): void {
+    if (!this.manualView) return;
+    const view = this.manualView!;
+    const manualEl = document.getElementById('manual-view-content')!;
+    manualEl.innerHTML = '';
+    manualEl.textContent = view.moves.join(' ') + ' ' + view.halfMove;
+
+    const fen = applyMovesToFen(view.baseFen, view.moves);
+    this.observers.forEach(observer => observer.resetToSideBoard({
+      className: 'manual-board',
+      lastMove: view.moves ? view.moves.slice(-1)[0] : view.lastMove,
+      fen: fen,
+      moveArrows: [],
+      outlines: view.halfMove ? [view.halfMove] : [],
+    }));
   }
 
   private updateVariationView(): void {
@@ -147,9 +206,8 @@ export class MoveList {
 
     let fen = this.variationView.baseFen;
     let moves = this.variationView.pvUci.split(' ');
-    for (let i = 0; i <= this.variationView.selectedPly; i++) {
-      fen = applyMoveToFen(fen, moves[i]);
-    }
+    fen = applyMovesToFen(
+        fen, moves.slice(0, this.variationView.selectedPly + 1));
     this.observers.forEach(observer => observer.resetToSideBoard({
       className: 'pv-board',
       lastMove: moves[this.variationView!.selectedPly],
@@ -349,7 +407,7 @@ export class MoveList {
         if (prevPos) this.updateSinglePosition(prevPos);
       }
     });
-    if (wasAtEnd && !this.variationView) {
+    if (wasAtEnd && !this.variationView && !this.manualView) {
       this.selectPly(this.positions.length - 1);
     } else if (wasScrolledToBottom) {
       this.parent.scrollTo({top: this.element.scrollHeight});

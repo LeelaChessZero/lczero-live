@@ -48,3 +48,14 @@ export function applyMoveToFen(fen: string, move: string): string {
 function replaceAt(str: string, idx: number, repl: string): string {
   return str.substring(0, idx) + repl + str.substring(idx + 1);
 }
+
+export function fenHasPieceAt(fen: string, square: string): boolean {
+  const board: string[] =
+      fen.split(' ')[0]
+          .split('/')
+          .map(rank => rank.replace(/\d/g, d => '1'.repeat(+d)))
+          .reverse();
+  const file = square.charCodeAt(0) - 'a'.charCodeAt(0);
+  const rank = parseInt(square[1]) - 1;
+  return board[rank][file] !== '1';
+}
