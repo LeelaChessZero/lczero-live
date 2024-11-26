@@ -1,4 +1,4 @@
-import { AudioPlayer } from './audio';
+import {AudioPlayer, AudioEventType} from './audio';
 import {BoardArea, SideBoardVisualization} from './board_area';
 import {GameSelection} from './game_selection';
 import {MoveList} from './movelist';
@@ -126,7 +126,7 @@ export class App implements WebsocketObserver {
 
       // Only play move sound when the next move is 1 ply ahead of the current position
       if (position.ply === currentPly + 1) {
-        this.audioPlayer.playMoveAudio();
+        this.audioPlayer.playAudio(AudioEventType.MOVE);
       }
     }
     this.boardArea.updatePosition(position);
