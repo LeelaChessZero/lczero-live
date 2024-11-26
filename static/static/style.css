@@ -114,8 +114,7 @@ table {
     width: calc(86.74698795180723% - 2px);
 }
 
-svg.board,
-svg.pv-board {
+svg.board {
     width: 100%;
 }
 
@@ -129,19 +128,19 @@ svg.pv-board {
 
 /* Board */
 
-svg.board .square.dark {
+svg.main-board .square.dark {
     fill: hsl(30, 10%, 55%);
 }
 
-svg.board .square.light {
+svg.main-board .square.light {
     fill: hsl(30, 15%, 81%);
 }
 
-svg.board .square.dark.lastmove {
+svg.main-board .square.dark.lastmove {
     fill: #aaa23b;
 }
 
-svg.board .square.light.lastmove {
+svg.main-board .square.light.lastmove {
     fill: #cdd16a;
 }
 
@@ -160,6 +159,23 @@ svg.pv-board .square.dark.lastmove {
 svg.pv-board .square.light.lastmove {
     fill: hsl(200, 80%, 90%);
 }
+
+svg.manual-board .square.dark {
+    fill: #d18b47;
+}
+
+svg.manual-board .square.light {
+    fill: #ffce9e;
+}
+
+svg.manual-board .square.dark.lastmove {
+    fill: #aaa23b;
+}
+
+svg.manual-board .square.light.lastmove {
+    fill: #cdd16a;
+}
+
 
 .arrow {
     fill-opacity: 0.6;
