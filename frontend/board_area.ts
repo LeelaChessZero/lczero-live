@@ -34,7 +34,7 @@ type Counts = {
   total: number
 };
 
-type PvVisualization = {
+type sideBoardVisualization = {
   lastMove: string|null,
   fen: string,
   moves: string[],
@@ -51,7 +51,7 @@ export class BoardArea {
   private currentPosition: WsPositionData;
   private positionIsOngoing: boolean = false;
   private lastUpdateTimestamp: number = 0;
-  private pvVisualization?: PvVisualization;
+  private sideBoardVisualization?: sideBoardVisualization;
   private observers: BoardAreaObserver[] = [];
 
   constructor() {
@@ -75,16 +75,18 @@ export class BoardArea {
   }
 
   private onClick(event: MouseEvent): void {
-    const board = this.pvVisualization ? this.pvBoard : this.board;
+    const board = this.sideBoardVisualization ? this.pvBoard : this.board;
     const square = board.getSquareAtClientPoint(event.clientX, event.clientY);
     if (square) {
       this.observers.forEach(o => o.onSquareClicked(square));
     }
   }
 
-  public setPvVisualization(
-      lastMove: string|null, baseFen: string, moves: string[]): void {
-    this.pvVisualization = {lastMove, fen: baseFen, moves};
+  public setSideBoardVisualization(
+      className: string, lastMove: string|null, baseFen: string,
+      moves: string[]): void {
+    this.sideBoardVisualization = {lastMove, fen: baseFen, moves};
+    this.pvBoard.boardClass = className;
     this.pvBoard.fromFen(baseFen);
     if (lastMove) {
       this.pvBoard.addHighlight(lastMove.slice(0, 2));
@@ -182,13 +184,13 @@ export class BoardArea {
     this.renderCorrectBoard();
   }
 
-  public resetPvVisualization(): void {
-    this.pvVisualization = undefined;
+  public resetSideBoardVisualization(): void {
+    this.sideBoardVisualization = undefined;
     this.renderCorrectBoard();
   }
 
   private renderCorrectBoard(): void {
-    if (this.pvVisualization) {
+    if (this.sideBoardVisualization) {
       this.pvBoard.render();
     } else {
       this.board.render();

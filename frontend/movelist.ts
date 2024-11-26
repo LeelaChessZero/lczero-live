@@ -6,9 +6,10 @@ export interface MoveSelectionObserver {
   onMoveSelected(
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void;
-  onPvPlyUnselected(): void;
-  onPvPlySelected(lastMove: string|null, baseFen: string, moves: string[]):
-      void;
+  resetToMainBoard(): void;
+  resetToSideBoard(
+      className: string, lastMove: string|null, baseFen: string,
+      moves: string[]): void;
 }
 
 function formatTime(milliseconds: number): string {
@@ -37,6 +38,8 @@ type VariationView = {
   pvSan: string,
 };
 
+type ManualView = {};
+
 export class MoveList {
   private parent: HTMLElement;
   private element: HTMLTableElement;
@@ -44,6 +47,7 @@ export class MoveList {
   private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
   private variationView?: VariationView;
+  private manualView?: ManualView;
 
   constructor(parent: HTMLElement) {
     this.parent = parent;
@@ -65,6 +69,8 @@ export class MoveList {
     this.parent.appendChild(this.element);
   }
 
+  public onSquareClicked(square: string): void {}
+
   public selectVariation(
       baseFen: string, startPly: number, selectedPly: number, pvUci: string,
       pvSan: string): void {
@@ -78,7 +84,7 @@ export class MoveList {
   public unselectVariation(): void {
     if (this.variationView) {
       this.variationView = undefined;
-      this.observers.forEach(observer => observer.onPvPlyUnselected());
+      this.observers.forEach(observer => observer.resetToMainBoard());
       document.getElementById('pv-view')!.classList.remove('pv-view-active');
     }
   }
@@ -120,8 +126,8 @@ export class MoveList {
       fen = applyMoveToFen(fen, moves[i]);
     }
     this.observers.forEach(
-        observer => observer.onPvPlySelected(
-            moves[this.variationView!.selectedPly], fen,
+        observer => observer.resetToSideBoard(
+            'pv-board', moves[this.variationView!.selectedPly], fen,
             moves.slice(this.variationView!.selectedPly + 1)));
   }
 

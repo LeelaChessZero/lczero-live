@@ -98,7 +98,9 @@ export class App implements WebsocketObserver {
     this.updatePgnFeedUrl(game.feedUrl);
   }
 
-  public onSquareClicked(square: string): void {}
+  public onSquareClicked(square: string): void {
+    this.moveList.onSquareClicked(square);
+  }
 
   private updatePgnFeedUrl(feedUrl: string): void {
     const pgnFeed = document.getElementById('pgn-feed') as HTMLAnchorElement;
@@ -116,7 +118,7 @@ export class App implements WebsocketObserver {
     if (pos_changed) {
       this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
-      this.boardArea.resetPvVisualization();
+      this.boardArea.resetSideBoardVisualization();
     }
     this.boardArea.updatePosition(position);
   }
@@ -130,11 +132,13 @@ export class App implements WebsocketObserver {
     this.moveList.unselectVariation();
   }
 
-  public onPvPlySelected(
-      lastMove: string|null, baseFen: string, moves: string[]): void {
-    this.boardArea.setPvVisualization(lastMove, baseFen, moves);
+  public resetToSideBoard(
+      className: string, lastMove: string|null, baseFen: string,
+      moves: string[]): void {
+    this.boardArea.setSideBoardVisualization(
+        className, lastMove, baseFen, moves);
   }
-  public onPvPlyUnselected(): void {
-    this.boardArea.resetPvVisualization();
+  public resetToMainBoard(): void {
+    this.boardArea.resetSideBoardVisualization();
   }
 };
