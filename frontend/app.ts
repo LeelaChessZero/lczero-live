@@ -83,9 +83,6 @@ export class App implements WebsocketObserver {
   public onPositionReceived(position: WsPositionData[]): void {
     const filteredPositions = position.filter(p => p.gameId == this.curGameId);
     this.moveList.updatePositions(filteredPositions);
-    if (filteredPositions.length > 0) {
-      this.audioPlayer.playMoveAudio();
-    }   
   }
   public onEvaluationReceived(evaluation: WsEvaluationData[]): void {
     let evals = evaluation.filter(
@@ -117,6 +114,7 @@ export class App implements WebsocketObserver {
   public onMoveSelected(
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void {
+    const currentPly = this.curPly ?? -1;
     this.curPly = position.ply;
     const nextMove = this.moveList.getMoveAtPly(position.ply + 1)?.moveUci;
     this.boardArea.changePosition(
@@ -125,7 +123,11 @@ export class App implements WebsocketObserver {
       this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
       this.boardArea.resetPvVisualization();
-      this.audioPlayer.playMoveAudio();
+
+      // Only play move sound when the next move is 1 ply ahead of the current position
+      if (position.ply === currentPly + 1) {
+        this.audioPlayer.playMoveAudio();
+      }
     }
     this.boardArea.updatePosition(position);
   }
