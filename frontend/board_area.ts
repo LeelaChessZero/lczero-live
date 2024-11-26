@@ -40,6 +40,10 @@ type PvVisualization = {
   moves: string[],
 };
 
+interface BoardAreaObserver {
+  onSquareClicked(square: string): void;
+}
+
 export class BoardArea {
   private board: Board;
   private pvBoard: Board;
@@ -48,15 +52,34 @@ export class BoardArea {
   private positionIsOngoing: boolean = false;
   private lastUpdateTimestamp: number = 0;
   private pvVisualization?: PvVisualization;
+  private observers: BoardAreaObserver[] = [];
 
   constructor() {
-    this.board = new Board(document.getElementById('board') as HTMLElement);
-    this.pvBoard = new Board(document.getElementById('board') as HTMLElement);
+    const boardEl = document.getElementById('board') as HTMLElement;
+    this.board = new Board(boardEl);
+    this.pvBoard = new Board(boardEl);
     this.pvBoard.boardClass = 'pv-board';
+    boardEl.addEventListener('click', this.onClick.bind(this));
     this.renderCorrectBoard();
     setInterval(() => {
       this.updateClocks();
     }, 400);
+  }
+
+  public addObserver(observer: BoardAreaObserver): void {
+    this.observers.push(observer);
+  }
+
+  public removeObserver(observer: BoardAreaObserver): void {
+    this.observers = this.observers.filter(o => o !== observer);
+  }
+
+  private onClick(event: MouseEvent): void {
+    const board = this.pvVisualization ? this.pvBoard : this.board;
+    const square = board.getSquareAtClientPoint(event.clientX, event.clientY);
+    if (square) {
+      this.observers.forEach(o => o.onSquareClicked(square));
+    }
   }
 
   public setPvVisualization(

@@ -61,6 +61,16 @@ export class Board {
     this.fromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w');
   }
 
+  public getSquareAtClientPoint(x: number, y: number): string|null {
+    const elementsAtPoint = document.elementsFromPoint(x, y);
+    const squareElement =
+        elementsAtPoint.find(el => el.classList.contains('square'));
+    if (!squareElement) {
+      return null;
+    }
+    return squareElement.getAttribute('data-square');
+  }
+
   public clearHighlights(): void {
     this.highlightedSquares.clear();
   }
@@ -113,6 +123,7 @@ export class Board {
         square.setAttribute('y', y.toString());
         square.setAttribute('width', SQUARE_SIZE.toString());
         square.setAttribute('height', SQUARE_SIZE.toString());
+        square.setAttribute('data-square', fileRanktoSquare(rank, file));
         let className = 'square';
         className += is_light ? ' light' : ' dark';
         if (this.highlightedSquares.has(fileRanktoSquare(rank, file))) {

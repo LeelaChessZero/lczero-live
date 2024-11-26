@@ -37,6 +37,7 @@ export class App implements WebsocketObserver {
         new MoveList(document.getElementById('movelist') as HTMLElement);
     this.moveList.addObserver(this);
     this.boardArea = new BoardArea();
+    this.boardArea.addObserver(this);
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
     this.multiPvView.addObserver(this);
@@ -96,6 +97,8 @@ export class App implements WebsocketObserver {
     this.websocketFeed.setGameId(game.gameId);
     this.updatePgnFeedUrl(game.feedUrl);
   }
+
+  public onSquareClicked(square: string): void {}
 
   private updatePgnFeedUrl(feedUrl: string): void {
     const pgnFeed = document.getElementById('pgn-feed') as HTMLAnchorElement;
