@@ -1,3 +1,4 @@
+import {SideBoardVisualization} from './board_area';
 import {applyMoveToFen} from './chess';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsPositionData} from './ws_feed';
@@ -7,9 +8,7 @@ export interface MoveSelectionObserver {
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void;
   resetToMainBoard(): void;
-  resetToSideBoard(
-      className: string, lastMove: string|null, baseFen: string,
-      moves: string[]): void;
+  resetToSideBoard(visualization: SideBoardVisualization): void;
 }
 
 function formatTime(milliseconds: number): string {
@@ -38,7 +37,12 @@ type VariationView = {
   pvSan: string,
 };
 
-type ManualView = {};
+type ManualView = {
+  lastMove: string|null,
+  baseFen: string,
+  moves: string[],
+  halfMove: string,
+};
 
 export class MoveList {
   private parent: HTMLElement;
@@ -69,7 +73,26 @@ export class MoveList {
     this.parent.appendChild(this.element);
   }
 
-  public onSquareClicked(square: string): void {}
+  public onSquareClicked(square: string): void {
+    if (!this.manualView) {
+      let newView: ManualView;
+      if (this.variationView) {
+        newView = {
+          lastMove: this.variationView.pvSan.split(' ').slice(-1)[0],
+          baseFen: this.variationView.baseFen,
+          moves: this.variationView.pvUci.split(' '),
+          halfMove: square,
+        };
+      } else {
+        newView = {
+          lastMove: this.positions[this.positionIdx].moveSan || null,
+          baseFen: this.positions[this.positionIdx].fen,
+          moves: [],
+          halfMove: square,
+        };
+      }
+    }
+  }
 
   public selectVariation(
       baseFen: string, startPly: number, selectedPly: number, pvUci: string,
@@ -82,8 +105,9 @@ export class MoveList {
   }
 
   public unselectVariation(): void {
-    if (this.variationView) {
+    if (this.variationView || this.manualView) {
       this.variationView = undefined;
+      this.manualView = undefined;
       this.observers.forEach(observer => observer.resetToMainBoard());
       document.getElementById('pv-view')!.classList.remove('pv-view-active');
     }
@@ -93,6 +117,7 @@ export class MoveList {
     const variationEl = document.getElementById('pv-view-content')!;
     variationEl.innerHTML = '';
     if (!this.variationView) return;
+    this.manualView = undefined;
 
     const is_white = (p: number) => p % 2 == 0;
 
@@ -125,10 +150,13 @@ export class MoveList {
     for (let i = 0; i <= this.variationView.selectedPly; i++) {
       fen = applyMoveToFen(fen, moves[i]);
     }
-    this.observers.forEach(
-        observer => observer.resetToSideBoard(
-            'pv-board', moves[this.variationView!.selectedPly], fen,
-            moves.slice(this.variationView!.selectedPly + 1)));
+    this.observers.forEach(observer => observer.resetToSideBoard({
+      className: 'pv-board',
+      lastMove: moves[this.variationView!.selectedPly],
+      fen,
+      moveArrows: moves.slice(this.variationView!.selectedPly + 1),
+      outlines: []
+    }));
   }
 
 

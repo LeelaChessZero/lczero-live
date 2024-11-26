@@ -34,10 +34,12 @@ type Counts = {
   total: number
 };
 
-type sideBoardVisualization = {
+export type SideBoardVisualization = {
+  className: string,
   lastMove: string|null,
   fen: string,
-  moves: string[],
+  moveArrows: string[],
+  outlines: string[],
 };
 
 interface BoardAreaObserver {
@@ -51,7 +53,7 @@ export class BoardArea {
   private currentPosition: WsPositionData;
   private positionIsOngoing: boolean = false;
   private lastUpdateTimestamp: number = 0;
-  private sideBoardVisualization?: sideBoardVisualization;
+  private sideBoardVisualization?: SideBoardVisualization;
   private observers: BoardAreaObserver[] = [];
 
   constructor() {
@@ -82,22 +84,23 @@ export class BoardArea {
     }
   }
 
-  public setSideBoardVisualization(
-      className: string, lastMove: string|null, baseFen: string,
-      moves: string[]): void {
-    this.sideBoardVisualization = {lastMove, fen: baseFen, moves};
-    this.pvBoard.boardClass = className;
-    this.pvBoard.fromFen(baseFen);
-    if (lastMove) {
-      this.pvBoard.addHighlight(lastMove.slice(0, 2));
-      this.pvBoard.addHighlight(lastMove.slice(2, 4));
+  public setSideBoardVisualization(sideBoardVisualization:
+                                       SideBoardVisualization): void {
+    this.sideBoardVisualization = sideBoardVisualization;
+    this.pvBoard.boardClass = sideBoardVisualization.className;
+    const fen = sideBoardVisualization.fen;
+    this.pvBoard.fromFen(fen);
+    if (sideBoardVisualization.lastMove) {
+      this.pvBoard.addHighlight(sideBoardVisualization.lastMove.slice(0, 2));
+      this.pvBoard.addHighlight(sideBoardVisualization.lastMove.slice(2, 4));
     }
 
     const ply0 =
-        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'white' : 'black'}`;
+        `arrow-variation-${fen.split(' ')[1] === 'w' ? 'white' : 'black'}`;
     const ply1 =
-        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'black' : 'white'}`;
+        `arrow-variation-${fen.split(' ')[1] === 'w' ? 'black' : 'white'}`;
 
+    const moves = sideBoardVisualization.moveArrows;
     if (moves.length > 0) {
       this.pvBoard.addArrow({
         move: moves[0],
@@ -366,20 +369,6 @@ export class BoardArea {
         {square: move.slice(0, 2), className: 'square-outline', inset: 2});
     this.board.addOutline(
         {square: move.slice(2, 4), className: 'square-outline-dst', inset: 4});
-    // this.board.addArrow({
-    //   move,
-    //   classes: 'arrow-move-played',
-    //   width: 30,
-    //   angle: 0,
-    //   headLength: 20,
-    //   headWidth: 40,
-    //   dashLength: 1000,
-    //   dashSpace: 0,
-    //   renderAfterPieces: false,
-    //   offset: 0,
-    //   totalOffsets: 1,
-    //   offsetDirection: 0,
-    // });
   }
 
   private updateBoardArrows(update?: WsEvaluationData, nextMoveUci?: string):

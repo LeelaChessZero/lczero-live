@@ -1,4 +1,4 @@
-import {BoardArea} from './board_area';
+import {BoardArea, SideBoardVisualization} from './board_area';
 import {GameSelection} from './game_selection';
 import {MoveList} from './movelist';
 import {MultiPvView} from './multipv_view';
@@ -132,11 +132,8 @@ export class App implements WebsocketObserver {
     this.moveList.unselectVariation();
   }
 
-  public resetToSideBoard(
-      className: string, lastMove: string|null, baseFen: string,
-      moves: string[]): void {
-    this.boardArea.setSideBoardVisualization(
-        className, lastMove, baseFen, moves);
+  public resetToSideBoard(visualization: SideBoardVisualization): void {
+    this.boardArea.setSideBoardVisualization(visualization);
   }
   public resetToMainBoard(): void {
     this.boardArea.resetSideBoardVisualization();
