@@ -45,6 +45,10 @@ function squareToFileRank(square: string): [number, number] {
   return [square.charCodeAt(0) - 'a'.charCodeAt(0), parseInt(square[1]) - 1];
 }
 
+function mkEl(tag: string): SVGElement {
+  return document.createElementNS('http://www.w3.org/2000/svg', tag);
+}
+
 export class Board {
   public boardClass: string = 'main-board';
   private element: HTMLElement;
@@ -88,7 +92,7 @@ export class Board {
   public render(): void {
     this.element.innerHTML = '';
 
-    let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    let svg = mkEl('svg');
     svg.setAttribute('class', `board ${this.boardClass}`);
     const side = SQUARE_SIZE * 8 + 2 * this.border;
     svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
@@ -107,8 +111,7 @@ export class Board {
         const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + this.border;
         const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + this.border;
         const is_light = (rank + file) % 2 === 1;
-        const square =
-            document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const square = mkEl('rect');
         square.setAttribute('x', x.toString());
         square.setAttribute('y', y.toString());
         square.setAttribute('width', SQUARE_SIZE.toString());
@@ -130,7 +133,7 @@ export class Board {
       const [file, rank] = squareToFileRank(outline.square);
       const x = (this.flipped ? 7 - file : file) * SQUARE_SIZE + this.border;
       const y = (this.flipped ? rank : 7 - rank) * SQUARE_SIZE + this.border;
-      const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const el = mkEl('rect');
       const hWidth = outline.inset / 2;
       el.setAttribute('x', (x + hWidth).toString());
       el.setAttribute('y', (y + hWidth).toString());
@@ -154,8 +157,7 @@ export class Board {
           this.border;
       const y = (this.flipped ? 7 - piece.rank : piece.rank) * SQUARE_SIZE +
           this.border;
-      const pieceEl =
-          document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      const pieceEl = mkEl('use');
       pieceEl.setAttribute('x', x.toString());
       pieceEl.setAttribute('y', y.toString());
       pieceEl.setAttributeNS(
