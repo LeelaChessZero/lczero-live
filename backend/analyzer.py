@@ -8,6 +8,7 @@ import re
 import chess.engine
 import chess.pgn
 import db
+import tortoise.exceptions
 from anyio.streams.memory import MemoryObjectReceiveStream
 from pgn_feed import PgnFeed
 from sanic.log import logger
@@ -418,7 +419,11 @@ class Analyzer:
             make_eval_move(info)
             for info in info_bundle[: self._config.get("show_pv", 2)]
         ]
-        await db.GamePositionEvaluationMove.bulk_create(moves)
+        try:
+            await db.GamePositionEvaluationMove.bulk_create(moves)
+        except tortoise.exceptions.IntegrityError as e:
+            logger.error(f"Database insertion error: {e}")
+            return
         pos.nodes = totals.nodes
         pos.q_score = totals.score_q
         pos.white_score = totals.score_white
