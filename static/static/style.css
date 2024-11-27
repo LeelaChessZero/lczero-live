@@ -144,9 +144,9 @@ svg.board {
 }
 
 svg.main-board .square.dark {
-    --hatch-color: red;
-    fill: url(#hatched-pattern);
+    /* fill: url(#hatched-pattern); */
     /* fill: hsl(30, 10%, 55%); */
+    fill: #dddddd;
 }
 
 svg.main-board .square.light {
@@ -156,11 +156,13 @@ svg.main-board .square.light {
 
 svg.main-board .square.dark.lastmove {
     /* fill: #aaa23b; */
-    fill: url(#hatched-pattern-lastmove);
+    fill: hsl(65, 60%, 77%);
+/* 
+    fill: url(#hatched-pattern-lastmove); */
 }
 
 svg.main-board .square.light.lastmove {
-    fill: #eceeba;
+    fill: hsl(65, 60%, 88%);
     /* fill: #cdd16a; */
 }
 
@@ -198,7 +200,7 @@ svg.manual-board .square.light.lastmove {
 
 
 .arrow {
-    fill-opacity: 0.6;
+    fill-opacity: 0.75;
     stroke-width: 1px;
     stroke: #333;
 }
