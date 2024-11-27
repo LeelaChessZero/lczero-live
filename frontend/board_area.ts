@@ -34,17 +34,11 @@ type Counts = {
   total: number
 };
 
-export type SideBoardVisualization = {
-  className: string,
+type PvVisualization = {
   lastMove: string|null,
   fen: string,
-  moveArrows: string[],
-  outlines: string[],
+  moves: string[],
 };
-
-interface BoardAreaObserver {
-  onSquareClicked(square: string): void;
-}
 
 export class BoardArea {
   private board: Board;
@@ -53,55 +47,32 @@ export class BoardArea {
   private currentPosition: WsPositionData;
   private positionIsOngoing: boolean = false;
   private lastUpdateTimestamp: number = 0;
-  private sideBoardVisualization?: SideBoardVisualization;
-  private observers: BoardAreaObserver[] = [];
+  private pvVisualization?: PvVisualization;
 
   constructor() {
-    const boardEl = document.getElementById('board') as HTMLElement;
-    this.board = new Board(boardEl);
-    this.pvBoard = new Board(boardEl);
+    this.board = new Board(document.getElementById('board') as HTMLElement);
+    this.pvBoard = new Board(document.getElementById('board') as HTMLElement);
     this.pvBoard.boardClass = 'pv-board';
-    boardEl.addEventListener('click', this.onClick.bind(this));
     this.renderCorrectBoard();
     setInterval(() => {
       this.updateClocks();
     }, 400);
   }
 
-  public addObserver(observer: BoardAreaObserver): void {
-    this.observers.push(observer);
-  }
-
-  public removeObserver(observer: BoardAreaObserver): void {
-    this.observers = this.observers.filter(o => o !== observer);
-  }
-
-  private onClick(event: MouseEvent): void {
-    const board = this.sideBoardVisualization ? this.pvBoard : this.board;
-    const square = board.getSquareAtClientPoint(event.clientX, event.clientY);
-    if (square) {
-      event.stopPropagation();
-      this.observers.forEach(o => o.onSquareClicked(square));
-    }
-  }
-
-  public setSideBoardVisualization(sideBoardVisualization:
-                                       SideBoardVisualization): void {
-    this.sideBoardVisualization = sideBoardVisualization;
-    this.pvBoard.boardClass = sideBoardVisualization.className;
-    const fen = sideBoardVisualization.fen;
-    this.pvBoard.fromFen(fen);
-    if (sideBoardVisualization.lastMove) {
-      this.pvBoard.addHighlight(sideBoardVisualization.lastMove.slice(0, 2));
-      this.pvBoard.addHighlight(sideBoardVisualization.lastMove.slice(2, 4));
+  public setPvVisualization(
+      lastMove: string|null, baseFen: string, moves: string[]): void {
+    this.pvVisualization = {lastMove, fen: baseFen, moves};
+    this.pvBoard.fromFen(baseFen);
+    if (lastMove) {
+      this.pvBoard.addHighlight(lastMove.slice(0, 2));
+      this.pvBoard.addHighlight(lastMove.slice(2, 4));
     }
 
     const ply0 =
-        `arrow-variation-${fen.split(' ')[1] === 'w' ? 'white' : 'black'}`;
+        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'white' : 'black'}`;
     const ply1 =
-        `arrow-variation-${fen.split(' ')[1] === 'w' ? 'black' : 'white'}`;
+        `arrow-variation-${baseFen.split(' ')[1] === 'w' ? 'black' : 'white'}`;
 
-    const moves = sideBoardVisualization.moveArrows;
     if (moves.length > 0) {
       this.pvBoard.addArrow({
         move: moves[0],
@@ -185,21 +156,16 @@ export class BoardArea {
         offsetDirection: 0,
       });
     });
-
-    for (const outline of sideBoardVisualization.outlines) {
-      this.pvBoard.addOutline(
-          {square: outline, className: 'square-outline-dst', inset: 3});
-    }
     this.renderCorrectBoard();
   }
 
-  public resetSideBoardVisualization(): void {
-    this.sideBoardVisualization = undefined;
+  public resetPvVisualization(): void {
+    this.pvVisualization = undefined;
     this.renderCorrectBoard();
   }
 
   private renderCorrectBoard(): void {
-    if (this.sideBoardVisualization) {
+    if (this.pvVisualization) {
       this.pvBoard.render();
     } else {
       this.board.render();
@@ -375,6 +341,20 @@ export class BoardArea {
         {square: move.slice(0, 2), className: 'square-outline', inset: 2});
     this.board.addOutline(
         {square: move.slice(2, 4), className: 'square-outline-dst', inset: 4});
+    // this.board.addArrow({
+    //   move,
+    //   classes: 'arrow-move-played',
+    //   width: 30,
+    //   angle: 0,
+    //   headLength: 20,
+    //   headWidth: 40,
+    //   dashLength: 1000,
+    //   dashSpace: 0,
+    //   renderAfterPieces: false,
+    //   offset: 0,
+    //   totalOffsets: 1,
+    //   offsetDirection: 0,
+    // });
   }
 
   private updateBoardArrows(update?: WsEvaluationData, nextMoveUci?: string):

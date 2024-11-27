@@ -351,12 +351,10 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 #pv-view {
     margin-top: 10px;
     padding-top: 10px;
+    border-top: 1px solid #ccc;
     flex: 1;
     overflow-y: auto;
     display: none;
-    background-color: hsl(290, 30%, 95%);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
 }
 
 #pv-view.pv-view-active {
@@ -364,25 +362,6 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 }
 
 #pv-view:focus {
-    outline: none;
-}
-
-#manual-view {
-    margin-top: 10px;
-    padding-top: 10px;
-    flex: 1;
-    overflow-y: auto;
-    display: none;
-    background-color: hsl(30, 100%, 95%);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-#manual-view.manual-view-active {
-    display: block;
-}
-
-#manual-view:focus {
     outline: none;
 }
 
@@ -451,8 +430,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
     width: 30px;
 }
 
-#pv-view-close,
-#manual-view-close {
+#pv-view-close {
     font-size: 24px;
     color: #333;
     background-color: transparent;
@@ -465,8 +443,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 
 }
 
-#pv-view-close:hover,
-#manual-view-close:hover {
+#pv-view-close:hover {
     color: hsl(290, 30%, 65%);
 }
 

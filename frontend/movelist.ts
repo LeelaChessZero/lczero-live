@@ -1,4 +1,3 @@
-import {SideBoardVisualization} from './board_area';
 import {applyMoveToFen} from './chess';
 import {isValidWdl, WdlBar} from './wdl';
 import {WsPositionData} from './ws_feed';
@@ -7,8 +6,9 @@ export interface MoveSelectionObserver {
   onMoveSelected(
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void;
-  resetToMainBoard(): void;
-  resetToSideBoard(visualization: SideBoardVisualization): void;
+  onPvPlyUnselected(): void;
+  onPvPlySelected(lastMove: string|null, baseFen: string, moves: string[]):
+      void;
 }
 
 function formatTime(milliseconds: number): string {
@@ -29,24 +29,12 @@ function formatNodes(nodes: number): string {
   return `${(nodes / 1e9).toFixed(1)}b`;
 }
 
-function applyMovesToFen(fen: string, moves: string[]): string {
-  for (const move of moves) fen = applyMoveToFen(fen, move);
-  return fen;
-}
-
 type VariationView = {
   baseFen: string,
   startPly: number,
   selectedPly: number,
   pvUci: string,
   pvSan: string,
-};
-
-type ManualView = {
-  lastMove: string|null,
-  baseFen: string,
-  moves: string[],
-  halfMove: string,
 };
 
 export class MoveList {
@@ -56,7 +44,6 @@ export class MoveList {
   private positionIdx: number = -1;
   private observers: MoveSelectionObserver[] = [];
   private variationView?: VariationView;
-  private manualView?: ManualView;
 
   constructor(parent: HTMLElement) {
     this.parent = parent;
@@ -78,60 +65,6 @@ export class MoveList {
     this.parent.appendChild(this.element);
   }
 
-  private deselectManualView(): void {
-    this.manualView = undefined;
-    if (this.variationView) {
-      this.updateVariationView();
-    } else {
-      this.observers.forEach(observer => observer.resetToMainBoard());
-    }
-    document.getElementById('manual-view')!.classList.remove(
-        'manual-view-active');
-  }
-
-  public onSquareClicked(square: string): void {
-    if (!this.manualView) {
-      if (this.variationView) {
-        let fen = this.variationView.baseFen;
-        let moves = this.variationView.pvUci.split(' ').slice(
-            0, this.variationView.selectedPly + 1);
-        fen = applyMovesToFen(fen, moves);
-        this.manualView = {
-          lastMove: this.variationView.pvSan.split(' ').slice(-1)[0],
-          baseFen: fen,
-          moves: [],
-          halfMove: square,
-        };
-      } else {
-        this.manualView = {
-          lastMove: this.positions[this.positionIdx].moveSan || null,
-          baseFen: this.positions[this.positionIdx].fen,
-          moves: [],
-          halfMove: square,
-        };
-      }
-      document.getElementById('manual-view')!.classList.add(
-          'manual-view-active');
-      this.scrollToView();
-      this.updateManualView()
-      return;
-    }
-
-    if (this.manualView.halfMove === square) {
-      this.manualView.halfMove = '';
-      if (this.manualView.moves.length == 0) {
-        this.deselectManualView();
-        return;
-      }
-    } else if (this.manualView.halfMove) {
-      this.manualView.moves.push(`${this.manualView.halfMove}${square}`);
-      this.manualView.halfMove = '';
-    } else {
-      this.manualView.halfMove = square;
-    }
-    this.updateManualView();
-  }
-
   public selectVariation(
       baseFen: string, startPly: number, selectedPly: number, pvUci: string,
       pvSan: string): void {
@@ -143,40 +76,17 @@ export class MoveList {
   }
 
   public unselectVariation(): void {
-    if (this.manualView) {
-      this.deselectManualView();
-      return;
-    }
     if (this.variationView) {
       this.variationView = undefined;
-      this.manualView = undefined;
-      this.observers.forEach(observer => observer.resetToMainBoard());
+      this.observers.forEach(observer => observer.onPvPlyUnselected());
       document.getElementById('pv-view')!.classList.remove('pv-view-active');
     }
-  }
-
-  private updateManualView(): void {
-    if (!this.manualView) return;
-    const view = this.manualView!;
-    const manualEl = document.getElementById('manual-view-content')!;
-    manualEl.innerHTML = '';
-    manualEl.textContent = view.moves.join(' ') + ' ' + view.halfMove;
-
-    const fen = applyMovesToFen(view.baseFen, view.moves);
-    this.observers.forEach(observer => observer.resetToSideBoard({
-      className: 'manual-board',
-      lastMove: view.moves ? view.moves.slice(-1)[0] : view.lastMove,
-      fen: fen,
-      moveArrows: [],
-      outlines: view.halfMove ? [view.halfMove] : [],
-    }));
   }
 
   private updateVariationView(): void {
     const variationEl = document.getElementById('pv-view-content')!;
     variationEl.innerHTML = '';
     if (!this.variationView) return;
-    this.manualView = undefined;
 
     const is_white = (p: number) => p % 2 == 0;
 
@@ -206,15 +116,13 @@ export class MoveList {
 
     let fen = this.variationView.baseFen;
     let moves = this.variationView.pvUci.split(' ');
-    fen = applyMovesToFen(
-        fen, moves.slice(0, this.variationView.selectedPly + 1));
-    this.observers.forEach(observer => observer.resetToSideBoard({
-      className: 'pv-board',
-      lastMove: moves[this.variationView!.selectedPly],
-      fen,
-      moveArrows: moves.slice(this.variationView!.selectedPly + 1),
-      outlines: []
-    }));
+    for (let i = 0; i <= this.variationView.selectedPly; i++) {
+      fen = applyMoveToFen(fen, moves[i]);
+    }
+    this.observers.forEach(
+        observer => observer.onPvPlySelected(
+            moves[this.variationView!.selectedPly], fen,
+            moves.slice(this.variationView!.selectedPly + 1)));
   }
 
 
@@ -407,7 +315,7 @@ export class MoveList {
         if (prevPos) this.updateSinglePosition(prevPos);
       }
     });
-    if (wasAtEnd && !this.variationView && !this.manualView) {
+    if (wasAtEnd && !this.variationView) {
       this.selectPly(this.positions.length - 1);
     } else if (wasScrolledToBottom) {
       this.parent.scrollTo({top: this.element.scrollHeight});

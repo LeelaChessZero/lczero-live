@@ -1,4 +1,4 @@
-import {BoardArea, SideBoardVisualization} from './board_area';
+import {BoardArea} from './board_area';
 import {GameSelection} from './game_selection';
 import {MoveList} from './movelist';
 import {MultiPvView} from './multipv_view';
@@ -37,7 +37,6 @@ export class App implements WebsocketObserver {
         new MoveList(document.getElementById('movelist') as HTMLElement);
     this.moveList.addObserver(this);
     this.boardArea = new BoardArea();
-    this.boardArea.addObserver(this);
     this.multiPvView =
         new MultiPvView(document.getElementById('multipv-view') as HTMLElement);
     this.multiPvView.addObserver(this);
@@ -98,10 +97,6 @@ export class App implements WebsocketObserver {
     this.updatePgnFeedUrl(game.feedUrl);
   }
 
-  public onSquareClicked(square: string): void {
-    this.moveList.onSquareClicked(square);
-  }
-
   private updatePgnFeedUrl(feedUrl: string): void {
     const pgnFeed = document.getElementById('pgn-feed') as HTMLAnchorElement;
     pgnFeed.href = feedUrl;
@@ -118,7 +113,7 @@ export class App implements WebsocketObserver {
     if (pos_changed) {
       this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
-      this.boardArea.resetSideBoardVisualization();
+      this.boardArea.resetPvVisualization();
     }
     this.boardArea.updatePosition(position);
   }
@@ -132,10 +127,11 @@ export class App implements WebsocketObserver {
     this.moveList.unselectVariation();
   }
 
-  public resetToSideBoard(visualization: SideBoardVisualization): void {
-    this.boardArea.setSideBoardVisualization(visualization);
+  public onPvPlySelected(
+      lastMove: string|null, baseFen: string, moves: string[]): void {
+    this.boardArea.setPvVisualization(lastMove, baseFen, moves);
   }
-  public resetToMainBoard(): void {
-    this.boardArea.resetSideBoardVisualization();
+  public onPvPlyUnselected(): void {
+    this.boardArea.resetPvVisualization();
   }
 };
