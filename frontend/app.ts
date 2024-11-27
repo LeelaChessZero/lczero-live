@@ -1,3 +1,4 @@
+import {AudioPlayer, AudioEventType} from './audio';
 import {BoardArea, SideBoardVisualization} from './board_area';
 import {GameSelection} from './game_selection';
 import {MoveList} from './movelist';
@@ -28,6 +29,7 @@ export class App implements WebsocketObserver {
   private boardArea: BoardArea;
   private jsHash?: string;
   private gameIsLive: boolean = false;
+  private audioPlayer: AudioPlayer;
 
   constructor() {
     this.gameSelection = new GameSelection(
@@ -43,6 +45,7 @@ export class App implements WebsocketObserver {
     this.multiPvView.addObserver(this);
     this.websocketFeed = new WebSocketFeed();
     this.websocketFeed.addObserver(this);
+    this.audioPlayer = new AudioPlayer();
     window.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Escape') this.moveList.unselectVariation();
     });
@@ -74,8 +77,8 @@ export class App implements WebsocketObserver {
     this.gameSelection.updateGames(games);
   }
   public onPositionReceived(position: WsPositionData[]): void {
-    this.moveList.updatePositions(
-        position.filter(p => p.gameId == this.curGameId));
+    const filteredPositions = position.filter(p => p.gameId == this.curGameId);
+    this.moveList.updatePositions(filteredPositions);
   }
   public onEvaluationReceived(evaluation: WsEvaluationData[]): void {
     let evals = evaluation.filter(
@@ -111,6 +114,7 @@ export class App implements WebsocketObserver {
   public onMoveSelected(
       position: WsPositionData, pos_changed: boolean,
       isOngoling: boolean): void {
+    const currentPly = this.curPly ?? -1;
     this.curPly = position.ply;
     const nextMove = this.moveList.getMoveAtPly(position.ply + 1)?.moveUci;
     this.boardArea.changePosition(
@@ -119,6 +123,11 @@ export class App implements WebsocketObserver {
       this.multiPvView.setPosition(position);
       this.websocketFeed.setPosition(position.ply);
       this.boardArea.resetSideBoardVisualization();
+
+      // Only play move sound when the next move is 1 ply ahead of the current position
+      if (position.ply === currentPly + 1) {
+        this.audioPlayer.playAudio(AudioEventType.MOVE);
+      }
     }
     this.boardArea.updatePosition(position);
   }
