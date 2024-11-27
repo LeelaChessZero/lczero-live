@@ -128,20 +128,40 @@ svg.board {
 
 /* Board */
 
+#hatched-pattern .background {
+    fill: transparent;
+}
+
+#hatched-pattern-lastmove .background {
+    fill: #eceeba;
+    /* fill: transparent; */
+}
+
+#hatched-pattern .hatch,
+#hatched-pattern-lastmove .hatch {
+    stroke: #555;
+    stroke-width: 0.7;
+}
+
 svg.main-board .square.dark {
-    fill: hsl(30, 10%, 55%);
+    --hatch-color: red;
+    fill: url(#hatched-pattern);
+    /* fill: hsl(30, 10%, 55%); */
 }
 
 svg.main-board .square.light {
-    fill: hsl(30, 15%, 81%);
+    fill: white;
+    /* fill: hsl(30, 15%, 81%); */
 }
 
 svg.main-board .square.dark.lastmove {
-    fill: #aaa23b;
+    /* fill: #aaa23b; */
+    fill: url(#hatched-pattern-lastmove);
 }
 
 svg.main-board .square.light.lastmove {
-    fill: #cdd16a;
+    fill: #eceeba;
+    /* fill: #cdd16a; */
 }
 
 svg.pv-board .square.dark {

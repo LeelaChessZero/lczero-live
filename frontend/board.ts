@@ -96,6 +96,7 @@ export class Board {
     svg.setAttribute('class', `board ${this.boardClass}`);
     const side = SQUARE_SIZE * 8 + 2 * this.border;
     svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
+    this.makePatterns(svg);
     this.renderBoard(svg);
     this.renderOutlines(svg);
     this.renderPieces(svg, false);
@@ -103,6 +104,33 @@ export class Board {
     this.renderPieces(svg, true);
     this.renderArrows(svg, true);
     this.element.appendChild(svg);
+  }
+
+  private makesDiagonalPattern(parent: SVGElement, name: string, size: number) {
+    const pattern = mkEl('pattern');
+    pattern.setAttribute('id', name);
+    pattern.setAttribute('width', size.toString());
+    pattern.setAttribute('height', size.toString());
+    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+    const rect = mkEl('rect');
+    rect.setAttribute('class', 'background');
+    rect.setAttribute('width', size.toString());
+    rect.setAttribute('height', size.toString());
+    pattern.appendChild(rect);
+    const path = mkEl('path');
+    path.setAttribute('class', 'hatch');
+    path.setAttribute('d', `M-1,1 l${size / 2},-${size / 2}
+           M0,${size} l${size},-${size}
+           M${size - 1},${size + 1} l${size / 2},-${size / 2}`);
+    pattern.appendChild(path);
+    parent.appendChild(pattern);
+  }
+
+  private makePatterns(parent: SVGElement): void {
+    const defs = mkEl('defs');
+    this.makesDiagonalPattern(defs, 'hatched-pattern', 7);
+    this.makesDiagonalPattern(defs, 'hatched-pattern-lastmove', 7);
+    parent.appendChild(defs);
   }
 
   private renderBoard(parent: SVGElement): void {
