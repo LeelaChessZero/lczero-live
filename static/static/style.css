@@ -89,10 +89,6 @@ body.dark {
     --bg-highlight-light: hsl(290, 30%, 20%);
     /* --text-on-highlight: #fff; */
 
-
-    --bg-highlight: hsl(290, 30%, 65%);
-    --bg-highlight-light: hsl(290, 51%, 90%);
-
     --board-main-dark: hsl(0, 0%, 27%);
     --board-main-light: hsl(0, 0%, 53%);
     --board-main-dark-lastmove: hsl(65, 40%, 35%);
@@ -137,7 +133,8 @@ body.dark {
 
     --nodesbar-border: hsla(290, 30%, 65%, 0.5);
 
-    --movelist-pv-divider: #ccc; */
+    --movelist-pv-divider: #ccc;
+    */
 }
 
 table {
