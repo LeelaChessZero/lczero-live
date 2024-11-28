@@ -1,5 +1,59 @@
 :root {
     box-sizing: border-box;
+    --bg-color: #eee;
+    --panel-color: #fff;
+    --text-on-black: #fff;
+    --text: #000;
+    --text-move-number: #666;
+
+    --bg-highlight: hsl(290, 30%, 65%);
+    --bg-highlight-light: hsl(290, 51%, 90%);
+    --text-on-highlight: #fff;
+
+    --board-main-dark: #ddd;
+    --board-main-light: #fff;
+    --board-main-dark-lastmove: hsl(65, 60%, 77%);
+    --board-main-light-lastmove: hsl(65, 60%, 88%);
+    --board-arrow-stroke: #333;
+    --board-arrow-0: rgba(65, 248, 233);
+    --board-arrow-1: rgb(214, 85, 85);
+    --board-arrow-2: rgb(0, 38, 255);
+    --board-arrow-3: rgb(255, 255, 255);
+    --board-arrow-4: rgb(236, 224, 48);
+    --board-arrow-5: rgb(0, 0, 0);
+    --board-arrow-6: rgb(138, 138, 136);
+    --board-arrow-7: rgb(102, 69, 248);
+    --board-arrow-8: rgb(255, 79, 217);
+    --board-arrow-9: rgb(102, 248, 65);
+    --board-outline: #e91d8d;
+
+
+    --board-pv-dark: hsl(290, 61%, 86%);
+    --board-pv-light: #fff;
+    --board-pv-dark-lastmove: hsl(240, 30%, 65%);
+    --board-pv-light-lastmove: hsl(200, 80%, 90%);
+    --board-pv-arrow-white: hsl(110, 100%, 80%);
+    --board-pv-arrow-black: hsl(110, 100%, 20%);
+
+    --vwdl-border: rgba(0, 0, 0, 0.8);
+    --vwdl-white: #eee;
+    --vwdl-draw: #bbb;
+    --vwdl-black: #555;
+    --vwdl-white-text: #666;
+    --vwdl-black-text: #ccc;
+    --vwdl-draw-text: #333;
+
+    --wdl-white: #eee;
+    --wdl-draw: #bbb;
+    --wdl-black: #555;
+    --wdl-white-text: #000;
+    --wdl-black-text: #fff;
+    --wdl-draw-text: #000;
+    --wdl-midline: #888;
+
+    --nodesbar-border: hsla(290, 30%, 65%, 0.5);
+
+    --movelist-pv-divider: #ccc;
 }
 
 *,
@@ -11,7 +65,7 @@
 body {
     font-family: verdana, Helvetica, Arial, sans-serif;
     font-size: 12px;
-    background-color: #eee;
+    background-color: var(--bg-color);
     margin: 0;
     padding: 0;
     display: flex;
@@ -31,7 +85,7 @@ table {
 /* Shared */
 
 .panel {
-    background-color: #fff;
+    background-color: var(--panel-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 10px;
     margin-bottom: 10px;
@@ -71,8 +125,8 @@ table {
 /* Banner */
 
 #banner {
-    background-color: hsl(290, 86%, 92%);
-    border: 1px solid hsl(290, 30%, 65%);
+    background-color: var(--bg-highlight-light);
+    border: 1px solid var(--bg-highlight);
     margin: auto;
     max-width: min(500px, 80%);
 }
@@ -128,50 +182,28 @@ svg.board {
 
 /* Board */
 
-#hatched-pattern .background {
-    fill: transparent;
-}
-
-#hatched-pattern-lastmove .background {
-    fill: #eceeba;
-    /* fill: transparent; */
-}
-
-#hatched-pattern .hatch,
-#hatched-pattern-lastmove .hatch {
-    stroke: #555;
-    stroke-width: 0.7;
-}
-
 svg.main-board .square.dark {
-    /* fill: url(#hatched-pattern); */
-    /* fill: hsl(30, 10%, 55%); */
-    fill: #dddddd;
+    fill: var(--board-main-dark);
 }
 
 svg.main-board .square.light {
-    fill: white;
-    /* fill: hsl(30, 15%, 81%); */
+    fill: var(--board-main-light);
 }
 
 svg.main-board .square.dark.lastmove {
-    /* fill: #aaa23b; */
-    fill: hsl(65, 60%, 77%);
-/* 
-    fill: url(#hatched-pattern-lastmove); */
+    fill: var(--board-main-dark-lastmove);
 }
 
 svg.main-board .square.light.lastmove {
-    fill: hsl(65, 60%, 88%);
-    /* fill: #cdd16a; */
+    fill: var(--board-main-light-lastmove);
 }
 
 svg.pv-board .square.dark {
-    fill: hsl(290, 30%, 65%);
+    fill: var(--board-pv-dark);
 }
 
 svg.pv-board .square.light {
-    fill: hsl(290, 30%, 100%);
+    fill: var(--board-pv-light);
 }
 
 svg.pv-board .square.dark.lastmove {
@@ -182,27 +214,10 @@ svg.pv-board .square.light.lastmove {
     fill: hsl(200, 80%, 90%);
 }
 
-svg.manual-board .square.dark {
-    fill: #d18b47;
-}
-
-svg.manual-board .square.light {
-    fill: #ffce9e;
-}
-
-svg.manual-board .square.dark.lastmove {
-    fill: #aaa23b;
-}
-
-svg.manual-board .square.light.lastmove {
-    fill: #cdd16a;
-}
-
-
 .arrow {
     fill-opacity: 0.75;
     stroke-width: 1px;
-    stroke: #333;
+    stroke: var(--board-arrow-stroke);
 }
 
 .arrow-variation-ply2 {
@@ -218,44 +233,43 @@ svg.manual-board .square.light.lastmove {
 }
 
 .arrow-variation0 {
-    fill: rgba(65, 248, 233);
+    fill: var(--board-arrow-0);
 }
 
 .arrow-variation1 {
-    fill: rgb(214, 85, 85);
+    fill: var(--board-arrow-1);
 }
 
 .arrow-variation2 {
-    fill: rgb(0, 38, 255);
+    fill: var(--board-arrow-2);
 }
 
-
 .arrow-variation3 {
-    fill: rgb(255, 255, 255);
+    fill: var(--board-arrow-3);
 }
 
 .arrow-variation4 {
-    fill: rgb(236, 224, 48);
+    fill: var(--board-arrow-4);
 }
 
 .arrow-variation5 {
-    fill: rgb(0, 0, 0);
+    fill: var(--board-arrow-5);
 }
 
 .arrow-variation6 {
-    fill: rgb(138, 138, 136);
+    fill: var(--board-arrow-6);
 }
 
 .arrow-variation7 {
-    fill: rgb(102, 69, 248);
+    fill: var(--board-arrow-7);
 }
 
 .arrow-variation8 {
-    fill: rgb(255, 79, 217);
+    fill: var(--board-arrow-8);
 }
 
 .arrow-variation9 {
-    fill: rgb(102, 248, 65);
+    fill: var(--board-arrow-9);
 }
 
 .arrow-ply2 {
@@ -270,13 +284,12 @@ svg.manual-board .square.light.lastmove {
     stroke-opacity: 1.0;
 }
 
-
 .arrow-variation-white {
-    fill: hsl(110, 100%, 80%);
+    fill: var(--board-pv-arrow-white);
 }
 
 .arrow-variation-black {
-    fill: hsl(110, 100%, 20%);
+    fill: var(--board-pv-arrow-black);
 }
 
 #board-score {
@@ -294,19 +307,19 @@ svg.vwdl-bar {
 }
 
 svg.vwdl-bar .vwdl-white {
-    fill: #eee;
+    fill: var(--vwdl-white);
 }
 
 svg.vwdl-bar .vwdl-draw {
-    fill: #bbb;
+    fill: var(--vwdl-draw);
 }
 
 svg.vwdl-bar .vwdl-black {
-    fill: #555;
+    fill: var(--vwdl-black);
 }
 
 svg.vwdl-bar .vwdl-outer {
-    stroke: rgba(0, 0, 0, 0.8);
+    stroke: var(--vwdl-border);
     fill: transparent;
 }
 
@@ -329,30 +342,30 @@ svg.vwdl-bar .vwdl-middle-text {
 }
 
 svg.vwdl-bar .vwdl-black-text {
-    fill: #ccc;
+    fill: var(--vwdl-black-text);
 }
 
 svg.vwdl-bar .vwdl-black-text-shadow {
     stroke-width: 2px;
-    stroke: #555;
+    stroke: var(--vwdl-black);
 }
 
 svg.vwdl-bar .vwdl-white-text {
-    fill: #666;
+    fill: var(--vwdl-white-text);
 }
 
 svg.vwdl-bar .vwdl-white-text-shadow {
     stroke-width: 2px;
-    stroke: #eee;
+    stroke: var(--vwdl-white);
 }
 
 svg.vwdl-bar .vwdl-draw-text {
-    fill: #333;
+    fill: var(--vwdl-draw-text);
 }
 
 svg.vwdl-bar .vwdl-draw-text-shadow {
     stroke-width: 2;
-    stroke: #bbb;
+    stroke: var(--vwdl-draw);
 }
 
 /* Movelist */
@@ -373,7 +386,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 #pv-view {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--movelist-pv-divider);
     flex: 1;
     overflow-y: auto;
     display: none;
@@ -407,7 +420,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 }
 
 .movelist-selected {
-    background-color: hsl(290, 30%, 65%);
+    background-color: var(--bg-highlight);
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -454,7 +467,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 
 #pv-view-close {
     font-size: 24px;
-    color: #333;
+    color: var(--text);
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -466,7 +479,7 @@ svg.vwdl-bar .vwdl-draw-text-shadow {
 }
 
 #pv-view-close:hover {
-    color: hsl(290, 30%, 65%);
+    color: var(--bg-highlight);
 }
 
 /* WDL bar */
@@ -483,39 +496,30 @@ svg.wdl-bar .wdl-outer {
 }
 
 svg.wdl-bar .wdl-white {
-    fill: #eee;
+    fill: var(--wdl-white);
 }
 
 svg.wdl-bar .wdl-draw {
-    fill: #bbb;
+    fill: var(--wdl-draw);
 }
 
 svg.wdl-bar .wdl-black {
-    fill: #555;
+    fill: var(--wdl-black);
 }
 
 svg.wdl-bar .wdl-midline {
-    stroke: #888;
+    stroke: var(--wdl-midline);
     stroke-width: 0.5px;
 }
 
 svg.wdl-bar .wdl-middle {
-    stroke: hsl(290, 30%, 65%);
+    stroke: var(--bg-highlight);
     stroke-width: 2px;
 }
 
 svg.wdl-bar .text {
     font-family: verdana, Helvetica, Arial, sans-serif;
     dominant-baseline: middle;
-}
-
-svg.wdl-bar .wdl-white-text-shadow {
-    stroke-width: 2;
-    stroke: #eee;
-}
-
-svg.wdl-bar .wdl-white-text {
-    fill: #000;
 }
 
 svg.wdl-bar .wdl-text-right {
@@ -526,22 +530,31 @@ svg.wdl-bar .wdl-text-center {
     text-anchor: middle;
 }
 
+svg.wdl-bar .wdl-white-text-shadow {
+    stroke-width: 2;
+    stroke: #eee;
+}
+
+svg.wdl-bar .wdl-white-text {
+    fill: var(--wdl-white-text);
+}
+
 svg.wdl-bar .wdl-black-text-shadow {
     stroke-width: 2;
-    stroke: #555;
+    stroke: var(--wdl-black);
 }
 
 svg.wdl-bar .wdl-black-text {
-    fill: #fff;
+    fill: var(--wdl-black-text);
 }
 
 svg.wdl-bar .wdl-draw-text-shadow {
     stroke-width: 2;
-    stroke: #bbb;
+    stroke: var(--wdl-draw);
 }
 
 svg.wdl-bar .wdl-draw-text {
-    fill: #000;
+    fill: var(--wdl-draw-text);
 }
 
 /* Analysis pane */
@@ -568,7 +581,7 @@ svg.wdl-bar .wdl-draw-text {
 
 .legend {
     stroke-width: 1px;
-    stroke: black;
+    stroke: var(--text);
 }
 
 #multipv-view {
@@ -591,23 +604,23 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .pv-row:hover {
-    background-color: hsla(290, 30%, 65%, 0.2);
+    background-color: var(--bg-highlight-light);
 }
 
 .row-move-played {
-    background-color: hsl(290, 30%, 65%);
-    color: #fff;
+    background-color: var(--bg-highlight);
+    color: var(--text-on-highlight);
 }
 
 .square-outline {
-    stroke: #e91d8d;
+    stroke: var(--board-outline);
     stroke-width: 2px;
     stroke-linejoin: round;
     fill: transparent;
 }
 
 .square-outline-dst {
-    stroke: #e91d8d;
+    stroke: var(--board-outline);
     stroke-width: 5px;
     stroke-linejoin: round;
     fill: transparent;
@@ -621,7 +634,7 @@ svg.wdl-bar .wdl-draw-text {
 
 .move-number {
     font-size: 8px;
-    color: #666;
+    color: var(--text-move-number);
 }
 
 .pv-move {
@@ -630,12 +643,12 @@ svg.wdl-bar .wdl-draw-text {
 }
 
 .pv-move-selected {
-    background-color: hsla(290, 30%, 65%);
-    color: #fff;
+    background-color: var(--bg-highlight);
+    color: var(--text-on-highlight);
 }
 
 .pv-selectable-move:hover {
-    background-color: hsl(290, 30%, 65%);
+    background-color: var(--bg-highlight);
 }
 
 /* Nodes bar */
@@ -647,17 +660,17 @@ svg.nodes-bar {
 }
 
 svg.nodes-bar .nodes-outer {
-    stroke: hsla(290, 30%, 65%, 0.5);
+    stroke: var(--nodesbar-border);
     fill: transparent;
 }
 
 svg.nodes-bar .nodes-inner {
-    fill: hsl(290, 30%, 65%);
+    fill: var(--bg-highlight);
 }
 
 svg.nodes-bar .text-onbar {
     font-family: verdana, Helvetica, Arial, sans-serif;
-    fill: #fff;
+    fill: var(--text-on-highlight);
     dominant-baseline: middle;
 }
 
