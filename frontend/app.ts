@@ -48,6 +48,11 @@ export class App implements WebsocketObserver {
     document.addEventListener('click', event => {
       if (!event.defaultPrevented) this.moveList.unselectVariation();
     });
+
+    document.getElementById('dark-mode-toggle')!.addEventListener(
+        'click', () => {
+          document.body.classList.toggle('dark');
+        });
   }
 
   public onConnect(): void {

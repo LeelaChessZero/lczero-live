@@ -10,7 +10,7 @@
     --bg-highlight-light: hsl(290, 51%, 90%);
     --text-on-highlight: #fff;
 
-    --board-main-dark: #ddd;
+    --board-main-dark: #ccc;
     --board-main-light: #fff;
     --board-main-dark-lastmove: hsl(65, 60%, 77%);
     --board-main-light-lastmove: hsl(65, 60%, 88%);
@@ -37,14 +37,14 @@
 
     --vwdl-border: rgba(0, 0, 0, 0.8);
     --vwdl-white: #eee;
-    --vwdl-draw: #bbb;
+    --vwdl-draw: #ccc;
     --vwdl-black: #555;
     --vwdl-white-text: #666;
     --vwdl-black-text: #ccc;
     --vwdl-draw-text: #333;
 
     --wdl-white: #eee;
-    --wdl-draw: #bbb;
+    --wdl-draw: #ccc;
     --wdl-black: #555;
     --wdl-white-text: #000;
     --wdl-black-text: #fff;
@@ -71,6 +71,73 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+}
+
+body.dark select {
+    color: #d6d6d6;
+    background-color: #2e2e2e;
+}
+
+body.dark {
+    color: #d6d6d6;
+    --panel-color: #2e2e2e;
+    --bg-color: #1e1e1e;
+    --text: #d6d6d6;
+    --text-move-number: #aaa;
+
+    --bg-highlight: hsl(290, 30%, 35%);
+    --bg-highlight-light: hsl(290, 30%, 20%);
+    /* --text-on-highlight: #fff; */
+
+
+    --bg-highlight: hsl(290, 30%, 65%);
+    --bg-highlight-light: hsl(290, 51%, 90%);
+
+    --board-main-dark: hsl(0, 0%, 27%);
+    --board-main-light: hsl(0, 0%, 53%);
+    --board-main-dark-lastmove: hsl(65, 40%, 35%);
+    --board-main-light-lastmove: hsl(65, 20%, 40%);
+    --board-arrow-stroke: #000;
+    /*
+    --board-arrow-stroke: #333;
+    --board-arrow-0: rgba(65, 248, 233);
+    --board-arrow-1: rgb(214, 85, 85);
+    --board-arrow-2: rgb(0, 38, 255);
+    --board-arrow-3: rgb(255, 255, 255);
+    --board-arrow-4: rgb(236, 224, 48);
+    --board-arrow-5: rgb(0, 0, 0);
+    --board-arrow-6: rgb(138, 138, 136);
+    --board-arrow-7: rgb(102, 69, 248);
+    --board-arrow-8: rgb(255, 79, 217);
+    --board-arrow-9: rgb(102, 248, 65);
+    --board-outline: #e91d8d; */
+
+    --board-pv-dark: hsl(0, 0%, 27%);
+    --board-pv-light: hsl(290, 61%, 86%);
+    --board-pv-dark-lastmove: hsl(240, 30%, 65%);
+    --board-pv-light-lastmove: hsl(200, 80%, 90%);
+    --board-pv-arrow-white: hsl(110, 100%, 80%);
+    --board-pv-arrow-black: hsl(110, 100%, 20%);
+
+    --vwdl-border: rgba(0, 0, 0, 0.8);
+    --vwdl-white: #ccc;
+    --vwdl-draw: #777;
+    --vwdl-black: #000;
+    --vwdl-white-text: #444;
+    --vwdl-black-text: #999;
+    --vwdl-draw-text: #ccc;
+
+    --wdl-white: #ccc;
+    --wdl-draw: #777;
+    --wdl-black: #000000;
+    --wdl-white-text: #000;
+    --wdl-black-text: #fff;
+    --wdl-draw-text: #fff;
+    --wdl-midline: #888;
+
+    --nodesbar-border: hsla(290, 30%, 65%, 0.5);
+
+    --movelist-pv-divider: #ccc; */
 }
 
 table {
@@ -120,6 +187,12 @@ table {
 
 #connection-status {
     text-align: right;
+}
+
+#dark-mode-toggle {
+    margin: 5px;
+    font-size: 24px;
+    cursor: pointer;
 }
 
 /* Banner */
@@ -532,7 +605,7 @@ svg.wdl-bar .wdl-text-center {
 
 svg.wdl-bar .wdl-white-text-shadow {
     stroke-width: 2;
-    stroke: #eee;
+    stroke: var(--wdl-white);
 }
 
 svg.wdl-bar .wdl-white-text {
@@ -676,7 +749,7 @@ svg.nodes-bar .text-onbar {
 
 svg.nodes-bar .text-offbar {
     font-family: verdana, Helvetica, Arial, sans-serif;
-    fill: #000;
+    fill: var(--text);
     dominant-baseline: middle;
 }
 
