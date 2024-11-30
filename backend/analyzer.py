@@ -313,10 +313,10 @@ class Analyzer:
                 )
             )
             welo: int = game.player1_rating + wmtime
-            belo: int = game.player2_rating + bmtime
-            options["ClearTree"] = "true"
+            # belo: int = game.player2_rating + bmtime
+            # options["ClearTree"] = "true"
             options["WDLCalibrationElo"] = str(welo)
-            options["Contempt"] = str(welo - belo)
+            # options["Contempt"] = str(welo - belo)
             options["ContemptMode"] = "white_side_analysis"
             options["WDLDrawRateReference"] = "0.64"
             options["WDLEvalObjectivity"] = "0.0"
