@@ -40,7 +40,7 @@ export class AudioPlayer {
   constructor() {
     this.sounds = new Map();
     const context = new AudioContext();
-    this.addSound(context, AudioEventType.MOVE, 'static/public_sound_standard_Move.mp3');
+    this.addSound(context, AudioEventType.MOVE, 'static/chess_move.mp3');
   }
 
   private async addSound(context: AudioContext, eventType: AudioEventType, path: string): Promise<void> { 
